@@ -17,6 +17,16 @@ void clearScreen() {
     printf("\033[H\033[J"); // ANSI 이스케이프 코드를 사용해 화면을 지움
 }
 
+// 메모리 해제 함수
+void freeRecords(Record* head) {
+    Record* current = head;
+    while (current != NULL) {
+        Record* temp = current;
+        current = current->next;
+        free(temp);
+    }
+}
+
 // 데이터베이스 파일에서 항목을 로드하는 함수 (수정된 버전)
 Record* loadRecordsFromFile(const char* filename) {
     FILE* file = fopen(filename, "r");
@@ -116,30 +126,75 @@ void calculateMonthlyExpenses(Record* head, int monthlyExpenses[12]) {
     }
 }
 
+// 특정 월의 지출 내역을 날짜순으로 정렬하는 함수
+void sortRecordsByDate(Record** head) {
+    if (*head == NULL || (*head)->next == NULL) {
+        return;
+    }
+
+    Record* sorted = NULL;
+    Record* current = *head;
+    while (current != NULL) {
+        Record* next = current->next;
+        if (sorted == NULL || strcmp(current->date, sorted->date) < 0) {
+            current->next = sorted;
+            sorted = current;
+        }
+        else {
+            Record* temp = sorted;
+            while (temp->next != NULL && strcmp(temp->next->date, current->date) < 0) {
+                temp = temp->next;
+            }
+            current->next = temp->next;
+            temp->next = current;
+        }
+        current = next;
+    }
+    *head = sorted;
+}
+
 // 특정 월의 지출 내역 출력 함수
 void printMonthlyDetails(Record* head, int month) {
     Record* current = head;
-    printf("\n%d월의 지출 내역:\n", month);
+    Record* monthlyHead = NULL;
+    Record* monthlyCurrent = NULL;
+
     while (current != NULL) {
         if (current->type == '-') {
             int recordMonth;
             sscanf(current->date, "%*4d%2d", &recordMonth);
             if (recordMonth == month) {
-                printf("날짜: %s, 금액: %d원, 이유: %s\n", current->date, current->amount, current->description);
+                Record* newRecord = (Record*)malloc(sizeof(Record));
+                if (newRecord == NULL) {
+                    fprintf(stderr, "메모리 할당에 실패했습니다.\n");
+                    exit(1);
+                }
+                *newRecord = *current;
+                newRecord->next = NULL;
+
+                if (monthlyHead == NULL) {
+                    monthlyHead = newRecord;
+                }
+                else {
+                    monthlyCurrent->next = newRecord;
+                }
+                monthlyCurrent = newRecord;
             }
         }
         current = current->next;
     }
-}
 
-// 메모리 해제 함수
-void freeRecords(Record* head) {
-    Record* current = head;
-    while (current != NULL) {
-        Record* temp = current;
-        current = current->next;
-        free(temp);
+    sortRecordsByDate(&monthlyHead);
+
+    printf("\n%d월의 지출 내역:\n", month);
+    monthlyCurrent = monthlyHead;
+    while (monthlyCurrent != NULL) {
+        printf("날짜: %s, 금액: %d원, 이유: %s\n", monthlyCurrent->date, monthlyCurrent->amount, monthlyCurrent->description);
+        monthlyCurrent = monthlyCurrent->next;
     }
+
+    // 정렬된 월별 기록 메모리 해제
+    freeRecords(monthlyHead);
 }
 
 int main() {
@@ -148,7 +203,7 @@ int main() {
 
     while (1) {
         int balance = calculateBalance(records);
-        printf("\n잔액: %d\n", balance);
+        printf("잔액: %d\n", balance);
 
         // 월별 지출 계산 및 출력
         int monthlyExpenses[12] = { 0 };
