@@ -3,76 +3,76 @@
 #include <string.h>
 
 #define NAME_LENGTH 100
-char dummy;  // getchar °æ°í ¾ø¾Ö±â ¿ëµµ
+char dummy;  // getchar ê²½ê³  ì—†ì• ê¸° ìš©ë„
 
 void clearScreen() {
-    printf("\033[H\033[J"); // ANSI ÀÌ½ºÄÉÀÌÇÁ ÄÚµå¸¦ »ç¿ëÇØ È­¸éÀ» Áö¿ò
+    printf("\033[H\033[J"); // ANSI ì´ìŠ¤ì¼€ì´í”„ ì½”ë“œë¥¼ ì‚¬ìš©í•´ í™”ë©´ì„ ì§€ì›€
 }
 
-// Ç×¸ñ ±¸Á¶Ã¼ Á¤ÀÇ
+// í•­ëª© êµ¬ì¡°ì²´ ì •ì˜
 typedef struct Item {
     char name[NAME_LENGTH];
-    struct ItemList* children; // ÀÚ½Ä Ç×¸ñ ¸®½ºÆ®
+    struct ItemList* children; // ìì‹ í•­ëª© ë¦¬ìŠ¤íŠ¸
 } Item;
 
-// Ç×¸ñ ¸®½ºÆ® ±¸Á¶Ã¼ Á¤ÀÇ
+// í•­ëª© ë¦¬ìŠ¤íŠ¸ êµ¬ì¡°ì²´ ì •ì˜
 typedef struct ItemList {
     Item** items;
     int size;
     int capacity;
 } ItemList;
 
-// ¸®½ºÆ® ÃÊ±âÈ­ ÇÔ¼ö
+// ë¦¬ìŠ¤íŠ¸ ì´ˆê¸°í™” í•¨ìˆ˜
 void initItemList(ItemList* list) {
     list->size = 0;
-    list->capacity = 2;  // ÃÊ±â ¿ë·®
+    list->capacity = 2;  // ì´ˆê¸° ìš©ëŸ‰
     list->items = (Item**)malloc(list->capacity * sizeof(Item*));
     if (list->items == NULL) {
-        fprintf(stderr, "¸Ş¸ğ¸® ÇÒ´ç ½ÇÆĞ\n");
+        fprintf(stderr, "ë©”ëª¨ë¦¬ í• ë‹¹ ì‹¤íŒ¨\n");
         exit(1);
     }
 }
 
-// ¸®½ºÆ® È®Àå ÇÔ¼ö
+// ë¦¬ìŠ¤íŠ¸ í™•ì¥ í•¨ìˆ˜
 void resizeItemList(ItemList* list) {
     list->capacity *= 2;
     list->items = (Item**)realloc(list->items, list->capacity * sizeof(Item*));
     if (list->items == NULL) {
-        fprintf(stderr, "¸Ş¸ğ¸® ÀçÇÒ´ç ½ÇÆĞ\n");
+        fprintf(stderr, "ë©”ëª¨ë¦¬ ì¬í• ë‹¹ ì‹¤íŒ¨\n");
         exit(1);
     }
 }
 
-// »õ·Î¿î Ç×¸ñ Ãß°¡ ÇÔ¼ö
+// ìƒˆë¡œìš´ í•­ëª© ì¶”ê°€ í•¨ìˆ˜
 void addItem(ItemList* list, const char* itemName) {
     if (list->size >= list->capacity) {
         resizeItemList(list);
     }
     Item* newItem = (Item*)malloc(sizeof(Item));
     if (newItem == NULL) {
-        fprintf(stderr, "¸Ş¸ğ¸® ÇÒ´ç ½ÇÆĞ\n");
+        fprintf(stderr, "ë©”ëª¨ë¦¬ í• ë‹¹ ì‹¤íŒ¨\n");
         exit(1);
     }
     strcpy(newItem->name, itemName);
     newItem->children = (ItemList*)malloc(sizeof(ItemList));
     if (newItem->children == NULL) {
-        fprintf(stderr, "¸Ş¸ğ¸® ÇÒ´ç ½ÇÆĞ\n");
+        fprintf(stderr, "ë©”ëª¨ë¦¬ í• ë‹¹ ì‹¤íŒ¨\n");
         exit(1);
     }
     initItemList(newItem->children);
     list->items[list->size++] = newItem;
-    printf("Ç×¸ñ '%s' Ãß°¡ ¿Ï·á!\n", itemName);
+    printf("í•­ëª© '%s' ì¶”ê°€ ì™„ë£Œ!\n", itemName);
 }
 
-// Ç×¸ñ ¸ñ·Ï Ãâ·Â ÇÔ¼ö
+// í•­ëª© ëª©ë¡ ì¶œë ¥ í•¨ìˆ˜
 void printItemList(const ItemList* list) {
-    printf("\nÇ×¸ñ ¸ñ·Ï:\n");
+    printf("\ní•­ëª© ëª©ë¡:\n");
     for (int i = 0; i < list->size; i++) {
         printf("%d. %s\n", i + 1, list->items[i]->name);
     }
 }
 
-// Ç×¸ñ ¸Ş¸ğ¸® ÇØÁ¦ ÇÔ¼ö
+// í•­ëª© ë©”ëª¨ë¦¬ í•´ì œ í•¨ìˆ˜
 void freeItem(Item* item) {
     for (int i = 0; i < item->children->size; i++) {
         freeItem(item->children->items[i]);
@@ -82,7 +82,7 @@ void freeItem(Item* item) {
     free(item);
 }
 
-// ¸®½ºÆ® ¸Ş¸ğ¸® ÇØÁ¦ ÇÔ¼ö
+// ë¦¬ìŠ¤íŠ¸ ë©”ëª¨ë¦¬ í•´ì œ í•¨ìˆ˜
 void freeItemList(ItemList* list) {
     for (int i = 0; i < list->size; i++) {
         freeItem(list->items[i]);
@@ -90,10 +90,10 @@ void freeItemList(ItemList* list) {
     free(list->items);
 }
 
-// Ç×¸ñ »èÁ¦ ÇÔ¼ö
+// í•­ëª© ì‚­ì œ í•¨ìˆ˜
 void deleteItem(ItemList* list, int index) {
     if (index < 0 || index >= list->size) {
-        printf("Àß¸øµÈ ÀÎµ¦½ºÀÔ´Ï´Ù.\n");
+        printf("ì˜ëª»ëœ ì¸ë±ìŠ¤ì…ë‹ˆë‹¤.\n");
         return;
     }
     freeItem(list->items[index]);
@@ -101,20 +101,20 @@ void deleteItem(ItemList* list, int index) {
         list->items[i] = list->items[i + 1];
     }
     list->size--;
-    printf("Ç×¸ñ »èÁ¦ ¿Ï·á!\n");
+    printf("í•­ëª© ì‚­ì œ ì™„ë£Œ!\n");
 }
 
-// Ç×¸ñ ÀÌ¸§ ¼öÁ¤ ÇÔ¼ö
+// í•­ëª© ì´ë¦„ ìˆ˜ì • í•¨ìˆ˜
 void editItemName(Item* item, const char* newName) {
     strcpy(item->name, newName);
-    printf("Ç×¸ñ ÀÌ¸§ÀÌ '%s'·Î º¯°æµÇ¾ú½À´Ï´Ù.\n", newName);
+    printf("í•­ëª© ì´ë¦„ì´ '%s'ë¡œ ë³€ê²½ë˜ì—ˆìŠµë‹ˆë‹¤.\n", newName);
 }
 
-// µ¥ÀÌÅÍº£ÀÌ½º¸¦ ÆÄÀÏ¿¡ ÀúÀåÇÏ´Â ÇÔ¼ö
+// ë°ì´í„°ë² ì´ìŠ¤ë¥¼ íŒŒì¼ì— ì €ì¥í•˜ëŠ” í•¨ìˆ˜
 void saveItemListToFile(const ItemList* list, FILE* file) {
-    fprintf(file, "%d\n", list->size);  // ÇöÀç ¸®½ºÆ® Å©±â ÀúÀå
+    fprintf(file, "%d\n", list->size);  // í˜„ì¬ ë¦¬ìŠ¤íŠ¸ í¬ê¸° ì €ì¥
     for (int i = 0; i < list->size; i++) {
-        fprintf(file, "%s\n", list->items[i]->name);  // Ç×¸ñ ÀÌ¸§ ÀúÀå
+        fprintf(file, "%s\n", list->items[i]->name);  // í•­ëª© ì´ë¦„ ì €ì¥
         saveItemListToFile(list->items[i]->children, file);
     }
 }
@@ -122,18 +122,18 @@ void saveItemListToFile(const ItemList* list, FILE* file) {
 void saveDatabaseToFile(const char* filename, const ItemList* rootList) {
     FILE* file = fopen(filename, "w");
     if (file == NULL) {
-        fprintf(stderr, "ÆÄÀÏ ÀúÀå ½ÇÆĞ\n");
+        fprintf(stderr, "íŒŒì¼ ì €ì¥ ì‹¤íŒ¨\n");
         return;
     }
     saveItemListToFile(rootList, file);
     fclose(file);
-    printf("µ¥ÀÌÅÍº£ÀÌ½º°¡ ÆÄÀÏ¿¡ ÀúÀåµÇ¾ú½À´Ï´Ù.\n");
+    printf("ë°ì´í„°ë² ì´ìŠ¤ê°€ íŒŒì¼ì— ì €ì¥ë˜ì—ˆìŠµë‹ˆë‹¤.\n");
 }
 
-// ÆÄÀÏ¿¡¼­ µ¥ÀÌÅÍº£ÀÌ½º¸¦ ºÒ·¯¿À´Â ÇÔ¼ö
+// íŒŒì¼ì—ì„œ ë°ì´í„°ë² ì´ìŠ¤ë¥¼ ë¶ˆëŸ¬ì˜¤ëŠ” í•¨ìˆ˜
 void loadItemListFromFile(ItemList* list, FILE* file) {
     int size;
-    if (fscanf(file, "%d\n", &size) != 1) {  // Ç×¸ñ ¼ö¸¦ ÀĞ¾î¿È
+    if (fscanf(file, "%d\n", &size) != 1) {  // í•­ëª© ìˆ˜ë¥¼ ì½ì–´ì˜´
         return;
     }
     for (int i = 0; i < size; i++) {
@@ -141,7 +141,7 @@ void loadItemListFromFile(ItemList* list, FILE* file) {
         if (fgets(itemName, sizeof(itemName), file) == NULL) {
             return;
         }
-        itemName[strcspn(itemName, "\n")] = '\0';  // °³Çà ¹®ÀÚ Á¦°Å
+        itemName[strcspn(itemName, "\n")] = '\0';  // ê°œí–‰ ë¬¸ì ì œê±°
         addItem(list, itemName);
         loadItemListFromFile(list->items[list->size - 1]->children, file);
     }
@@ -150,12 +150,12 @@ void loadItemListFromFile(ItemList* list, FILE* file) {
 void loadDatabaseFromFile(const char* filename, ItemList* rootList) {
     FILE* file = fopen(filename, "r");
     if (file == NULL) {
-        printf("ÀúÀåµÈ µ¥ÀÌÅÍº£ÀÌ½º ÆÄÀÏÀÌ ¾ø½À´Ï´Ù.\n");
+        printf("ì €ì¥ëœ ë°ì´í„°ë² ì´ìŠ¤ íŒŒì¼ì´ ì—†ìŠµë‹ˆë‹¤.\n");
         return;
     }
     loadItemListFromFile(rootList, file);
     fclose(file);
-    printf("µ¥ÀÌÅÍº£ÀÌ½º°¡ ÆÄÀÏ¿¡¼­ ·ÎµåµÇ¾ú½À´Ï´Ù.\n");
+    printf("ë°ì´í„°ë² ì´ìŠ¤ê°€ íŒŒì¼ì—ì„œ ë¡œë“œë˜ì—ˆìŠµë‹ˆë‹¤.\n");
 }
 
 void navigateItem(Item* item) {
@@ -164,40 +164,40 @@ void navigateItem(Item* item) {
 
     while (1) {
         clearScreen();
-        printf("\nÇöÀç À§Ä¡: %s\n", item->name);
-        printf("1. »õ Ç×¸ñ Ãß°¡\n");
-        printf("2. Ç×¸ñ ¸ñ·Ï Ãâ·Â\n");
-        printf("3. Ç×¸ñ »èÁ¦\n");
-        printf("4. »óÀ§ ¸Ş´º·Î µ¹¾Æ°¡±â\n");
-        printf("¼±ÅÃ: ");
+        printf("\ní˜„ì¬ ìœ„ì¹˜: %s\n", item->name);
+        printf("1. ìƒˆ í•­ëª© ì¶”ê°€\n");
+        printf("2. í•­ëª© ëª©ë¡ ì¶œë ¥\n");
+        printf("3. í•­ëª© ì‚­ì œ\n");
+        printf("4. ìƒìœ„ ë©”ë‰´ë¡œ ëŒì•„ê°€ê¸°\n");
+        printf("ì„ íƒ: ");
         scanf("%d", &choice);
-        dummy = getchar(); // ¹öÆÛ ºñ¿ì±â
+        dummy = getchar(); // ë²„í¼ ë¹„ìš°ê¸°
 
         switch (choice) {
         case 1:
-            printf("\nÃß°¡ÇÒ Ç×¸ñ ÀÌ¸§À» ÀÔ·ÂÇÏ¼¼¿ä: ");
+            printf("\nì¶”ê°€í•  í•­ëª© ì´ë¦„ì„ ì…ë ¥í•˜ì„¸ìš”: ");
             fgets(itemName, sizeof(itemName), stdin);
-            itemName[strcspn(itemName, "\n")] = '\0';  // °³Çà ¹®ÀÚ Á¦°Å
+            itemName[strcspn(itemName, "\n")] = '\0';  // ê°œí–‰ ë¬¸ì ì œê±°
             addItem(item->children, itemName);
             break;
         case 2:
             printItemList(item->children);
-            printf("\n\n¾Æ¹« Å°³ª ´©¸£¸é °è¼ÓÇÕ´Ï´Ù...");
+            printf("\n\nì•„ë¬´ í‚¤ë‚˜ ëˆ„ë¥´ë©´ ê³„ì†í•©ë‹ˆë‹¤...");
             dummy = getchar();
             break;
         case 3:
             if (item->children->size == 0) {
-                printf("»èÁ¦ÇÒ Ç×¸ñÀÌ ¾ø½À´Ï´Ù. ¾Æ¹« Å°³ª ´©¸£¸é ¸Ş´º·Î µ¹¾Æ°©´Ï´Ù...");
+                printf("ì‚­ì œí•  í•­ëª©ì´ ì—†ìŠµë‹ˆë‹¤. ì•„ë¬´ í‚¤ë‚˜ ëˆ„ë¥´ë©´ ë©”ë‰´ë¡œ ëŒì•„ê°‘ë‹ˆë‹¤...");
                 dummy = getchar();
                 break;
             }
             printItemList(item->children);
-            printf("\n»èÁ¦ÇÒ Ç×¸ñ ¹øÈ£¸¦ ÀÔ·ÂÇÏ¼¼¿ä (0À» ÀÔ·ÂÇÏ¸é Ãë¼ÒµË´Ï´Ù): ");
+            printf("\nì‚­ì œí•  í•­ëª© ë²ˆí˜¸ë¥¼ ì…ë ¥í•˜ì„¸ìš” (0ì„ ì…ë ¥í•˜ë©´ ì·¨ì†Œë©ë‹ˆë‹¤): ");
             int deleteIndex;
             scanf("%d", &deleteIndex);
-            dummy = getchar();  // ¹öÆÛ ºñ¿ì±â
+            dummy = getchar();  // ë²„í¼ ë¹„ìš°ê¸°
             if (deleteIndex == 0) {
-                printf("»èÁ¦¸¦ Ãë¼ÒÇß½À´Ï´Ù.\n");
+                printf("ì‚­ì œë¥¼ ì·¨ì†Œí–ˆìŠµë‹ˆë‹¤.\n");
                 dummy = getchar();
                 break;
             }
@@ -205,15 +205,15 @@ void navigateItem(Item* item) {
                 deleteItem(item->children, deleteIndex - 1);
             }
             else {
-                printf("Àß¸øµÈ ¼±ÅÃÀÔ´Ï´Ù. ¾Æ¹« Å°³ª ´©¸£¸é °è¼ÓÇÕ´Ï´Ù...");
+                printf("ì˜ëª»ëœ ì„ íƒì…ë‹ˆë‹¤. ì•„ë¬´ í‚¤ë‚˜ ëˆ„ë¥´ë©´ ê³„ì†í•©ë‹ˆë‹¤...");
                 dummy = getchar();
             }
             break;
         case 4:
             return;
         default:
-            printf("Àß¸øµÈ ¼±ÅÃÀÔ´Ï´Ù. ´Ù½Ã ½ÃµµÇØÁÖ¼¼¿ä.\n");
-            printf("\n¾Æ¹« Å°³ª ´©¸£¸é °è¼ÓÇÕ´Ï´Ù...");
+            printf("ì˜ëª»ëœ ì„ íƒì…ë‹ˆë‹¤. ë‹¤ì‹œ ì‹œë„í•´ì£¼ì„¸ìš”.\n");
+            printf("\nì•„ë¬´ í‚¤ë‚˜ ëˆ„ë¥´ë©´ ê³„ì†í•©ë‹ˆë‹¤...");
             dummy = getchar();
         }
     }
@@ -223,44 +223,44 @@ int main() {
     ItemList rootList;
     initItemList(&rootList);
 
-    loadDatabaseFromFile("database.txt", &rootList);  // ÇÁ·Î±×·¥ ½ÃÀÛ ½Ã µ¥ÀÌÅÍ ·Îµå
+    loadDatabaseFromFile("database.txt", &rootList);  // í”„ë¡œê·¸ë¨ ì‹œì‘ ì‹œ ë°ì´í„° ë¡œë“œ
 
     char itemName[NAME_LENGTH];
     int choice;
 
     while (1) {
         clearScreen();
-        printf("\n========== ¸Ş´º ==========");
-        printf("\n1. »õ Ç×¸ñ Ãß°¡\n");
-        printf("2. Ç×¸ñ »èÁ¦\n");
-        printf("3. Ç×¸ñ ¼öÁ¤\n");
-        printf("4. Ç×¸ñ ¼±ÅÃ\n");
-        printf("5. Á¾·á\n");
+        printf("\n========== ë©”ë‰´ ==========");
+        printf("\n1. ìƒˆ í•­ëª© ì¶”ê°€\n");
+        printf("2. í•­ëª© ì‚­ì œ\n");
+        printf("3. í•­ëª© ìˆ˜ì •\n");
+        printf("4. í•­ëª© ì„ íƒ\n");
+        printf("5. ì¢…ë£Œ\n");
         printf("==========================\n");
-        printf("¼±ÅÃ: ");
+        printf("ì„ íƒ: ");
         scanf("%d", &choice);
-        dummy = getchar();  // ¹öÆÛ ºñ¿ì±â
+        dummy = getchar();  // ë²„í¼ ë¹„ìš°ê¸°
 
         switch (choice) {
         case 1:
-            printf("\nÃß°¡ÇÒ Ç×¸ñ ÀÌ¸§À» ÀÔ·ÂÇÏ¼¼¿ä: ");
+            printf("\nì¶”ê°€í•  í•­ëª© ì´ë¦„ì„ ì…ë ¥í•˜ì„¸ìš”: ");
             fgets(itemName, sizeof(itemName), stdin);
-            itemName[strcspn(itemName, "\n")] = '\0';  // °³Çà ¹®ÀÚ Á¦°Å
+            itemName[strcspn(itemName, "\n")] = '\0';  // ê°œí–‰ ë¬¸ì ì œê±°
             addItem(&rootList, itemName);
             break;
         case 2:
             if (rootList.size == 0) {
-                printf("Ç×¸ñÀÌ ¾ø½À´Ï´Ù. ¾Æ¹« Å°³ª ´©¸£¸é ¸Ş´º·Î µ¹¾Æ°©´Ï´Ù...");
+                printf("í•­ëª©ì´ ì—†ìŠµë‹ˆë‹¤. ì•„ë¬´ í‚¤ë‚˜ ëˆ„ë¥´ë©´ ë©”ë‰´ë¡œ ëŒì•„ê°‘ë‹ˆë‹¤...");
                 dummy = getchar();
                 break;
             }
             printItemList(&rootList);
-            printf("\n»èÁ¦ÇÒ Ç×¸ñ ¹øÈ£¸¦ ÀÔ·ÂÇÏ¼¼¿ä (0À» ÀÔ·ÂÇÏ¸é Ãë¼ÒµË´Ï´Ù): ");
+            printf("\nì‚­ì œí•  í•­ëª© ë²ˆí˜¸ë¥¼ ì…ë ¥í•˜ì„¸ìš” (0ì„ ì…ë ¥í•˜ë©´ ì·¨ì†Œë©ë‹ˆë‹¤): ");
             int deleteIndex;
             scanf("%d", &deleteIndex);
-            dummy = getchar();  // ¹öÆÛ ºñ¿ì±â
+            dummy = getchar();  // ë²„í¼ ë¹„ìš°ê¸°
             if (deleteIndex == 0) {
-                printf("»èÁ¦¸¦ Ãë¼ÒÇß½À´Ï´Ù.\n");
+                printf("ì‚­ì œë¥¼ ì·¨ì†Œí–ˆìŠµë‹ˆë‹¤.\n");
                 dummy = getchar();
                 break;
             }
@@ -268,59 +268,59 @@ int main() {
             break;
         case 3:
             if (rootList.size == 0) {
-                printf("Ç×¸ñÀÌ ¾ø½À´Ï´Ù. ¾Æ¹« Å°³ª ´©¸£¸é ¸Ş´º·Î µ¹¾Æ°©´Ï´Ù...");
+                printf("í•­ëª©ì´ ì—†ìŠµë‹ˆë‹¤. ì•„ë¬´ í‚¤ë‚˜ ëˆ„ë¥´ë©´ ë©”ë‰´ë¡œ ëŒì•„ê°‘ë‹ˆë‹¤...");
                 dummy = getchar();
                 break;
             }
             printItemList(&rootList);
-            printf("\n¼öÁ¤ÇÒ Ç×¸ñ ¹øÈ£¸¦ ÀÔ·ÂÇÏ¼¼¿ä (0À» ÀÔ·ÂÇÏ¸é Ãë¼ÒµË´Ï´Ù): ");
+            printf("\nìˆ˜ì •í•  í•­ëª© ë²ˆí˜¸ë¥¼ ì…ë ¥í•˜ì„¸ìš” (0ì„ ì…ë ¥í•˜ë©´ ì·¨ì†Œë©ë‹ˆë‹¤): ");
             int editIndex;
             scanf("%d", &editIndex);
-            dummy = getchar();  // ¹öÆÛ ºñ¿ì±â
+            dummy = getchar();  // ë²„í¼ ë¹„ìš°ê¸°
             if (editIndex == 0) {
-                printf("¼öÁ¤À» Ãë¼ÒÇß½À´Ï´Ù.\n");
+                printf("ìˆ˜ì •ì„ ì·¨ì†Œí–ˆìŠµë‹ˆë‹¤.\n");
                 dummy = getchar();
                 break;
             }
             if (editIndex > 0 && editIndex <= rootList.size) {
-                printf("»õ·Î¿î Ç×¸ñ ÀÌ¸§À» ÀÔ·ÂÇÏ¼¼¿ä: ");
+                printf("ìƒˆë¡œìš´ í•­ëª© ì´ë¦„ì„ ì…ë ¥í•˜ì„¸ìš”: ");
                 fgets(itemName, sizeof(itemName), stdin);
-                itemName[strcspn(itemName, "\n")] = '\0';  // °³Çà ¹®ÀÚ Á¦°Å
+                itemName[strcspn(itemName, "\n")] = '\0';  // ê°œí–‰ ë¬¸ì ì œê±°
                 editItemName(rootList.items[editIndex - 1], itemName);
             }
             else {
-                printf("Àß¸øµÈ ¼±ÅÃÀÔ´Ï´Ù. ¾Æ¹« Å°³ª ´©¸£¸é °è¼ÓÇÕ´Ï´Ù...");
+                printf("ì˜ëª»ëœ ì„ íƒì…ë‹ˆë‹¤. ì•„ë¬´ í‚¤ë‚˜ ëˆ„ë¥´ë©´ ê³„ì†í•©ë‹ˆë‹¤...");
                 dummy = getchar();
             }
             break;
         case 4:
             if (rootList.size == 0) {
-                printf("Ç×¸ñÀÌ ¾ø½À´Ï´Ù. ¾Æ¹« Å°³ª ´©¸£¸é ¸Ş´º·Î µ¹¾Æ°©´Ï´Ù...");
+                printf("í•­ëª©ì´ ì—†ìŠµë‹ˆë‹¤. ì•„ë¬´ í‚¤ë‚˜ ëˆ„ë¥´ë©´ ë©”ë‰´ë¡œ ëŒì•„ê°‘ë‹ˆë‹¤...");
                 dummy = getchar();
                 break;
             }
             printItemList(&rootList);
-            printf("\n¸î ¹øÂ° Ç×¸ñÀ» ¼±ÅÃÇÏ½Ã°Ú½À´Ï±î? (¹øÈ£ ÀÔ·Â): ");
+            printf("\nëª‡ ë²ˆì§¸ í•­ëª©ì„ ì„ íƒí•˜ì‹œê² ìŠµë‹ˆê¹Œ? (ë²ˆí˜¸ ì…ë ¥): ");
             int index;
             scanf("%d", &index);
-            dummy = getchar();  // ¹öÆÛ ºñ¿ì±â
+            dummy = getchar();  // ë²„í¼ ë¹„ìš°ê¸°
 
             if (index > 0 && index <= rootList.size) {
                 navigateItem(rootList.items[index - 1]);
             }
             else {
-                printf("Àß¸øµÈ ¼±ÅÃÀÔ´Ï´Ù. ¾Æ¹« Å°³ª ´©¸£¸é ¸Ş´º·Î µ¹¾Æ°©´Ï´Ù...");
+                printf("ì˜ëª»ëœ ì„ íƒì…ë‹ˆë‹¤. ì•„ë¬´ í‚¤ë‚˜ ëˆ„ë¥´ë©´ ë©”ë‰´ë¡œ ëŒì•„ê°‘ë‹ˆë‹¤...");
                 dummy = getchar();
             }
             break;
         case 5:
-            saveDatabaseToFile("database.txt", &rootList);  // ÇÁ·Î±×·¥ Á¾·á ½Ã µ¥ÀÌÅÍ ÀúÀå
-            printf("ÇÁ·Î±×·¥À» Á¾·áÇÕ´Ï´Ù.\n");
+            saveDatabaseToFile("database.txt", &rootList);  // í”„ë¡œê·¸ë¨ ì¢…ë£Œ ì‹œ ë°ì´í„° ì €ì¥
+            printf("í”„ë¡œê·¸ë¨ì„ ì¢…ë£Œí•©ë‹ˆë‹¤.\n");
             freeItemList(&rootList);
             return 0;
         default:
-            printf("Àß¸øµÈ ¼±ÅÃÀÔ´Ï´Ù. ´Ù½Ã ½ÃµµÇØÁÖ¼¼¿ä.\n");
-            printf("\n¾Æ¹« Å°³ª ´©¸£¸é °è¼ÓÇÕ´Ï´Ù...");
+            printf("ì˜ëª»ëœ ì„ íƒì…ë‹ˆë‹¤. ë‹¤ì‹œ ì‹œë„í•´ì£¼ì„¸ìš”.\n");
+            printf("\nì•„ë¬´ í‚¤ë‚˜ ëˆ„ë¥´ë©´ ê³„ì†í•©ë‹ˆë‹¤...");
             dummy = getchar();
         }
     }
