@@ -14,20 +14,20 @@ typedef struct Record {
 } Record;
 
 void clearScreen() {
-    printf("\033[H\033[J"); // ANSI ÀÌ½ºÄÉÀÌÇÁ ÄÚµå¸¦ »ç¿ëÇØ È­¸éÀ» Áö¿ò
+    printf("\033[H\033[J"); // ANSI ì´ìŠ¤ì¼€ì´í”„ ì½”ë“œë¥¼ ì‚¬ìš©í•´ í™”ë©´ì„ ì§€ì›€
 }
 
-// µ¥ÀÌÅÍº£ÀÌ½º ÆÄÀÏ¿¡¼­ Ç×¸ñÀ» ·ÎµåÇÏ´Â ÇÔ¼ö (¼öÁ¤µÈ ¹öÀü)
+// ë°ì´í„°ë² ì´ìŠ¤ íŒŒì¼ì—ì„œ í•­ëª©ì„ ë¡œë“œí•˜ëŠ” í•¨ìˆ˜ (ìˆ˜ì •ëœ ë²„ì „)
 Record* loadRecordsFromFile(const char* filename) {
     FILE* file = fopen(filename, "r");
     if (file == NULL) {
-        fprintf(stderr, "ÆÄÀÏÀ» ¿­ ¼ö ¾ø½À´Ï´Ù.\n");
+        fprintf(stderr, "íŒŒì¼ì„ ì—´ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.\n");
         exit(1);
     }
 
     int numCategories;
     if (fscanf(file, "%d\n", &numCategories) != 1) {
-        fprintf(stderr, "ÆÄÀÏ¿¡¼­ Ä«Å×°í¸® ¼ö¸¦ ÀĞÀ» ¼ö ¾ø½À´Ï´Ù.\n");
+        fprintf(stderr, "íŒŒì¼ì—ì„œ ì¹´í…Œê³ ë¦¬ ìˆ˜ë¥¼ ì½ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.\n");
         exit(1);
     }
 
@@ -37,31 +37,31 @@ Record* loadRecordsFromFile(const char* filename) {
     for (int i = 0; i < numCategories; i++) {
         char categoryType;
         if (fscanf(file, " %c\n", &categoryType) != 1) {
-            fprintf(stderr, "ÆÄÀÏ¿¡¼­ Ä«Å×°í¸® Å¸ÀÔÀ» ÀĞ´Â Áß ¿À·ù°¡ ¹ß»ıÇß½À´Ï´Ù.\n");
+            fprintf(stderr, "íŒŒì¼ì—ì„œ ì¹´í…Œê³ ë¦¬ íƒ€ì…ì„ ì½ëŠ” ì¤‘ ì˜¤ë¥˜ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤.\n");
             exit(1);
         }
 
         int numRecords;
         if (fscanf(file, "%d\n", &numRecords) != 1) {
-            fprintf(stderr, "ÆÄÀÏ¿¡¼­ ·¹ÄÚµå ¼ö¸¦ ÀĞ´Â Áß ¿À·ù°¡ ¹ß»ıÇß½À´Ï´Ù.\n");
+            fprintf(stderr, "íŒŒì¼ì—ì„œ ë ˆì½”ë“œ ìˆ˜ë¥¼ ì½ëŠ” ì¤‘ ì˜¤ë¥˜ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤.\n");
             exit(1);
         }
 
         for (int j = 0; j < numRecords; j++) {
             Record* newRecord = (Record*)malloc(sizeof(Record));
             if (newRecord == NULL) {
-                fprintf(stderr, "¸Ş¸ğ¸® ÇÒ´ç¿¡ ½ÇÆĞÇß½À´Ï´Ù.\n");
+                fprintf(stderr, "ë©”ëª¨ë¦¬ í• ë‹¹ì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤.\n");
                 exit(1);
             }
 
-            // ÆÄÀÏ¿¡¼­ °¢ ·¹ÄÚµå¸¦ ÀĞ½À´Ï´Ù.
+            // íŒŒì¼ì—ì„œ ê° ë ˆì½”ë“œë¥¼ ì½ìŠµë‹ˆë‹¤.
             if (fscanf(file, "%d %99s %99s\n", &newRecord->amount, newRecord->description, newRecord->date) != 3) {
-                fprintf(stderr, "ÆÄÀÏ¿¡¼­ µ¥ÀÌÅÍ¸¦ ÀĞ´Â Áß ¿À·ù°¡ ¹ß»ıÇß½À´Ï´Ù.\n");
+                fprintf(stderr, "íŒŒì¼ì—ì„œ ë°ì´í„°ë¥¼ ì½ëŠ” ì¤‘ ì˜¤ë¥˜ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤.\n");
                 free(newRecord);
                 continue;
             }
 
-            newRecord->type = categoryType;  // '+' ¶Ç´Â '-' ¼³Á¤
+            newRecord->type = categoryType;  // '+' ë˜ëŠ” '-' ì„¤ì •
             newRecord->next = NULL;
 
             if (head == NULL) {
@@ -72,10 +72,10 @@ Record* loadRecordsFromFile(const char* filename) {
             }
             current = newRecord;
 
-            // ¿ä¼Ò ³¡ Ç¥½Ã¸¦ ÀĞÀ½
+            // ìš”ì†Œ ë í‘œì‹œë¥¼ ì½ìŒ
             int endMarker;
             if (fscanf(file, "%d\n", &endMarker) != 1 || endMarker != 0) {
-                fprintf(stderr, "¿ä¼ÒÀÇ ³¡ Ç¥½Ã¸¦ ÀĞ´Â Áß ¿À·ù°¡ ¹ß»ıÇß½À´Ï´Ù.\n");
+                fprintf(stderr, "ìš”ì†Œì˜ ë í‘œì‹œë¥¼ ì½ëŠ” ì¤‘ ì˜¤ë¥˜ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤.\n");
                 exit(1);
             }
         }
@@ -85,7 +85,7 @@ Record* loadRecordsFromFile(const char* filename) {
     return head;
 }
 
-// ÀÜ¾× °è»ê ÇÔ¼ö
+// ì”ì•¡ ê³„ì‚° í•¨ìˆ˜
 int calculateBalance(Record* head) {
     int balance = 0;
     Record* current = head;
@@ -101,13 +101,13 @@ int calculateBalance(Record* head) {
     return balance;
 }
 
-// ¿ùº° ÁöÃâ °è»ê ÇÔ¼ö
+// ì›”ë³„ ì§€ì¶œ ê³„ì‚° í•¨ìˆ˜
 void calculateMonthlyExpenses(Record* head, int monthlyExpenses[12]) {
     Record* current = head;
     while (current != NULL) {
         if (current->type == '-') {
             int month;
-            sscanf(current->date, "%*4d%2d", &month); // ³¯Â¥¿¡¼­ ¿ùÀ» ÃßÃâ
+            sscanf(current->date, "%*4d%2d", &month); // ë‚ ì§œì—ì„œ ì›”ì„ ì¶”ì¶œ
             if (month >= 1 && month <= 12) {
                 monthlyExpenses[month - 1] += current->amount;
             }
@@ -116,23 +116,23 @@ void calculateMonthlyExpenses(Record* head, int monthlyExpenses[12]) {
     }
 }
 
-// Æ¯Á¤ ¿ùÀÇ ÁöÃâ ³»¿ª Ãâ·Â ÇÔ¼ö
+// íŠ¹ì • ì›”ì˜ ì§€ì¶œ ë‚´ì—­ ì¶œë ¥ í•¨ìˆ˜
 void printMonthlyDetails(Record* head, int month) {
     Record* current = head;
-    printf("\n%d¿ùÀÇ ÁöÃâ ³»¿ª:\n", month);
+    printf("\n%dì›”ì˜ ì§€ì¶œ ë‚´ì—­:\n", month);
     while (current != NULL) {
         if (current->type == '-') {
             int recordMonth;
             sscanf(current->date, "%*4d%2d", &recordMonth);
             if (recordMonth == month) {
-                printf("³¯Â¥: %s, ±İ¾×: %d¿ø, ÀÌÀ¯: %s\n", current->date, current->amount, current->description);
+                printf("ë‚ ì§œ: %s, ê¸ˆì•¡: %dì›, ì´ìœ : %s\n", current->date, current->amount, current->description);
             }
         }
         current = current->next;
     }
 }
 
-// ¸Ş¸ğ¸® ÇØÁ¦ ÇÔ¼ö
+// ë©”ëª¨ë¦¬ í•´ì œ í•¨ìˆ˜
 void freeRecords(Record* head) {
     Record* current = head;
     while (current != NULL) {
@@ -148,34 +148,34 @@ int main() {
 
     while (1) {
         int balance = calculateBalance(records);
-        printf("\nÀÜ¾×: %d\n", balance);
+        printf("\nì”ì•¡: %d\n", balance);
 
-        // ¿ùº° ÁöÃâ °è»ê ¹× Ãâ·Â
+        // ì›”ë³„ ì§€ì¶œ ê³„ì‚° ë° ì¶œë ¥
         int monthlyExpenses[12] = { 0 };
         calculateMonthlyExpenses(records, monthlyExpenses);
-        printf("\n===== ¿ùº° »ç¿ë ±İ¾× =====\n");
+        printf("\n===== ì›”ë³„ ì‚¬ìš© ê¸ˆì•¡ =====\n");
         for (int i = 0; i < 12; i++) {
-            printf("%d¿ù: %d¿ø\n", i + 1, monthlyExpenses[i]);
+            printf("%dì›”: %dì›\n", i + 1, monthlyExpenses[i]);
         }
 
-        // »ç¿ëÀÚ°¡ ¿ùº° ÁöÃâ ³»¿ªÀ» º¸°í ½ÍÀ» ¶§
+        // ì‚¬ìš©ìê°€ ì›”ë³„ ì§€ì¶œ ë‚´ì—­ì„ ë³´ê³  ì‹¶ì„ ë•Œ
         char choice;
-        printf("\n¿ùº° ÁöÃâ ³»¿ªÀ» º¸½Ã°Ú½À´Ï±î? (y/n): ");
+        printf("\nì›”ë³„ ì§€ì¶œ ë‚´ì—­ì„ ë³´ì‹œê² ìŠµë‹ˆê¹Œ? (y/n): ");
         scanf(" %c", &choice);
         if (choice == 'y' || choice == 'Y') {
             int month;
-            printf("º¸°í ½ÍÀº ¿ùÀ» ÀÔ·ÂÇÏ¼¼¿ä (1-12): ");
+            printf("ë³´ê³  ì‹¶ì€ ì›”ì„ ì…ë ¥í•˜ì„¸ìš” (1-12): ");
             scanf("%d", &month);
             if (month >= 1 && month <= 12) {
                 printMonthlyDetails(records, month);
             }
             else {
-                printf("Àß¸øµÈ ¿ùÀ» ÀÔ·ÂÇÏ¼Ì½À´Ï´Ù.\n");
+                printf("ì˜ëª»ëœ ì›”ì„ ì…ë ¥í•˜ì…¨ìŠµë‹ˆë‹¤.\n");
             }
         }
 
-        // ÇÁ·Î±×·¥ Á¾·á ¿©ºÎ È®ÀÎ
-        printf("\nÇÁ·Î±×·¥À» Á¾·áÇÏ½Ã°Ú½À´Ï±î? (y/n): ");
+        // í”„ë¡œê·¸ë¨ ì¢…ë£Œ ì—¬ë¶€ í™•ì¸
+        printf("\ní”„ë¡œê·¸ë¨ì„ ì¢…ë£Œí•˜ì‹œê² ìŠµë‹ˆê¹Œ? (y/n): ");
         scanf(" %c", &choice);
         if (choice == 'y' || choice == 'Y') {
             break;
