@@ -6,8 +6,9 @@
 char dummy;  // getchar 경고 없애기 용도
 
 void clearScreen() {
-    printf("\033[H\033[J"); // ANSI 이스케이프 코드를 사용해 화면을 지움
+    system("cls"); // Windows에서 화면을 지움
 }
+
 
 // 항목 구조체 정의
 typedef struct Item {
@@ -35,13 +36,15 @@ void initItemList(ItemList* list) {
 
 // 리스트 확장 함수
 void resizeItemList(ItemList* list) {
-    list->capacity *= 2;
-    list->items = (Item**)realloc(list->items, list->capacity * sizeof(Item*));
-    if (list->items == NULL) {
+    void* temp = realloc(list->items, list->capacity * 2 * sizeof(Item*));
+    if (temp == NULL) {
         fprintf(stderr, "메모리 재할당 실패\n");
         exit(1);
     }
+    list->items = temp;
+    list->capacity *= 2;
 }
+
 
 // 새로운 항목 추가 함수
 void addItem(ItemList* list, const char* itemName) {
@@ -120,15 +123,26 @@ void saveItemListToFile(const ItemList* list, FILE* file) {
 }
 
 void saveDatabaseToFile(const char* filename, const ItemList* rootList) {
-    FILE* file = fopen(filename, "w");
+    char tempFilename[NAME_LENGTH];
+    snprintf(tempFilename, sizeof(tempFilename), "%s.tmp", filename);
+
+    FILE* file = fopen(tempFilename, "w");
     if (file == NULL) {
-        fprintf(stderr, "파일 저장 실패\n");
+        fprintf(stderr, "임시 파일 저장 실패\n");
         return;
     }
+
     saveItemListToFile(rootList, file);
     fclose(file);
+
+    if (rename(tempFilename, filename) != 0) {
+        fprintf(stderr, "파일 저장 중 문제가 발생했습니다.\n");
+        return;
+    }
+
     printf("데이터베이스가 파일에 저장되었습니다.\n");
 }
+
 
 // 파일에서 데이터베이스를 불러오는 함수
 void loadItemListFromFile(ItemList* list, FILE* file) {
@@ -150,13 +164,14 @@ void loadItemListFromFile(ItemList* list, FILE* file) {
 void loadDatabaseFromFile(const char* filename, ItemList* rootList) {
     FILE* file = fopen(filename, "r");
     if (file == NULL) {
-        printf("저장된 데이터베이스 파일이 없습니다.\n");
+        printf("저장된 데이터베이스 파일이 없거나 파일을 열 수 없습니다.\n");
         return;
     }
     loadItemListFromFile(rootList, file);
     fclose(file);
     printf("데이터베이스가 파일에서 로드되었습니다.\n");
 }
+
 
 void navigateItem(Item* item) {
     int choice;
@@ -219,9 +234,14 @@ void navigateItem(Item* item) {
     }
 }
 
+void cleanup(ItemList* list) {
+    freeItemList(list);
+}
+
 int main() {
     ItemList rootList;
     initItemList(&rootList);
+    atexit(cleanup);  // 프로그램 종료 시 메모리 해제
 
     loadDatabaseFromFile("database.txt", &rootList);  // 프로그램 시작 시 데이터 로드
 
