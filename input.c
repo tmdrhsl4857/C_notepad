@@ -9,6 +9,20 @@ void clearScreen() {
     system("cls"); // Windows에서 화면을 지움
 }
 
+// 도움말 출력 함수
+void printHelp() {
+    clearScreen();
+    printf("\n========== 도움말 =========="
+        "\n이 프로그램은 사용자 항목 관리 기능을 제공합니다. 사용자는 항목을 추가하고, 삭제하고, 수정할 수 있으며, 하위 항목을 탐색할 수 있습니다.\n"
+        "1. 새 항목 추가: 새 항목을 추가합니다.\n"
+        "2. 항목 삭제: 기존 항목을 삭제합니다.\n"
+        "3. 항목 수정: 기존 항목의 이름을 변경합니다.\n"
+        "4. 항목 선택: 특정 항목을 선택하여 그 하위 항목을 관리합니다.\n"
+        "5. 종료: 프로그램을 종료하고 데이터베이스를 저장합니다.\n"
+        "==========================\n");
+    printf("\n아무 키나 누르면 계속합니다...");
+    dummy = getchar();
+}
 
 // 항목 구조체 정의
 typedef struct Item {
@@ -44,7 +58,6 @@ void resizeItemList(ItemList* list) {
     list->items = temp;
     list->capacity *= 2;
 }
-
 
 // 새로운 항목 추가 함수
 void addItem(ItemList* list, const char* itemName) {
@@ -123,26 +136,15 @@ void saveItemListToFile(const ItemList* list, FILE* file) {
 }
 
 void saveDatabaseToFile(const char* filename, const ItemList* rootList) {
-    char tempFilename[NAME_LENGTH];
-    snprintf(tempFilename, sizeof(tempFilename), "%s.tmp", filename);
-
-    FILE* file = fopen(tempFilename, "w");
+    FILE* file = fopen(filename, "w");
     if (file == NULL) {
-        fprintf(stderr, "임시 파일 저장 실패\n");
+        fprintf(stderr, "파일 저장 실패\n");
         return;
     }
-
     saveItemListToFile(rootList, file);
     fclose(file);
-
-    if (rename(tempFilename, filename) != 0) {
-        fprintf(stderr, "파일 저장 중 문제가 발생했습니다.\n");
-        return;
-    }
-
     printf("데이터베이스가 파일에 저장되었습니다.\n");
 }
-
 
 // 파일에서 데이터베이스를 불러오는 함수
 void loadItemListFromFile(ItemList* list, FILE* file) {
@@ -242,6 +244,14 @@ int main() {
     ItemList rootList;
     initItemList(&rootList);
     atexit(cleanup);  // 프로그램 종료 시 메모리 해제
+
+    char helpChoice;
+    printf("프로그램을 시작하기 전에 도움말을 보시겠습니까? (Y/N): ");
+    scanf(" %c", &helpChoice);
+    dummy = getchar(); // 버퍼 비우기
+    if (helpChoice == 'Y' || helpChoice == 'y') {
+        printHelp();
+    }
 
     loadDatabaseFromFile("database.txt", &rootList);  // 프로그램 시작 시 데이터 로드
 
