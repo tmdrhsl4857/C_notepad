@@ -19,6 +19,7 @@ void printHelp() {
         "3. 항목 수정: 기존 항목의 이름을 변경합니다.\n"
         "4. 항목 선택: 특정 항목을 선택하여 그 하위 항목을 관리합니다.\n"
         "5. 종료: 프로그램을 종료하고 데이터베이스를 저장합니다.\n"
+        "n. 사용 가능한 모듈: 현재 지원 가능한 모듈을 확인하고 실행합니다.\n"
         "==========================\n");
     printf("\n아무 키나 누르면 계속합니다...");
     dummy = getchar();
@@ -36,6 +37,14 @@ typedef struct ItemList {
     int size;
     int capacity;
 } ItemList;
+
+// 가계부 레코드 구조체 정의
+typedef struct Record {
+    char type; // '+' for income, '-' for expense
+    int amount;
+    char description[NAME_LENGTH];
+    char date[NAME_LENGTH];
+} Record;
 
 // 리스트 초기화 함수
 void initItemList(ItemList* list) {
@@ -174,6 +183,68 @@ void loadDatabaseFromFile(const char* filename, ItemList* rootList) {
     printf("데이터베이스가 파일에서 로드되었습니다.\n");
 }
 
+// 모듈 목록 출력 함수
+void printAvailableModules() {
+    printf("\n현재 지원 가능한 모듈:\n");
+    printf("1. 가계부 모듈\n");
+}
+
+// 가계부 모듈 실행 함수
+void runAccountingModule() {
+    char choice;
+    printf("가계부 모듈 실행 시 현재 저장 파일이 훼손될 가능성이 있습니다. 진행하시겠습니까? (Y/N): ");
+    scanf(" %c", &choice);
+    dummy = getchar(); // 버퍼 비우기
+    if (choice == 'Y' || choice == 'y') {
+        int moduleChoice;
+        while (1) {
+            clearScreen();
+            printf("\n========== 가계부 모듈 =========="
+                "\n1. 수익 입력"
+                "\n2. 지출 입력"
+                "\n3. 상위 메뉴로 돌아가기"
+                "\n==============================\n");
+            printf("선택: ");
+            scanf("%d", &moduleChoice);
+            dummy = getchar(); // 버퍼 비우기
+
+            if (moduleChoice == 3) {
+                return; // 상위 메뉴로 돌아감
+            }
+
+            Record newRecord;
+            newRecord.type = (moduleChoice == 1) ? '+' : '-';
+
+            // 금액 입력
+            printf("금액을 입력해주세요: ");
+            scanf("%d", &newRecord.amount);
+            dummy = getchar(); // 버퍼 비우기
+
+            // 출처 입력
+            printf("출처를 입력해주세요: ");
+            fgets(newRecord.description, sizeof(newRecord.description), stdin);
+            newRecord.description[strcspn(newRecord.description, "\n")] = '\0';  // 개행 문자 제거
+
+            // 날짜 입력
+            printf("날짜를 입력해주세요 (예시: 20250101): ");
+            fgets(newRecord.date, sizeof(newRecord.date), stdin);
+            newRecord.date[strcspn(newRecord.date, "\n")] = '\0';  // 개행 문자 제거
+
+            // 입력된 정보 출력 (확인용)
+            printf("\n입력된 정보를 확인해 주세요:\n");
+            printf("금액: %d\n", newRecord.amount);
+            printf("출처: %s\n", newRecord.description);
+            printf("날짜: %s\n", newRecord.date);
+            printf("\n아무 키나 누르면 계속합니다...");
+            dummy = getchar();
+        }
+    }
+    else {
+        printf("가계부 모듈 실행이 취소되었습니다.\n");
+        printf("\n아무 키나 누르면 계속합니다...");
+        dummy = getchar();
+    }
+}
 
 void navigateItem(Item* item) {
     int choice;
@@ -266,92 +337,112 @@ int main() {
         printf("3. 항목 수정\n");
         printf("4. 항목 선택\n");
         printf("5. 종료\n");
+        printf("n. 사용 가능한 모듈\n");
         printf("==========================\n");
         printf("선택: ");
-        scanf("%d", &choice);
-        dummy = getchar();  // 버퍼 비우기
+        if (scanf("%d", &choice) == 1) {
+            dummy = getchar();  // 버퍼 비우기
 
-        switch (choice) {
-        case 1:
-            printf("\n추가할 항목 이름을 입력하세요: ");
-            fgets(itemName, sizeof(itemName), stdin);
-            itemName[strcspn(itemName, "\n")] = '\0';  // 개행 문자 제거
-            addItem(&rootList, itemName);
-            break;
-        case 2:
-            if (rootList.size == 0) {
-                printf("항목이 없습니다. 아무 키나 누르면 메뉴로 돌아갑니다...");
-                dummy = getchar();
-                break;
-            }
-            printItemList(&rootList);
-            printf("\n삭제할 항목 번호를 입력하세요 (0을 입력하면 취소됩니다): ");
-            int deleteIndex;
-            scanf("%d", &deleteIndex);
-            dummy = getchar();  // 버퍼 비우기
-            if (deleteIndex == 0) {
-                printf("삭제를 취소했습니다.\n");
-                dummy = getchar();
-                break;
-            }
-            deleteItem(&rootList, deleteIndex - 1);
-            break;
-        case 3:
-            if (rootList.size == 0) {
-                printf("항목이 없습니다. 아무 키나 누르면 메뉴로 돌아갑니다...");
-                dummy = getchar();
-                break;
-            }
-            printItemList(&rootList);
-            printf("\n수정할 항목 번호를 입력하세요 (0을 입력하면 취소됩니다): ");
-            int editIndex;
-            scanf("%d", &editIndex);
-            dummy = getchar();  // 버퍼 비우기
-            if (editIndex == 0) {
-                printf("수정을 취소했습니다.\n");
-                dummy = getchar();
-                break;
-            }
-            if (editIndex > 0 && editIndex <= rootList.size) {
-                printf("새로운 항목 이름을 입력하세요: ");
+            switch (choice) {
+            case 1:
+                printf("\n추가할 항목 이름을 입력하세요: ");
                 fgets(itemName, sizeof(itemName), stdin);
                 itemName[strcspn(itemName, "\n")] = '\0';  // 개행 문자 제거
-                editItemName(rootList.items[editIndex - 1], itemName);
-            }
-            else {
-                printf("잘못된 선택입니다. 아무 키나 누르면 계속합니다...");
-                dummy = getchar();
-            }
-            break;
-        case 4:
-            if (rootList.size == 0) {
-                printf("항목이 없습니다. 아무 키나 누르면 메뉴로 돌아갑니다...");
-                dummy = getchar();
+                addItem(&rootList, itemName);
                 break;
-            }
-            printItemList(&rootList);
-            printf("\n몇 번째 항목을 선택하시겠습니까? (번호 입력): ");
-            int index;
-            scanf("%d", &index);
-            dummy = getchar();  // 버퍼 비우기
+            case 2:
+                if (rootList.size == 0) {
+                    printf("항목이 없습니다. 아무 키나 누르면 메뉴로 돌아갑니다...");
+                    dummy = getchar();
+                    break;
+                }
+                printItemList(&rootList);
+                printf("\n삭제할 항목 번호를 입력하세요 (0을 입력하면 취소됩니다): ");
+                int deleteIndex;
+                scanf("%d", &deleteIndex);
+                dummy = getchar();  // 버퍼 비우기
+                if (deleteIndex == 0) {
+                    printf("삭제를 취소했습니다.\n");
+                    dummy = getchar();
+                    break;
+                }
+                deleteItem(&rootList, deleteIndex - 1);
+                break;
+            case 3:
+                if (rootList.size == 0) {
+                    printf("항목이 없습니다. 아무 키나 누르면 메뉴로 돌아갑니다...");
+                    dummy = getchar();
+                    break;
+                }
+                printItemList(&rootList);
+                printf("\n수정할 항목 번호를 입력하세요 (0을 입력하면 취소됩니다): ");
+                int editIndex;
+                scanf("%d", &editIndex);
+                dummy = getchar();  // 버퍼 비우기
+                if (editIndex == 0) {
+                    printf("수정을 취소했습니다.\n");
+                    dummy = getchar();
+                    break;
+                }
+                if (editIndex > 0 && editIndex <= rootList.size) {
+                    printf("새로운 항목 이름을 입력하세요: ");
+                    fgets(itemName, sizeof(itemName), stdin);
+                    itemName[strcspn(itemName, "\n")] = '\0';  // 개행 문자 제거
+                    editItemName(rootList.items[editIndex - 1], itemName);
+                }
+                else {
+                    printf("잘못된 선택입니다. 아무 키나 누르면 계속합니다...");
+                    dummy = getchar();
+                }
+                break;
+            case 4:
+                if (rootList.size == 0) {
+                    printf("항목이 없습니다. 아무 키나 누르면 메뉴로 돌아갑니다...");
+                    dummy = getchar();
+                    break;
+                }
+                printItemList(&rootList);
+                printf("\n몇 번째 항목을 선택하시겠습니까? (번호 입력): ");
+                int index;
+                scanf("%d", &index);
+                dummy = getchar();  // 버퍼 비우기
 
-            if (index > 0 && index <= rootList.size) {
-                navigateItem(rootList.items[index - 1]);
-            }
-            else {
-                printf("잘못된 선택입니다. 아무 키나 누르면 메뉴로 돌아갑니다...");
+                if (index > 0 && index <= rootList.size) {
+                    navigateItem(rootList.items[index - 1]);
+                }
+                else {
+                    printf("잘못된 선택입니다. 아무 키나 누르면 메뉴로 돌아갑니다...");
+                    dummy = getchar();
+                }
+                break;
+
+            case 5:
+                saveDatabaseToFile("database.txt", &rootList);  // 프로그램 종료 시 데이터 저장
+                printf("프로그램을 종료합니다.\n");
+                freeItemList(&rootList);
+                return 0;
+            default:
+                printf("잘못된 선택입니다. 다시 시도해주세요.\n");
+                printf("\n아무 키나 누르면 계속합니다...");
                 dummy = getchar();
             }
-            break;
-        case 5:
-            saveDatabaseToFile("database.txt", &rootList);  // 프로그램 종료 시 데이터 저장
-            printf("프로그램을 종료합니다.\n");
-            freeItemList(&rootList);
-            return 0;
-        default:
-            printf("잘못된 선택입니다. 다시 시도해주세요.\n");
-            printf("\n아무 키나 누르면 계속합니다...");
-            dummy = getchar();
+        }
+        else {
+            char moduleChoice;
+            dummy = getchar();  // 버퍼 비우기
+            if (dummy == 'n' || dummy == 'N') {
+                printAvailableModules();
+                printf("\n모듈을 선택하세요 (1): ");
+                scanf(" %c", &moduleChoice);
+                dummy = getchar(); // 버퍼 비우기
+                if (moduleChoice == '1') {
+                    runAccountingModule();
+                }
+                else {
+                    printf("잘못된 선택입니다.\n아무 키나 누르면 계속합니다...");
+                    dummy = getchar();
+                }
+            }
         }
     }
 
