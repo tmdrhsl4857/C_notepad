@@ -190,26 +190,55 @@ void printAvailableModules() {
 }
 
 // 가계부 모듈 실행 함수
-void runAccountingModule() {
+void runAccountingModule(ItemList* rootList) {
+    // 가계부 모듈 시작 시 기존 정보 초기화
+    freeItemList(rootList);
+    initItemList(rootList);
+
     char choice;
     printf("가계부 모듈 실행 시 현재 저장 파일이 훼손될 가능성이 있습니다. 진행하시겠습니까? (Y/N): ");
     scanf(" %c", &choice);
     dummy = getchar(); // 버퍼 비우기
     if (choice == 'Y' || choice == 'y') {
+        FILE* file = fopen("database.txt", "w");
+        if (file == NULL) {
+            fprintf(stderr, "파일 저장 실패\n");
+            return;
+        }
+
         int moduleChoice;
+        int incomeCount = 0, expenseCount = 0;
+
+        Record incomeRecords[100];  // 수익 저장 공간
+        Record expenseRecords[100]; // 지출 저장 공간
+
         while (1) {
             clearScreen();
             printf("\n========== 가계부 모듈 =========="
                 "\n1. 수익 입력"
                 "\n2. 지출 입력"
-                "\n3. 상위 메뉴로 돌아가기"
+                "\n3. 종료"
                 "\n==============================\n");
             printf("선택: ");
             scanf("%d", &moduleChoice);
             dummy = getchar(); // 버퍼 비우기
 
             if (moduleChoice == 3) {
-                return; // 상위 메뉴로 돌아감
+                // 종료 시 현재 입력된 정보를 파일에 기록
+                fprintf(file, "2\n+");
+                fprintf(file, "\n%d\n", incomeCount);
+                for (int i = 0; i < incomeCount; i++) {
+                    fprintf(file, "%d %s %s\n0\n", incomeRecords[i].amount, incomeRecords[i].description, incomeRecords[i].date);
+                }
+                fprintf(file, "-\n%d\n", expenseCount);
+                for (int i = 0; i < expenseCount; i++) {
+                    fprintf(file, "%d %s %s\n0\n", expenseRecords[i].amount, expenseRecords[i].description, expenseRecords[i].date);
+                }
+                fclose(file);
+                printf("가계부 모듈을 종료합니다. 모든 입력된 정보가 저장되었습니다.\n");
+                printf("\n아무 키나 누르면 계속합니다...");
+                dummy = getchar();
+                exit(0); // 프로그램 종료
             }
 
             Record newRecord;
@@ -230,6 +259,14 @@ void runAccountingModule() {
             fgets(newRecord.date, sizeof(newRecord.date), stdin);
             newRecord.date[strcspn(newRecord.date, "\n")] = '\0';  // 개행 문자 제거
 
+            // 입력된 정보를 저장
+            if (moduleChoice == 1) {
+                incomeRecords[incomeCount++] = newRecord;
+            }
+            else {
+                expenseRecords[expenseCount++] = newRecord;
+            }
+
             // 입력된 정보 출력 (확인용)
             printf("\n입력된 정보를 확인해 주세요:\n");
             printf("금액: %d\n", newRecord.amount);
@@ -245,6 +282,8 @@ void runAccountingModule() {
         dummy = getchar();
     }
 }
+
+
 
 void navigateItem(Item* item) {
     int choice;
@@ -436,7 +475,7 @@ int main() {
                 scanf(" %c", &moduleChoice);
                 dummy = getchar(); // 버퍼 비우기
                 if (moduleChoice == '1') {
-                    runAccountingModule();
+                    runAccountingModule(&rootList);
                 }
                 else {
                     printf("잘못된 선택입니다.\n아무 키나 누르면 계속합니다...");
