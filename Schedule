@@ -1,16 +1,16 @@
-//sdl 설정 쓰기
+//sdl 설정 끄기
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #define MAX_DAYS 7
-#define MAX_PERIODS 8
+#define MAX_PERIODS 10
 #define MAX_LENGTH 100
 
-const char* days[] = { "월", "화", "수", "목", "금", "토", "일" };
+const char *days[] = {"월", "화", "수", "목", "금", "토", "일"};
 
-void save_to_file(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH], const char* filename) {
-    FILE* file = fopen(filename, "w");
+void save_to_file(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH], const char *filename) {
+    FILE *file = fopen(filename, "w");
     if (file == NULL) {
         perror("파일 저장 오류");
         exit(1);
@@ -25,8 +25,8 @@ void save_to_file(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH], const char* 
     fclose(file);
 }
 
-void load_from_file(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH], const char* filename) {
-    FILE* file = fopen(filename, "r");
+void load_from_file(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH], const char *filename) {
+    FILE *file = fopen(filename, "r");
     if (file == NULL) {
         return; // 파일이 없으면 초기 상태 유지
     }
@@ -44,6 +44,15 @@ void load_from_file(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH], const char
     fclose(file);
 }
 
+void reset_schedule(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH]) {
+    for (int i = 0; i < MAX_DAYS; i++) {
+        for (int j = 0; j < MAX_PERIODS; j++) {
+            schedule[i][j][0] = '\0'; // 배열 초기화
+        }
+    }
+    printf("시간표가 초기화되었습니다.\n");
+}
+
 void display_schedule(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH]) {
     printf("\n시간표:\n");
     printf("      ");
@@ -56,8 +65,7 @@ void display_schedule(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH]) {
         for (int i = 0; i < MAX_DAYS; i++) {
             if (strlen(schedule[i][j]) > 0) {
                 printf("%5s ", schedule[i][j]);
-            }
-            else {
+            } else {
                 printf("     - ");
             }
         }
@@ -69,12 +77,16 @@ void modify_schedule(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH]) {
     char day[MAX_LENGTH];
     int period;
     char subject[MAX_LENGTH];
-
+    
     printf("수정할 요일과 교시를 입력하세요 (예: 월 3): ");
     scanf("%s %d", day, &period);
+    if (period < 1 || period > MAX_PERIODS) {
+        printf("잘못된 교시입니다. (1~%d교시만 입력 가능)\n", MAX_PERIODS);
+        return;
+    }
     printf("수업명을 입력하세요: ");
     scanf(" %[^\n]", subject);
-
+    
     for (int i = 0; i < MAX_DAYS; i++) {
         if (strcmp(day, days[i]) == 0) {
             strcpy(schedule[i][period - 1], subject);
@@ -82,12 +94,12 @@ void modify_schedule(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH]) {
             return;
         }
     }
-    printf("잘못된 요일 또는 교시입니다.\n");
+    printf("잘못된 요일입니다.\n");
 }
 
 int main() {
-    char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH] = { "" };
-    const char* filename = "schedule.txt";
+    char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH] = {""};
+    const char *filename = "schedule.txt";
 
     load_from_file(schedule, filename);
 
@@ -95,25 +107,29 @@ int main() {
     do {
         printf("\n1. 시간표 보기\n");
         printf("2. 시간표 수정\n");
-        printf("3. 저장 및 종료\n");
+        printf("3. 시간표 초기화\n");
+        printf("4. 저장 및 종료\n");
         printf("선택: ");
         scanf("%d", &choice);
 
         switch (choice) {
-        case 1:
-            display_schedule(schedule);
-            break;
-        case 2:
-            modify_schedule(schedule);
-            break;
-        case 3:
-            save_to_file(schedule, filename);
-            printf("시간표가 저장되었습니다. 프로그램을 종료합니다.\n");
-            break;
-        default:
-            printf("잘못된 선택입니다.\n");
+            case 1:
+                display_schedule(schedule);
+                break;
+            case 2:
+                modify_schedule(schedule);
+                break;
+            case 3:
+                reset_schedule(schedule);
+                break;
+            case 4:
+                save_to_file(schedule, filename);
+                printf("시간표가 저장되었습니다. 프로그램을 종료합니다.\n");
+                break;
+            default:
+                printf("잘못된 선택입니다.\n");
         }
-    } while (choice != 3);
+    } while (choice != 4);
 
     return 0;
 }
