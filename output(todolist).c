@@ -124,9 +124,28 @@ void updateTaskStatus(Task tasks[], int taskCount) {
         return;
     }
 
-    printf("\nEnter new status (Not Started, In Progress, Completed, Archived): ");
-    fgets(tasks[index - 1].status, MAX_STRING_LENGTH, stdin);
-    tasks[index - 1].status[strcspn(tasks[index - 1].status, "\n")] = '\0'; // Remove newline
+    printf("\nEnter new status (1: Not Started, 2: In Progress, 3: Completed, 4: Archived): ");
+    int statusChoice;
+    scanf("%d", &statusChoice);
+    getchar(); // Consume the newline character
+
+    switch (statusChoice) {
+    case 1:
+        strcpy(tasks[index - 1].status, "Not Started");
+        break;
+    case 2:
+        strcpy(tasks[index - 1].status, "In Progress");
+        break;
+    case 3:
+        strcpy(tasks[index - 1].status, "Completed");
+        break;
+    case 4:
+        strcpy(tasks[index - 1].status, "Archived");
+        break;
+    default:
+        printf("Invalid status choice.\n");
+        return;
+    }
 
     printf("Task status updated successfully.\n");
     saveTasksToFile(tasks, taskCount, "database.txt");
