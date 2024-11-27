@@ -18,6 +18,7 @@ void loadTasksFromFile(Task tasks[], int* taskCount, const char* filename);
 void saveTasksToFile(const Task tasks[], int taskCount, const char* filename);
 void printTasks(const Task tasks[], int taskCount);
 void updateTaskStatus(Task tasks[], int taskCount);
+void sortTasks(Task tasks[], int taskCount, int sortBy);
 
 int main() {
     Task tasks[MAX_TASKS];
@@ -39,6 +40,11 @@ int main() {
         switch (choice) {
         case 1:
             system("cls"); // Clear the screen (use "cls" for Windows)
+            printf("\nSort by:\n1. Date\n2. Type\n3. Title\n4. Status\nChoose an option: ");
+            int sortBy;
+            scanf("%d", &sortBy);
+            getchar(); // Consume the newline character
+            sortTasks(tasks, taskCount, sortBy);
             printTasks(tasks, taskCount);
             break;
         case 2:
@@ -149,4 +155,52 @@ void updateTaskStatus(Task tasks[], int taskCount) {
 
     printf("Task status updated successfully.\n");
     saveTasksToFile(tasks, taskCount, "database.txt");
+}
+
+int compareByDate(const void* a, const void* b) {
+    return strcmp(((Task*)a)->date, ((Task*)b)->date);
+}
+
+int compareByType(const void* a, const void* b) {
+    return strcmp(((Task*)a)->type, ((Task*)b)->type);
+}
+
+int compareByTitle(const void* a, const void* b) {
+    return strcmp(((Task*)a)->title, ((Task*)b)->title);
+}
+
+int compareByStatus(const void* a, const void* b) {
+    const char* statusOrder[] = { "Not Started", "In Progress", "Completed", "Archived" };
+    Task* taskA = (Task*)a;
+    Task* taskB = (Task*)b;
+    int indexA = 0, indexB = 0;
+    for (int i = 0; i < 4; i++) {
+        if (strcmp(taskA->status, statusOrder[i]) == 0) {
+            indexA = i;
+        }
+        if (strcmp(taskB->status, statusOrder[i]) == 0) {
+            indexB = i;
+        }
+    }
+    return indexA - indexB;
+}
+
+void sortTasks(Task tasks[], int taskCount, int sortBy) {
+    switch (sortBy) {
+    case 1:
+        qsort(tasks, taskCount, sizeof(Task), compareByDate);
+        break;
+    case 2:
+        qsort(tasks, taskCount, sizeof(Task), compareByType);
+        break;
+    case 3:
+        qsort(tasks, taskCount, sizeof(Task), compareByTitle);
+        break;
+    case 4:
+        qsort(tasks, taskCount, sizeof(Task), compareByStatus);
+        break;
+    default:
+        printf("Invalid sort option.\n");
+        return;
+    }
 }
