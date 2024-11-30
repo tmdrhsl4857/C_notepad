@@ -691,7 +691,7 @@ int main() {
                 printItemList(&rootList);
                 setTextColor(14, 0);
                 printf("\n몇 번째 항목을 선택하시겠습니까? (번호 입력): ");
-                setTextColor(17, 0);
+                setTextColor(7, 0);
                 int index;
                 scanf("%d", &index);
                 dummy = getchar();  // 버퍼 비우기
