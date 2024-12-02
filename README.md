@@ -21,3 +21,9 @@
   5. Input Program Exit
   6. Copy 'database.txt' to output program repository
   7. Execute output program
+
+#how_to_use(schedule) 
+  1. Run schedule module
+  2. Add schedule data
+  3. Execute output program
+
