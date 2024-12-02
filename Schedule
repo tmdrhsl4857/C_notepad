@@ -115,36 +115,32 @@ void modify_schedule(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH]) {
 
 
 int main() {
-    char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH] = {""};
-    const char *filename = "schedule.txt";
-
-    load_from_file(schedule, filename);
-
+    char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH] = {0};
     int choice;
+
+    // 초기화
+    load_from_file(schedule, "timetable.txt");
+
     do {
-        printf("\n1. 시간표 보기\n");
-        printf("2. 시간표 수정\n");
-        printf("3. 시간표 초기화\n");
-        printf("4. 저장 및 종료\n");
-        printf("선택: ");
+        display_menu();
         scanf("%d", &choice);
 
         switch (choice) {
-            case 1:
-                display_schedule(schedule);
-                break;
-            case 2:
+            case 1: // 시간표 추가 및 수정
                 modify_schedule(schedule);
                 break;
-            case 3:
+            case 2: // 시간표 보기
+                display_schedule(schedule);
+                break;
+            case 3: // 시간표 초기화
                 reset_schedule(schedule);
                 break;
-            case 4:
-                save_to_file(schedule, filename);
-                printf("시간표가 저장되었습니다. 프로그램을 종료합니다.\n");
+            case 4: // 프로그램 종료
+                save_to_file(schedule, "timetable.txt");
+                printf("프로그램을 종료합니다.\n");
                 break;
             default:
-                printf("잘못된 선택입니다.\n");
+                printf("잘못된 선택입니다. 다시 입력하세요.\n");
         }
     } while (choice != 4);
 
