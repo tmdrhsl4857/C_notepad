@@ -32,7 +32,7 @@ _how_to_use(self use)_
   3. Execute output program
 
 # output(todolist).c  (할 일 목록/Kimseunggon)
-+ add_input.c_module_support(budget)_not_yet
++ add_input.c_module_support(todolist)_not_yet
 + add_module_not_yet
 
 _how_to_use(self use)_
