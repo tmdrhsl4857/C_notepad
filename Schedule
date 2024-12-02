@@ -74,28 +74,45 @@ void display_schedule(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH]) {
 }
 
 void modify_schedule(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH]) {
+    char input[MAX_LENGTH];
     char day[MAX_LENGTH];
     int period;
     char subject[MAX_LENGTH];
     
-    printf("수정할 요일과 교시를 입력하세요 (예: 월 3): ");
-    scanf("%s %d", day, &period);
+    printf("수정할 시간표를 입력하세요 (예: 월 1 수학): ");
+    scanf(" %[^\n]", input);
+
+    // 입력 파싱
+    if (sscanf(input, "%s %d %[^\n]", day, &period, subject) != 3) {
+        printf("입력 형식이 잘못되었습니다. (예: 월 1 수학)\n");
+        return;
+    }
+
+    // 요일 매칭
+    int day_index = -1;
+    for (int i = 0; i < MAX_DAYS; i++) {
+        if (strcmp(day, days[i]) == 0) {
+            day_index = i;
+            break;
+        }
+    }
+
+    if (day_index == -1) {
+        printf("잘못된 요일입니다. (월~일 중 하나를 입력하세요)\n");
+        return;
+    }
+
+    // 교시 유효성 검사
     if (period < 1 || period > MAX_PERIODS) {
         printf("잘못된 교시입니다. (1~%d교시만 입력 가능)\n", MAX_PERIODS);
         return;
     }
-    printf("수업명을 입력하세요: ");
-    scanf(" %[^\n]", subject);
-    
-    for (int i = 0; i < MAX_DAYS; i++) {
-        if (strcmp(day, days[i]) == 0) {
-            strcpy(schedule[i][period - 1], subject);
-            printf("시간표가 업데이트되었습니다.\n");
-            return;
-        }
-    }
-    printf("잘못된 요일입니다.\n");
+
+    // 시간표 수정
+    strcpy(schedule[day_index][period - 1], subject);
+    printf("%s %d교시가 %s로 수정되었습니다.\n", days[day_index], period, subject);
 }
+
 
 int main() {
     char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH] = {""};
