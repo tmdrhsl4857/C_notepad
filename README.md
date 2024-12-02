@@ -37,7 +37,7 @@ _how_to_use(self use)_
 
 _how_to_use(self use)_
   1. Run database input program
-  2. Add new data - date(YYYY-MM-DD), type, title, status("Not Started", "In Progress", "Completed", "Archived")(If you leave this field blank, it will automatically be saved as 'Not Started'.)
+  2. Add new data - date(YYYY-MM-DD), type, title, status("준비", "진행", "완료", "보관")(If you leave this field blank, it will automatically be saved as '준비'.)
   3. Input Program Exit
   4. Copy 'database.txt' to output program repository
   5. Execute output program
