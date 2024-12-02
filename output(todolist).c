@@ -30,17 +30,17 @@ int main() {
 
     while (1) {
         printf("\nTo-Do List\n");
-        printf("1. Show Tasks\n");
-        printf("2. Update Task Status\n");
-        printf("3. Exit\n");
-        printf("Choose an option: ");
+        printf("1. 목록 보여주기\n");
+        printf("2. 상태 업데이트\n");
+        printf("3. 나가기\n");
+        printf("옵션을 선택해 주세요: ");
         scanf("%d", &choice);
         getchar(); // Consume the newline character
 
         switch (choice) {
         case 1:
             system("cls"); // Clear the screen (use "cls" for Windows)
-            printf("\nSort by:\n1. Date\n2. Type\n3. Title\n4. Status\nChoose an option: ");
+            printf("\n정렬 방식:\n1. 날짜\n2. 유형\n3. 내용\n4. 상태\n옵션을 선택해 주세요: ");
             int sortBy;
             scanf("%d", &sortBy);
             getchar(); // Consume the newline character
@@ -54,7 +54,7 @@ int main() {
             saveTasksToFile(tasks, taskCount, "database.txt");
             return 0;
         default:
-            printf("Invalid choice. Please try again.\n");
+            printf("잘못된 입력입니다. 다시 시도해주세요.\n");
         }
     }
 }
