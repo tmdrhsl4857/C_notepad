@@ -31,3 +31,16 @@ _how_to_use(self use)_
   2. Add schedule data
   3. Execute output program
 
+# output(todolist).c  (할 일 목록/Kimseunggon)
++ add_input.c_module_support(budget)_not_yet
++ add_module_not_yet
+
+_how_to_use(self use)_
+  1. Run database input program
+  2. Add new data - date(YYYY-MM-DD), type, title, status("Not Started", "In Progress", "Completed", "Archived")(If you leave this field blank, it will automatically be saved as 'Not Started'.)
+  3. Input Program Exit
+  4. Copy 'database.txt' to output program repository
+  5. Execute output program
+  6. Select the number of the desired function
+  7. If you selected 1, select the number of the data you want to sort by
+  8. If you pressed 2, enter the task number you want to change the status of, then press 1-4 to set the status
