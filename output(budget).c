@@ -197,6 +197,20 @@ void printMonthlyDetails(Record* head, int month) {
     freeRecords(monthlyHead);
 }
 
+void printIncomeDetails(Record* head) {
+    Record* current = head;
+
+    printf("\n수익 내역:\n");
+    while (current != NULL) {
+        if (current->type == '+') {
+            printf("날짜: %s, 금액: %d원, 이유: %s\n", current->date, current->amount, current->description);
+        }
+        current = current->next;
+    }
+    printf("\n아무 키나 누르면 계속합니다...");
+    dummy = getchar();
+}
+
 int main() {
     const char* filename = "database.txt";
     Record* records = loadRecordsFromFile(filename);
@@ -213,28 +227,32 @@ int main() {
             printf("%d월: %d원\n", i + 1, monthlyExpenses[i]);
         }
 
-        // 사용자가 월별 지출 내역을 보고 싶을 때
+        // 사용자 선택지
         char choice;
-        printf("\n월별 지출 내역을 보시겠습니까? (y/n): ");
+        printf("\n===== 메뉴 =====\n");
+        printf("1. 월별 지출 내역 확인\n");
+        printf("2. 수익 내역 확인\n");
+        printf("3. 프로그램 종료\n");
+        printf("선택: ");
         scanf(" %c", &choice);
-        if (choice == 'y' || choice == 'Y') {
+
+        if (choice == '1') {
             int month;
             printf("보고 싶은 월을 입력하세요 (1-12): ");
             scanf("%d", &month);
             if (month >= 1 && month <= 12) {
                 printMonthlyDetails(records, month);
-            }
-            else {
+            } else {
                 printf("잘못된 월을 입력하셨습니다.\n");
             }
+        } else if (choice == '2') {
+            printIncomeDetails(records);
+        } else if (choice == '3') {
+            break;
+        } else {
+            printf("잘못된 선택입니다.\n");
         }
 
-        // 프로그램 종료 여부 확인
-        printf("\n프로그램을 종료하시겠습니까? (y/n): ");
-        scanf(" %c", &choice);
-        if (choice == 'y' || choice == 'Y') {
-            break;
-        }
         clearScreen();
     }
 
