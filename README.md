@@ -44,3 +44,15 @@ _how_to_use(self use)_
   6. Select the number of the desired function
   7. If you selected 1, select the number of the data you want to sort by
   8. If you pressed 2, enter the task number you want to change the status of, then press 1-4 to set the status
+
+ _how_to_use(input.c support ver.)_  // Developer recommended method
+  1. Run database input program
+  2. Select available module options
+  3. Select 1 (budget module)
+  4. Enter information
+  5. Input Program Exit
+  6. Copy 'database.txt' to output program repository
+  7. Execute output program
+  8. Select the number of the desired function
+  9. If you selected 1, select the number of the data you want to sort by
+  10. If you pressed 2, enter the task number you want to change the status of, then press 1-4 to set the status
