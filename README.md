@@ -1,8 +1,8 @@
 # c_notepad
 
-# add_module_20241118
+# output(budget).c  (가계부/jeontaewon)
 + add_input.c_module_support(budget)_20241127
-+ output(budget).c  (가계부/jeontaewon)
++ add_module_20241118
 
 _how_to_use(self use)_
   1. Run database input program
@@ -22,9 +22,9 @@ _how_to_use(input.c support ver.)_  // Developer recommended method
   6. Copy 'database.txt' to output program repository
   7. Execute output program
 
-# add_module_not_yet
+# output(schedule).c  (시간표/Hyeonjoowon)
 + add_input.c_module_support(schedule)_not_yet
-+ output(schedule).c  (시간표/Hyeon joo won)
++ add_module_not_yet
 
 _how_to_use(self use)_ 
   1. Run schedule module
