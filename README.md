@@ -22,7 +22,11 @@
   6. Copy 'database.txt' to output program repository
   7. Execute output program
 
-#how_to_use(schedule) 
+#add_module_not_yet
+#add_input.c_module_support(schedule)_not_yet
+#output(schedule).c  (시간표/Hyeon joo won)
+
+#how_to_use(self use) 
   1. Run schedule module
   2. Add schedule data
   3. Execute output program
