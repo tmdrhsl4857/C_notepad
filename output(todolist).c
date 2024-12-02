@@ -70,10 +70,9 @@ void loadTasksFromFile(Task tasks[], int* taskCount, const char* filename) {
 
     for (int i = 0; i < *taskCount; i++) {
         fscanf(file, "%99[^,], %99[^,], %99[^,], %99[^\n]\n", tasks[i].date, tasks[i].type, tasks[i].title, tasks[i].status); // Read date, type, title, status
-        if (strcmp(tasks[i].status, "Not Started") != 0 && strcmp(tasks[i].status, "In Progress") != 0 && strcmp(tasks[i].status, "Completed") != 0 && strcmp(tasks[i].status, "Archived") != 0) {
+        if (strcmp(tasks[i].status, "0") == 0 || (strcmp(tasks[i].status, "Not Started") != 0 && strcmp(tasks[i].status, "In Progress") != 0 && strcmp(tasks[i].status, "Completed") != 0 && strcmp(tasks[i].status, "Archived") != 0)) {
             strcpy(tasks[i].status, "Not Started");
         }
-        fprintf(file, "%s, %s, %s, %s\n0\n", tasks[i].date, tasks[i].type, tasks[i].title, tasks[i].status);
         int endMarker;
         fscanf(file, "%d\n", &endMarker); // Read the end marker (0)
         if (endMarker != 0) {
@@ -96,6 +95,9 @@ void saveTasksToFile(const Task tasks[], int taskCount, const char* filename) {
     fprintf(file, "%d\n", taskCount); // Write the total number of tasks
 
     for (int i = 0; i < taskCount; i++) {
+        if (strcmp(tasks[i].status, "0") == 0 || (strcmp(tasks[i].status, "Not Started") != 0 && strcmp(tasks[i].status, "In Progress") != 0 && strcmp(tasks[i].status, "Completed") != 0 && strcmp(tasks[i].status, "Archived") != 0)) {
+            strcpy(tasks[i].status, "Not Started");
+        }
         fprintf(file, "%s, %s, %s, %s\n0\n", tasks[i].date, tasks[i].type, tasks[i].title, tasks[i].status); // Write date, type, title, status, and end marker
     }
 
@@ -205,6 +207,5 @@ void sortTasks(Task tasks[], int taskCount, int sortBy) {
         break;
     default:
         printf("Invalid sort option.\n");
-        return;
     }
 }
