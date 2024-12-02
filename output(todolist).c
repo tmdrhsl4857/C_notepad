@@ -102,6 +102,7 @@ void saveTasksToFile(const Task tasks[], int taskCount, const char* filename) {
 }
 
 void printTasks(const Task tasks[], int taskCount) {
+    system("cls"); // Clear the screen (use "cls" for Windows)
     if (taskCount == 0) {
         printf("No tasks available.\n");
         return;
