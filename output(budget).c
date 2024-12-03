@@ -1,9 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <windows.h>
 
 #define MAX_RECORDS 100
 #define NAME_LENGTH 100
+
+char dummy;
+
+void setTextColor(int textColor, int backgroundColor) {
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    // 배경색은 상위 비트(<< 4)에 설정, 텍스트 색상과 OR 연산
+    int colorAttribute = (backgroundColor << 4) | textColor;
+    SetConsoleTextAttribute(hConsole, colorAttribute);
+}
 
 typedef struct Record {
     char type; // '+' for income, '-' for expense
@@ -185,16 +195,34 @@ void printMonthlyDetails(Record* head, int month) {
     }
 
     sortRecordsByDate(&monthlyHead);
-
+    setTextColor(12,0);
     printf("\n%d월의 지출 내역:\n", month);
     monthlyCurrent = monthlyHead;
+    setTextColor(14,0);
     while (monthlyCurrent != NULL) {
         printf("날짜: %s, 금액: %d원, 이유: %s\n", monthlyCurrent->date, monthlyCurrent->amount, monthlyCurrent->description);
         monthlyCurrent = monthlyCurrent->next;
     }
+    setTextColor(7,0);
 
     // 정렬된 월별 기록 메모리 해제
     freeRecords(monthlyHead);
+}
+
+void printIncomeDetails(Record* head) {
+    Record* current = head;
+    setTextColor(10,0);
+    printf("\n수익 내역:\n");
+    setTextColor(14,0);
+    while (current != NULL) {
+        if (current->type == '+') {
+            printf("날짜: %s, 금액: %d원, 이유: %s\n", current->date, current->amount, current->description);
+        }
+        setTextColor(7,0);
+        current = current->next;
+    }
+    printf("\n아무 키나 누르면 계속합니다...");
+    dummy = getchar();
 }
 
 int main() {
@@ -203,38 +231,54 @@ int main() {
 
     while (1) {
         int balance = calculateBalance(records);
+        setTextColor(6,0);
         printf("잔액: %d\n", balance);
+        setTextColor(7,0);
 
         // 월별 지출 계산 및 출력
         int monthlyExpenses[12] = { 0 };
         calculateMonthlyExpenses(records, monthlyExpenses);
+        setTextColor(13,0);
         printf("\n===== 월별 사용 금액 =====\n");
         for (int i = 0; i < 12; i++) {
             printf("%d월: %d원\n", i + 1, monthlyExpenses[i]);
         }
+        setTextColor(7,0);
 
-        // 사용자가 월별 지출 내역을 보고 싶을 때
+        // 사용자 선택지
         char choice;
-        printf("\n월별 지출 내역을 보시겠습니까? (y/n): ");
+        setTextColor(11,0);
+        printf("\n===== 메뉴 =====\n");
+        printf("1. 월별 지출 내역 확인\n");
+        printf("2. 수익 내역 확인\n");
+        printf("3. 프로그램 종료\n");
+        printf("선택: ");
+        setTextColor(7,0);
         scanf(" %c", &choice);
-        if (choice == 'y' || choice == 'Y') {
+
+        if (choice == '1') {
             int month;
+            setTextColor(14,0);
             printf("보고 싶은 월을 입력하세요 (1-12): ");
+            setTextColor(7,0);
             scanf("%d", &month);
             if (month >= 1 && month <= 12) {
                 printMonthlyDetails(records, month);
-            }
-            else {
+            } else {
+                setTextColor(12,0);
                 printf("잘못된 월을 입력하셨습니다.\n");
+                setTextColor(7,0);
             }
+        } else if (choice == '2') {
+            printIncomeDetails(records);
+        } else if (choice == '3') {
+            break;
+        } else {
+            setTextColor(12,0);
+            printf("잘못된 선택입니다.\n");
+            setTextColor(7,0);
         }
 
-        // 프로그램 종료 여부 확인
-        printf("\n프로그램을 종료하시겠습니까? (y/n): ");
-        scanf(" %c", &choice);
-        if (choice == 'y' || choice == 'Y') {
-            break;
-        }
         clearScreen();
     }
 
