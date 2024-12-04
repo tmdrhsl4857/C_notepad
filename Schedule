@@ -2,15 +2,37 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-//이 부분을 동적으로 바꾸기
+
+// 설정값
 #define MAX_DAYS 7
 #define MAX_PERIODS 10
 #define MAX_LENGTH 100
 
-const char *days[] = {"월", "화", "수", "목", "금", "토", "일"};
+// 요일 배열
+const char* days[] = { "월", "화", "수", "목", "금", "토", "일" };
 
-void save_to_file(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH], const char *filename) {
-    FILE *file = fopen(filename, "w");
+// 화면 지우기 함수
+void clear_screen() {
+#ifdef _WIN32
+    system("cls"); // Windows
+#else
+    system("clear"); // Unix/Linux/MacOS
+#endif
+}
+
+// 메뉴 출력
+void display_menu() {
+    printf("\n--- 시간표 프로그램 ---\n");
+    printf("1. 시간표 추가 및 수정\n");
+    printf("2. 시간표 보기\n");
+    printf("3. 시간표 초기화\n");
+    printf("4. 프로그램 종료\n");
+    printf("선택: ");
+}
+
+// 파일에 시간표 저장
+void save_to_file(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH], const char* filename) {
+    FILE* file = fopen(filename, "w");
     if (file == NULL) {
         perror("파일 저장 오류");
         exit(1);
@@ -25,8 +47,9 @@ void save_to_file(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH], const char *
     fclose(file);
 }
 
-void load_from_file(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH], const char *filename) {
-    FILE *file = fopen(filename, "r");
+// 파일에서 시간표 불러오기
+void load_from_file(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH], const char* filename) {
+    FILE* file = fopen(filename, "r");
     if (file == NULL) {
         return; // 파일이 없으면 초기 상태 유지
     }
@@ -44,6 +67,7 @@ void load_from_file(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH], const char
     fclose(file);
 }
 
+// 시간표 초기화
 void reset_schedule(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH]) {
     for (int i = 0; i < MAX_DAYS; i++) {
         for (int j = 0; j < MAX_PERIODS; j++) {
@@ -53,8 +77,9 @@ void reset_schedule(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH]) {
     printf("시간표가 초기화되었습니다.\n");
 }
 
+// 시간표 표시
 void display_schedule(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH]) {
-    int max_period = 1;
+    int max_period = 1; // 최소 1교시 출력 보장
 
     // 최대 교시 계산
     for (int i = 0; i < MAX_DAYS; i++) {
@@ -77,8 +102,7 @@ void display_schedule(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH]) {
         for (int i = 0; i < MAX_DAYS; i++) {
             if (strlen(schedule[i][j]) > 0) {
                 printf("%5s ", schedule[i][j]);
-            }
-            else {
+            } else {
                 printf("     - ");
             }
         }
@@ -86,20 +110,13 @@ void display_schedule(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH]) {
     }
 }
 
-void display_menu() {
-    printf("\n--- 시간표 프로그램 ---\n");
-    printf("1. 시간표 추가 및 수정\n");
-    printf("2. 시간표 보기\n");
-    printf("3. 시간표 초기화\n");
-    printf("4. 프로그램 종료\n");
-    printf("선택: ");
-}
+// 시간표 추가 및 수정
 void modify_schedule(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH]) {
     char input[MAX_LENGTH];
     char day[MAX_LENGTH];
     int period;
     char subject[MAX_LENGTH];
-    
+
     printf("수정할 시간표를 입력하세요 (예: 월 1 수학): ");
     scanf(" %[^\n]", input);
 
@@ -134,35 +151,46 @@ void modify_schedule(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH]) {
     printf("%s %d교시가 %s로 수정되었습니다.\n", days[day_index], period, subject);
 }
 
-
+// 메인 함수
 int main() {
-    char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH] = {0};
+    char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH] = { 0 };
     int choice;
 
     // 초기화
     load_from_file(schedule, "timetable.txt");
 
     do {
+        clear_screen(); // 이전 화면 지우기
         display_menu();
         scanf("%d", &choice);
 
+        clear_screen(); // 선택 후 화면 지우기
+
         switch (choice) {
-            case 1: // 시간표 추가 및 수정
-                modify_schedule(schedule);
-                break;
-            case 2: // 시간표 보기
-                display_schedule(schedule);
-                break;
-            case 3: // 시간표 초기화
-                reset_schedule(schedule);
-                break;
-            case 4: // 프로그램 종료
-                save_to_file(schedule, "timetable.txt");
-                printf("프로그램을 종료합니다.\n");
-                break;
-            default:
-                printf("잘못된 선택입니다. 다시 입력하세요.\n");
+        case 1: // 시간표 추가 및 수정
+            modify_schedule(schedule);
+            break;
+        case 2: // 시간표 보기
+            display_schedule(schedule);
+            break;
+        case 3: // 시간표 초기화
+            reset_schedule(schedule);
+            break;
+        case 4: // 프로그램 종료
+            save_to_file(schedule, "timetable.txt");
+            printf("프로그램을 종료합니다.\n");
+            break;
+        default:
+            printf("잘못된 선택입니다. 다시 입력하세요.\n");
         }
+
+        // 결과를 확인할 시간 제공
+        if (choice != 4) {
+            printf("\nEnter 키를 눌러 계속하세요...");
+            getchar(); // 버퍼 비우기
+            getchar(); // 사용자 입력 대기
+        }
+
     } while (choice != 4);
 
     return 0;
