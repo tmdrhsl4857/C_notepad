@@ -538,6 +538,65 @@ void updateTodoStatus(Todo todos[], int count) {
     printf("상태가 '%s'로 수정되었습니다.\n", STATUS_TEXT[newStatus]);
 }
 
+// ToDolist 항목 수정/삭제 함수
+void editTodo(Todo todos[], int* count) {
+    if (*count == 0) {
+        printf("수정할 할 일이 없습니다.\n");
+        return;
+    }
+    printTodoList(todos, *count);
+    printf("수정 또는 삭제할 할 일 번호를 입력하세요 (0을 입력하면 취소됩니다): ");
+    int index;
+    scanf("%d", &index);
+    getchar(); // 버퍼 비우기
+    if (index <= 0 || index > *count) {
+        printf("잘못된 선택이거나 취소를 선택하셨습니다.\n");
+        return;
+    }
+    index--; // 배열 인덱스 보정
+    printf("\n1. 수정\n2. 삭제\n선택: ");
+    int action;
+    scanf("%d", &action);
+    getchar();
+    if (action == 1) {
+        // 수정 기능
+        printf("새 날짜를 입력해주세요 (예시: 20250101): ");
+        fgets(todos[index].date, sizeof(todos[index].date), stdin);
+        todos[index].date[strcspn(todos[index].date, "\n")] = '\0';
+
+        printf("새 타입을 입력해주세요: ");
+        fgets(todos[index].type, sizeof(todos[index].type), stdin);
+        todos[index].type[strcspn(todos[index].type, "\n")] = '\0';
+
+        printf("새 내용을 입력해주세요: ");
+        fgets(todos[index].task, sizeof(todos[index].task), stdin);
+        todos[index].task[strcspn(todos[index].task, "\n")] = '\0';
+
+        printf("새 상태를 입력해주세요 (0: 준비, 1: 진행, 2: 완료, 3: 보관): ");
+        int newStatus;
+        scanf("%d", &newStatus);
+        getchar();
+        if (newStatus < 0 || newStatus > 3) {
+            printf("잘못된 상태 선택입니다.\n");
+        }
+        else {
+            todos[index].status = newStatus;
+        }
+        printf("할 일이 수정되었습니다.\n");
+    }
+    else if (action == 2) {
+        // 삭제 기능
+        for (int i = index; i < *count - 1; i++) {
+            todos[i] = todos[i + 1];
+        }
+        (*count)--;
+        printf("할 일이 삭제되었습니다.\n");
+    }
+    else {
+        printf("잘못된 선택입니다.\n");
+    }
+}
+
 // ToDolist 모듈 실행 함수
 void runTodolistModule() {
     Todo todos[MAX_TODOS];
