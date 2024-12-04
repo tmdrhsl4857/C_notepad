@@ -477,6 +477,39 @@ void printTodoList(Todo todos[], int count) {
     printf("\n================================\n");
 }
 
+// ToDolist 항목 추가 함수
+void addTodo(Todo todos[], int* count) {
+    if (*count >= MAX_TODOS) {
+        printf("할 일 목록이 가득 찼습니다!\n");
+        return;
+    }
+    Todo newTodo;
+
+    printf("날짜를 입력해주세요 (예시: 20250101): ");
+    fgets(newTodo.date, sizeof(newTodo.date), stdin);
+    newTodo.date[strcspn(newTodo.date, "\n")] = '\0';
+
+    printf("타입을 입력해주세요: ");
+    fgets(newTodo.type, sizeof(newTodo.type), stdin);
+    newTodo.type[strcspn(newTodo.type, "\n")] = '\0';
+
+    printf("내용을 입력해주세요: ");
+    fgets(newTodo.task, sizeof(newTodo.task), stdin);
+    newTodo.task[strcspn(newTodo.task, "\n")] = '\0';
+
+    printf("상태를 선택해주세요 (0: 준비, 1: 진행, 2: 완료, 3: 보관): ");
+    scanf("%d", &newTodo.status);
+    getchar(); // 버퍼 비우기
+
+    if (newTodo.status < 0 || newTodo.status > 3) {
+        printf("잘못된 상태 선택입니다. 기본값(준비)으로 설정합니다.\n");
+        newTodo.status = 0; // 기본값: 준비
+    }
+
+    todos[(*count)++] = newTodo;
+    printf("새로운 할 일이 추가되었습니다!\n");
+}
+
 // ToDolist 모듈 실행 함수
 void runTodolistModule() {
     Todo todos[MAX_TODOS];
