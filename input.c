@@ -187,6 +187,7 @@ void loadDatabaseFromFile(const char* filename, ItemList* rootList) {
 void printAvailableModules() {
     printf("\n현재 지원 가능한 모듈:\n");
     printf("1. 가계부 모듈\n");
+    printf("2. ToDolist 모듈\n");
 }
 
 // 가계부 모듈 실행 함수
