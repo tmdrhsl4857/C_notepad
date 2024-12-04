@@ -5,26 +5,6 @@
 #define NAME_LENGTH 100
 char dummy;  // getchar 경고 없애기 용도
 
-void clearScreen() {
-    system("cls"); // Windows에서 화면을 지움
-}
-
-// 도움말 출력 함수
-void printHelp() {
-    clearScreen();
-    printf("\n========== 도움말 =========="
-        "\n이 프로그램은 사용자 항목 관리 기능을 제공합니다. 사용자는 항목을 추가하고, 삭제하고, 수정할 수 있으며, 하위 항목을 탐색할 수 있습니다.\n"
-        "1. 새 항목 추가: 새 항목을 추가합니다.\n"
-        "2. 항목 삭제: 기존 항목을 삭제합니다.\n"
-        "3. 항목 수정: 기존 항목의 이름을 변경합니다.\n"
-        "4. 항목 선택: 특정 항목을 선택하여 그 하위 항목을 관리합니다.\n"
-        "5. 종료: 프로그램을 종료하고 데이터베이스를 저장합니다.\n"
-        "n. 사용 가능한 모듈: 현재 지원 가능한 모듈을 확인하고 실행합니다.\n"
-        "==========================\n");
-    printf("\n아무 키나 누르면 계속합니다...");
-    dummy = getchar();
-}
-
 // 항목 구조체 정의
 typedef struct Item {
     char name[NAME_LENGTH];
@@ -45,6 +25,207 @@ typedef struct Record {
     char description[NAME_LENGTH];
     char date[NAME_LENGTH];
 } Record;
+
+#define NAME_LENGTH 100
+#define MAX_TODOS 100
+
+// 상태 상수 정의
+const char* STATUS_TEXT[] = { "준비", "진행", "완료", "보관" };
+
+// ToDolist 구조체 정의
+typedef struct Todo {
+    char date[NAME_LENGTH];   // 날짜
+    char type[NAME_LENGTH];   // 타입
+    char task[NAME_LENGTH];   // 내용
+    int status;               // 상태: 0: 준비, 1: 진행, 2: 완료, 3: 보관
+} Todo;
+
+void clearScreen();
+void printHelp();
+void initItemList(ItemList* list);
+void resizeItemList(ItemList* list);
+void addItem(ItemList* list, const char* itemName);
+void printItemList(const ItemList* list);
+void freeItem(Item* item);
+void freeItemList(ItemList* list);
+void deleteItem(ItemList* list, int index);
+void editItemName(Item* item, const char* newName);
+void saveItemListToFile(const ItemList* list, FILE* file);
+void saveDatabaseToFile(const char* filename, const ItemList* rootList);
+void loadItemListFromFile(ItemList* list, FILE* file);
+void loadDatabaseFromFile(const char* filename, ItemList* rootList);
+void printAvailableModules();
+void runAccountingModule(ItemList* rootList);
+void loadTodoListFromFile(const char* filename, Todo todos[], int* count);
+void saveTodoListToFile(const char* filename, Todo todos[], int count);
+void printTodoList(Todo todos[], int count);
+void addTodo(Todo todos[], int* count);
+void updateTodoStatus(Todo todos[], int count);
+void editTodo(Todo todos[], int* count);
+void runTodolistModule();
+void navigateItem(Item* item);
+void cleanup(ItemList* list);
+
+int main() {
+    ItemList rootList;
+    initItemList(&rootList);
+    atexit(cleanup);  // 프로그램 종료 시 메모리 해제
+
+    char helpChoice;
+    printf("프로그램을 시작하기 전에 도움말을 보시겠습니까? (Y/N): ");
+    scanf(" %c", &helpChoice);
+    dummy = getchar(); // 버퍼 비우기
+    if (helpChoice == 'Y' || helpChoice == 'y') {
+        printHelp();
+    }
+
+    loadDatabaseFromFile("database.txt", &rootList);  // 프로그램 시작 시 데이터 로드
+
+    char itemName[NAME_LENGTH];
+    int choice;
+
+    while (1) {
+        clearScreen();
+        printf("\n========== 메뉴 ==========");
+        printf("\n1. 새 항목 추가\n");
+        printf("2. 항목 삭제\n");
+        printf("3. 항목 수정\n");
+        printf("4. 항목 선택\n");
+        printf("5. 종료\n");
+        printf("n. 사용 가능한 모듈\n");
+        printf("==========================\n");
+        printf("선택: ");
+        if (scanf("%d", &choice) == 1) {
+            dummy = getchar();  // 버퍼 비우기
+
+            switch (choice) {
+            case 1:
+                printf("\n추가할 항목 이름을 입력하세요: ");
+                fgets(itemName, sizeof(itemName), stdin);
+                itemName[strcspn(itemName, "\n")] = '\0';  // 개행 문자 제거
+                addItem(&rootList, itemName);
+                break;
+            case 2:
+                if (rootList.size == 0) {
+                    printf("항목이 없습니다. 아무 키나 누르면 메뉴로 돌아갑니다...");
+                    dummy = getchar();
+                    break;
+                }
+                printItemList(&rootList);
+                printf("\n삭제할 항목 번호를 입력하세요 (0을 입력하면 취소됩니다): ");
+                int deleteIndex;
+                scanf("%d", &deleteIndex);
+                dummy = getchar();  // 버퍼 비우기
+                if (deleteIndex == 0) {
+                    printf("삭제를 취소했습니다.\n");
+                    dummy = getchar();
+                    break;
+                }
+                deleteItem(&rootList, deleteIndex - 1);
+                break;
+            case 3:
+                if (rootList.size == 0) {
+                    printf("항목이 없습니다. 아무 키나 누르면 메뉴로 돌아갑니다...");
+                    dummy = getchar();
+                    break;
+                }
+                printItemList(&rootList);
+                printf("\n수정할 항목 번호를 입력하세요 (0을 입력하면 취소됩니다): ");
+                int editIndex;
+                scanf("%d", &editIndex);
+                dummy = getchar();  // 버퍼 비우기
+                if (editIndex == 0) {
+                    printf("수정을 취소했습니다.\n");
+                    dummy = getchar();
+                    break;
+                }
+                if (editIndex > 0 && editIndex <= rootList.size) {
+                    printf("새로운 항목 이름을 입력하세요: ");
+                    fgets(itemName, sizeof(itemName), stdin);
+                    itemName[strcspn(itemName, "\n")] = '\0';  // 개행 문자 제거
+                    editItemName(rootList.items[editIndex - 1], itemName);
+                }
+                else {
+                    printf("잘못된 선택입니다. 아무 키나 누르면 계속합니다...");
+                    dummy = getchar();
+                }
+                break;
+            case 4:
+                if (rootList.size == 0) {
+                    printf("항목이 없습니다. 아무 키나 누르면 메뉴로 돌아갑니다...");
+                    dummy = getchar();
+                    break;
+                }
+                printItemList(&rootList);
+                printf("\n몇 번째 항목을 선택하시겠습니까? (번호 입력): ");
+                int index;
+                scanf("%d", &index);
+                dummy = getchar();  // 버퍼 비우기
+
+                if (index > 0 && index <= rootList.size) {
+                    navigateItem(rootList.items[index - 1]);
+                }
+                else {
+                    printf("잘못된 선택입니다. 아무 키나 누르면 메뉴로 돌아갑니다...");
+                    dummy = getchar();
+                }
+                break;
+
+            case 5:
+                saveDatabaseToFile("database.txt", &rootList);  // 프로그램 종료 시 데이터 저장
+                printf("프로그램을 종료합니다.\n");
+                freeItemList(&rootList);
+                return 0;
+            default:
+                printf("잘못된 선택입니다. 다시 시도해주세요.\n");
+                printf("\n아무 키나 누르면 계속합니다...");
+                dummy = getchar();
+            }
+        }
+        else {
+            char moduleChoice;
+            dummy = getchar();  // 버퍼 비우기
+            if (dummy == 'n' || dummy == 'N') {
+                printAvailableModules();
+                printf("\n모듈을 선택하세요 (1, 2): ");
+                scanf(" %c", &moduleChoice);
+                dummy = getchar(); // 버퍼 비우기
+                if (moduleChoice == '1') {
+                    runAccountingModule(&rootList);
+                }
+                else if (moduleChoice == '2') {
+                    runTodolistModule();
+                }
+                else {
+                    printf("잘못된 선택입니다.\n아무 키나 누르면 계속합니다...");
+                    dummy = getchar();
+                }
+            }
+        }
+    }
+
+    return 0;
+}
+
+void clearScreen() {
+    system("cls"); // Windows에서 화면을 지움
+}
+
+// 도움말 출력 함수
+void printHelp() {
+    clearScreen();
+    printf("\n========== 도움말 =========="
+        "\n이 프로그램은 사용자 항목 관리 기능을 제공합니다. 사용자는 항목을 추가하고, 삭제하고, 수정할 수 있으며, 하위 항목을 탐색할 수 있습니다.\n"
+        "1. 새 항목 추가: 새 항목을 추가합니다.\n"
+        "2. 항목 삭제: 기존 항목을 삭제합니다.\n"
+        "3. 항목 수정: 기존 항목의 이름을 변경합니다.\n"
+        "4. 항목 선택: 특정 항목을 선택하여 그 하위 항목을 관리합니다.\n"
+        "5. 종료: 프로그램을 종료하고 데이터베이스를 저장합니다.\n"
+        "n. 사용 가능한 모듈: 현재 지원 가능한 모듈을 확인하고 실행합니다.\n"
+        "==========================\n");
+    printf("\n아무 키나 누르면 계속합니다...");
+    dummy = getchar();
+}
 
 // 리스트 초기화 함수
 void initItemList(ItemList* list) {
@@ -419,20 +600,6 @@ void runAccountingModule(ItemList* rootList) {
     }
 }
 
-#define NAME_LENGTH 100
-#define MAX_TODOS 100
-
-// 상태 상수 정의
-const char* STATUS_TEXT[] = { "준비", "진행", "완료", "보관" };
-
-// ToDolist 구조체 정의
-typedef struct Todo {
-    char date[NAME_LENGTH];   // 날짜
-    char type[NAME_LENGTH];   // 타입
-    char task[NAME_LENGTH];   // 내용
-    int status;               // 상태: 0: 준비, 1: 진행, 2: 완료, 3: 보관
-} Todo;
-
 // ToDolist 데이터 로드 함수
 void loadTodoListFromFile(const char* filename, Todo todos[], int* count) {
     FILE* file = fopen(filename, "r");
@@ -746,145 +913,4 @@ void navigateItem(Item* item) {
 
 void cleanup(ItemList* list) {
     freeItemList(list);
-}
-
-int main() {
-    ItemList rootList;
-    initItemList(&rootList);
-    atexit(cleanup);  // 프로그램 종료 시 메모리 해제
-
-    char helpChoice;
-    printf("프로그램을 시작하기 전에 도움말을 보시겠습니까? (Y/N): ");
-    scanf(" %c", &helpChoice);
-    dummy = getchar(); // 버퍼 비우기
-    if (helpChoice == 'Y' || helpChoice == 'y') {
-        printHelp();
-    }
-
-    loadDatabaseFromFile("database.txt", &rootList);  // 프로그램 시작 시 데이터 로드
-
-    char itemName[NAME_LENGTH];
-    int choice;
-
-    while (1) {
-        clearScreen();
-        printf("\n========== 메뉴 ==========");
-        printf("\n1. 새 항목 추가\n");
-        printf("2. 항목 삭제\n");
-        printf("3. 항목 수정\n");
-        printf("4. 항목 선택\n");
-        printf("5. 종료\n");
-        printf("n. 사용 가능한 모듈\n");
-        printf("==========================\n");
-        printf("선택: ");
-        if (scanf("%d", &choice) == 1) {
-            dummy = getchar();  // 버퍼 비우기
-
-            switch (choice) {
-            case 1:
-                printf("\n추가할 항목 이름을 입력하세요: ");
-                fgets(itemName, sizeof(itemName), stdin);
-                itemName[strcspn(itemName, "\n")] = '\0';  // 개행 문자 제거
-                addItem(&rootList, itemName);
-                break;
-            case 2:
-                if (rootList.size == 0) {
-                    printf("항목이 없습니다. 아무 키나 누르면 메뉴로 돌아갑니다...");
-                    dummy = getchar();
-                    break;
-                }
-                printItemList(&rootList);
-                printf("\n삭제할 항목 번호를 입력하세요 (0을 입력하면 취소됩니다): ");
-                int deleteIndex;
-                scanf("%d", &deleteIndex);
-                dummy = getchar();  // 버퍼 비우기
-                if (deleteIndex == 0) {
-                    printf("삭제를 취소했습니다.\n");
-                    dummy = getchar();
-                    break;
-                }
-                deleteItem(&rootList, deleteIndex - 1);
-                break;
-            case 3:
-                if (rootList.size == 0) {
-                    printf("항목이 없습니다. 아무 키나 누르면 메뉴로 돌아갑니다...");
-                    dummy = getchar();
-                    break;
-                }
-                printItemList(&rootList);
-                printf("\n수정할 항목 번호를 입력하세요 (0을 입력하면 취소됩니다): ");
-                int editIndex;
-                scanf("%d", &editIndex);
-                dummy = getchar();  // 버퍼 비우기
-                if (editIndex == 0) {
-                    printf("수정을 취소했습니다.\n");
-                    dummy = getchar();
-                    break;
-                }
-                if (editIndex > 0 && editIndex <= rootList.size) {
-                    printf("새로운 항목 이름을 입력하세요: ");
-                    fgets(itemName, sizeof(itemName), stdin);
-                    itemName[strcspn(itemName, "\n")] = '\0';  // 개행 문자 제거
-                    editItemName(rootList.items[editIndex - 1], itemName);
-                }
-                else {
-                    printf("잘못된 선택입니다. 아무 키나 누르면 계속합니다...");
-                    dummy = getchar();
-                }
-                break;
-            case 4:
-                if (rootList.size == 0) {
-                    printf("항목이 없습니다. 아무 키나 누르면 메뉴로 돌아갑니다...");
-                    dummy = getchar();
-                    break;
-                }
-                printItemList(&rootList);
-                printf("\n몇 번째 항목을 선택하시겠습니까? (번호 입력): ");
-                int index;
-                scanf("%d", &index);
-                dummy = getchar();  // 버퍼 비우기
-
-                if (index > 0 && index <= rootList.size) {
-                    navigateItem(rootList.items[index - 1]);
-                }
-                else {
-                    printf("잘못된 선택입니다. 아무 키나 누르면 메뉴로 돌아갑니다...");
-                    dummy = getchar();
-                }
-                break;
-
-            case 5:
-                saveDatabaseToFile("database.txt", &rootList);  // 프로그램 종료 시 데이터 저장
-                printf("프로그램을 종료합니다.\n");
-                freeItemList(&rootList);
-                return 0;
-            default:
-                printf("잘못된 선택입니다. 다시 시도해주세요.\n");
-                printf("\n아무 키나 누르면 계속합니다...");
-                dummy = getchar();
-            }
-        }
-        else {
-            char moduleChoice;
-            dummy = getchar();  // 버퍼 비우기
-            if (dummy == 'n' || dummy == 'N') {
-                printAvailableModules();
-                printf("\n모듈을 선택하세요 (1, 2): ");
-                scanf(" %c", &moduleChoice);
-                dummy = getchar(); // 버퍼 비우기
-                if (moduleChoice == '1') {
-                    runAccountingModule(&rootList);
-                }
-                else if (moduleChoice == '2') {
-                    runTodolistModule();
-                }
-                else {
-                    printf("잘못된 선택입니다.\n아무 키나 누르면 계속합니다...");
-                    dummy = getchar();
-                }
-            }
-        }
-    }
-
-    return 0;
 }
