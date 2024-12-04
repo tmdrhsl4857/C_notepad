@@ -1,0 +1,7 @@
+3
+2024-11-23, Complete C project, Finish the to-do list application
+0
+2024-11-25, Team meeting, Discuss project requirements
+0
+2024-11-30, Submit assignment, Upload to the portal before midnight
+0
