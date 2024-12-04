@@ -475,6 +475,8 @@ void printTodoList(Todo todos[], int count) {
             i + 1, todos[i].date, todos[i].type, todos[i].task, STATUS_TEXT[todos[i].status]);
     }
     printf("\n================================\n");
+    printf("\n아무 키나 누르면 계속합니다...");
+    dummy = getchar();
 }
 
 // ToDolist 항목 추가 함수
@@ -660,7 +662,7 @@ void runTodolistModule() {
         case 5:
             saveTodoListToFile("database.txt", todos, todoCount); // 종료 전에 저장
             printf("ToDolist 모듈을 종료합니다. 모든 변경 사항이 저장되었습니다.\n");
-            return;
+            exit(0);
         default:
             printf("잘못된 선택입니다. 다시 시도해주세요.\n");
         }
