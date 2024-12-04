@@ -825,11 +825,14 @@ int main() {
             dummy = getchar();  // 버퍼 비우기
             if (dummy == 'n' || dummy == 'N') {
                 printAvailableModules();
-                printf("\n모듈을 선택하세요 (1): ");
+                printf("\n모듈을 선택하세요 (1, 2): ");
                 scanf(" %c", &moduleChoice);
                 dummy = getchar(); // 버퍼 비우기
                 if (moduleChoice == '1') {
                     runAccountingModule(&rootList);
+                }
+                else if (moduleChoice == '2') {
+                    runTodolistModule();
                 }
                 else {
                     printf("잘못된 선택입니다.\n아무 키나 누르면 계속합니다...");
