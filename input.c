@@ -510,6 +510,34 @@ void addTodo(Todo todos[], int* count) {
     printf("새로운 할 일이 추가되었습니다!\n");
 }
 
+// ToDolist 상태 수정 함수
+void updateTodoStatus(Todo todos[], int count) {
+    if (count == 0) {
+        printf("수정할 할 일이 없습니다.\n");
+        return;
+    }
+    printTodoList(todos, count);
+    printf("상태를 수정할 할 일 번호를 입력하세요 (0을 입력하면 취소됩니다): ");
+    int index;
+    scanf("%d", &index);
+    getchar(); // 버퍼 비우기
+    if (index <= 0 || index > count) {
+        printf("잘못된 선택이거나 취소를 선택하셨습니다.\n");
+        return;
+    }
+    index--; // 배열 인덱스 보정
+    printf("새로운 상태를 입력해주세요 (0: 준비, 1: 진행, 2: 완료, 3: 보관): ");
+    int newStatus;
+    scanf("%d", &newStatus);
+    getchar(); // 버퍼 비우기
+    if (newStatus < 0 || newStatus > 3) {
+        printf("잘못된 상태 선택입니다.\n");
+        return;
+    }
+    todos[index].status = newStatus;
+    printf("상태가 '%s'로 수정되었습니다.\n", STATUS_TEXT[newStatus]);
+}
+
 // ToDolist 모듈 실행 함수
 void runTodolistModule() {
     Todo todos[MAX_TODOS];
