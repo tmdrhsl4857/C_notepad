@@ -191,7 +191,6 @@ void printAvailableModules() {
 }
 
 // 가계부 모듈 실행 함수
-// 가계부 모듈 실행 함수
 void runAccountingModule(ItemList* rootList) {
     // 가계부 모듈 시작 시 기존 정보 초기화
     freeItemList(rootList);
