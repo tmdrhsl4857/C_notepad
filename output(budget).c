@@ -22,6 +22,10 @@ void printAllExpenses(Record* head);
 void printMonthlyDetails(Record* head, int month);
 void printMainMenu(int balance);
 void printIncomeDetails(Record* head);
+void printBarGraph(int data[], int size);
+void printAllIncomes(Record* head);
+void printMonthlyIncomes(Record* head, int month);
+
 
 int main() {
     const char* filename = "database.txt";
@@ -41,8 +45,6 @@ int main() {
             break;
         case 2:
             printIncomeDetails(records);
-            printf("\n아무 키나 누르면 상위 메뉴로 돌아갑니다...");
-            getchar(); // 키 입력 대기
             break;
         case 3:
             printf("\n프로그램을 종료합니다.\n");
@@ -162,7 +164,26 @@ void printAllExpenses(Record* head) {
     Record* current = head;
     int hasExpenses = 0;
 
+    // 월별 지출 데이터 초기화
+    int monthlyExpenses[12] = { 0 };
+
+    // 월별 지출 데이터를 계산
+    while (current != NULL) {
+        if (current->type == '-') {
+            int month;
+            sscanf(current->date, "%*4d%2d", &month);
+            if (month >= 1 && month <= 12) {
+                monthlyExpenses[month - 1] += current->amount;
+            }
+        }
+        current = current->next;
+    }
+
+    // 텍스트 기반 그래프 출력
+    printBarGraph(monthlyExpenses, 12);
+
     printf("\n전체 지출 내역:\n");
+    current = head;
     while (current != NULL) {
         if (current->type == '-') {
             hasExpenses = 1;
@@ -179,8 +200,8 @@ void printAllExpenses(Record* head) {
         scanf("%d", &month);
         getchar(); // 버퍼 비우기
         if (month >= 1 && month <= 12) {
-            printMonthlyDetails(head, month); // 월별 내역 출력
-            return; // 특정 월 지출 내역 화면에서 전체 지출 내역 화면으로 복귀
+            printMonthlyDetails(head, month);
+            return; // 월별 내역 출력 후 상위 메뉴로 돌아감
         }
     }
 
@@ -189,6 +210,7 @@ void printAllExpenses(Record* head) {
     getchar(); // 키 입력 대기
     clearScreen(); // 화면 초기화
 }
+
 
 // 월별 지출 내역 출력 함수
 void printMonthlyDetails(Record* head, int month) {
@@ -233,11 +255,54 @@ void printMainMenu(int balance) {
 
 // 수익 내역 출력 함수
 void printIncomeDetails(Record* head) {
+    printAllIncomes(head);
+}
+
+void printBarGraph(int data[], int size) {
+    printf("\n=== 월별 지출 그래프 ===\n");
+    printf("그래프 단위: 10000원\n\n");
+    for (int i = 0; i < size; i++) {
+        printf("%2d월: ", i + 1);
+        for (int j = 0; j < data[i] / 10000; j++) { // 만원 단위로 스케일링
+            printf("#");
+        }
+        printf(" (%d원)\n", data[i]);
+    }
+}
+
+void printAllIncomes(Record* head) {
     clearScreen();
     Record* current = head;
     int hasIncome = 0;
 
-    printf("\n수익 내역:\n");
+    // 월별 수익 데이터 초기화
+    int monthlyIncomes[12] = { 0 };
+
+    // 월별 수익 데이터를 계산
+    while (current != NULL) {
+        if (current->type == '+') {
+            int month;
+            sscanf(current->date, "%*4d%2d", &month);
+            if (month >= 1 && month <= 12) {
+                monthlyIncomes[month - 1] += current->amount;
+            }
+        }
+        current = current->next;
+    }
+
+    // 텍스트 기반 그래프 출력
+    printf("\n=== 월별 수익 그래프 ===\n");
+    printf("그래프 단위: 10000원\n\n");
+    for (int i = 0; i < 12; i++) {
+        printf("%2d월: ", i + 1);
+        for (int j = 0; j < monthlyIncomes[i] / 10000; j++) { // 만원 단위로 스케일링
+            printf("#");
+        }
+        printf(" (%d원)\n", monthlyIncomes[i]);
+    }
+
+    printf("\n전체 수익 내역:\n");
+    current = head;
     while (current != NULL) {
         if (current->type == '+') {
             hasIncome = 1;
@@ -248,4 +313,54 @@ void printIncomeDetails(Record* head) {
     if (!hasIncome) {
         printf("수익 내역이 없습니다.\n");
     }
+    else {
+        int month;
+        printf("\n특정 월의 수익 내역을 보시겠습니까? (1-12, 0: 취소): ");
+        scanf("%d", &month);
+        getchar(); // 버퍼 비우기
+        if (month == 0) {
+            // 취소 시 상위 메뉴로 바로 복귀
+            return;
+        }
+        if (month >= 1 && month <= 12) {
+            printMonthlyIncomes(head, month);
+            return; // 월별 내역 출력 후 상위 메뉴로 돌아감
+        }
+    }
+
+    // 상위 메뉴 복귀
+    printf("\n아무 키나 누르면 상위 메뉴로 돌아갑니다...");
+    getchar(); // 키 입력 대기
+    clearScreen(); // 화면 초기화
+}
+
+
+
+void printMonthlyIncomes(Record* head, int month) {
+    clearScreen();
+    Record* current = head;
+    int hasIncome = 0;
+
+    printf("\n%d월의 수익 내역:\n", month);
+    while (current != NULL) {
+        if (current->type == '+') {
+            int recordMonth;
+            sscanf(current->date, "%*4d%2d", &recordMonth);
+            if (recordMonth == month) {
+                hasIncome = 1;
+                printf("날짜: %s, 금액: %d원, 이유: %s\n", current->date, current->amount, current->description);
+            }
+        }
+        current = current->next;
+    }
+
+    if (!hasIncome) {
+        printf("%d월의 수익 내역이 없습니다.\n", month);
+    }
+
+    // 상위 메뉴 복귀
+    printf("\n아무 키나 누르면 전체 수익 내역 화면으로 돌아갑니다...");
+    getchar(); // 키 입력 대기
+    clearScreen(); // 화면 초기화
+    printAllIncomes(head); // 전체 수익 내역 화면으로 복귀
 }
