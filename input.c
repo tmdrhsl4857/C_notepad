@@ -616,7 +616,7 @@ void runTodolistModule() {
             return;
         }
         fprintf(file, "0\n"); // 초기화된 파일은 데이터 개수 0으로 기록
-        fclose(file);
+        fclose(file); // 초기화 후 파일 닫기
         printf("데이터베이스가 초기화되었습니다.\n");
     }
     else {
@@ -640,21 +640,25 @@ void runTodolistModule() {
         printf("선택: ");
         scanf("%d", &choiceMenu);
         getchar(); // 버퍼 비우기
+
         switch (choiceMenu) {
         case 1:
             addTodo(todos, &todoCount);
+            saveTodoListToFile("database.txt", todos, todoCount); // 변경 사항 저장
             break;
         case 2:
             printTodoList(todos, todoCount);
             break;
         case 3:
             updateTodoStatus(todos, todoCount);
+            saveTodoListToFile("database.txt", todos, todoCount); // 변경 사항 저장
             break;
         case 4:
             editTodo(todos, &todoCount);
+            saveTodoListToFile("database.txt", todos, todoCount); // 변경 사항 저장
             break;
         case 5:
-            saveTodoListToFile("database.txt", todos, todoCount);
+            saveTodoListToFile("database.txt", todos, todoCount); // 종료 전에 저장
             printf("ToDolist 모듈을 종료합니다. 모든 변경 사항이 저장되었습니다.\n");
             return;
         default:
@@ -662,7 +666,6 @@ void runTodolistModule() {
         }
     }
 }
-
 
 void navigateItem(Item* item) {
     int choice;
