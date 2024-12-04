@@ -247,7 +247,7 @@ void printMainMenu(int balance) {
     clearScreen();
     printf("===== 메뉴 =====\n");
     printf("현재 잔액: %d원\n\n", balance);
-    printf("1. 전체 지출 내역 보기\n");
+    printf("1. 지출 내역 확인\n");
     printf("2. 수익 내역 확인\n");
     printf("3. 프로그램 종료\n");
     printf("선택: ");
