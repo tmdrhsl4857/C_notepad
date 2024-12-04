@@ -7,6 +7,7 @@
 #define MAX_DAYS 7
 #define MAX_PERIODS 10
 #define MAX_LENGTH 100
+#define FIELD_WIDTH 12  // 각 항목의 고정 너비 (조정 가능)
 
 // 요일 배열
 const char* days[] = { "월", "화", "수", "목", "금", "토", "일" };
@@ -120,24 +121,30 @@ void display_schedule(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH]) {
     }
 
     printf("\n시간표:\n");
-    printf("      ");
+    printf("           ");  // 첫 번째 열에 요일을 위한 충분한 공간 확보
     for (int i = 0; i < MAX_DAYS; i++) {
-        printf("%5s ", days[i]);
+        printf("%-12s ", days[i]);  // 고정 너비로 요일 출력
     }
     printf("\n");
 
     for (int j = 0; j < max_period; j++) {
-        printf("%2d교시 ", j + 1);
+        // 교시 번호와 수업 간 간격을 줄이기 위한 수정
+        printf("%-2d교시  ", j + 1);  // 교시 번호와 글자가 밀리지 않게 조정
+
         for (int i = 0; i < MAX_DAYS; i++) {
             if (strlen(schedule[i][j]) > 0) {
-                printf("%5s ", schedule[i][j]);
-            } else {
-                printf("     - ");
+                // 수업이 있으면 교시 번호와 수업 이름을 붙여서 출력
+                printf(" %-12s ", schedule[i][j]);
+            }
+            else {
+                // 수업이 없으면 교시 번호와 "-"를 붙여서 출력
+                printf("%-12s ", "");
             }
         }
         printf("\n");
     }
 }
+
 
 // 시간표 추가 및 수정
 void modify_schedule(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH]) {
