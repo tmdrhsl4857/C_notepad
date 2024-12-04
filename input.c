@@ -419,6 +419,9 @@ void runAccountingModule(ItemList* rootList) {
     }
 }
 
+#define NAME_LENGTH 100
+#define MAX_TODOS 100
+
 // 상태 상수 정의
 const char* STATUS_TEXT[] = { "준비", "진행", "완료", "보관" };
 
@@ -429,6 +432,20 @@ typedef struct Todo {
     char task[NAME_LENGTH];   // 내용
     int status;               // 상태: 0: 준비, 1: 진행, 2: 완료, 3: 보관
 } Todo;
+
+// ToDolist 데이터 로드 함수
+void loadTodoListFromFile(const char* filename, Todo todos[], int* count) {
+    FILE* file = fopen(filename, "r");
+    if (file == NULL) {
+        printf("저장된 ToDolist 파일이 없거나 파일을 열 수 없습니다.\n");
+        return;
+    }
+    *count = 0;
+    while (fscanf(file, "%s %s %[^\n] %d", todos[*count].date, todos[*count].type, todos[*count].task, &todos[*count].status) == 4) {
+        (*count)++;
+    }
+    fclose(file);
+}
 
 // ToDolist 모듈 실행 함수
 void runTodolistModule() {
