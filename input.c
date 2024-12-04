@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <windows.h> // Windows 환경에서 색상 변경에 필요
 
 #define NAME_LENGTH 100
 char dummy;  // getchar 경고 없애기 용도
@@ -65,12 +66,19 @@ void editTodo(Todo todos[], int* count);
 void runTodolistModule();
 void navigateItem(Item* item);
 void cleanup(ItemList* list);
+void printBanner(const char* title);
+void setTextColor(int color);
+void printMenu();
+void handleModuleChoice(ItemList* rootList);
+void clearInputBuffer();
+
 
 int main() {
     ItemList rootList;
     initItemList(&rootList);
-    atexit(cleanup);  // 프로그램 종료 시 메모리 해제
+    atexit(cleanup); // 프로그램 종료 시 메모리 해제
 
+    // 도움말 출력
     char helpChoice;
     printf("프로그램을 시작하기 전에 도움말을 보시겠습니까? (Y/N): ");
     scanf(" %c", &helpChoice);
@@ -79,133 +87,129 @@ int main() {
         printHelp();
     }
 
-    loadDatabaseFromFile("database.txt", &rootList);  // 프로그램 시작 시 데이터 로드
+    // 데이터 로드
+    loadDatabaseFromFile("database.txt", &rootList);
 
-    char itemName[NAME_LENGTH];
-    int choice;
+    char choice; // char로 변경하여 숫자와 문자를 모두 처리
 
     while (1) {
-        clearScreen();
-        printf("\n========== 메뉴 ==========");
-        printf("\n1. 새 항목 추가\n");
-        printf("2. 항목 삭제\n");
-        printf("3. 항목 수정\n");
-        printf("4. 항목 선택\n");
-        printf("5. 종료\n");
-        printf("n. 사용 가능한 모듈\n");
-        printf("==========================\n");
+        printMenu(); // 메뉴 출력
         printf("선택: ");
-        if (scanf("%d", &choice) == 1) {
-            dummy = getchar();  // 버퍼 비우기
+        scanf(" %c", &choice); // 단일 문자 입력 처리
+        dummy = getchar(); // 버퍼 비우기
 
-            switch (choice) {
-            case 1:
-                printf("\n추가할 항목 이름을 입력하세요: ");
-                fgets(itemName, sizeof(itemName), stdin);
-                itemName[strcspn(itemName, "\n")] = '\0';  // 개행 문자 제거
-                addItem(&rootList, itemName);
-                break;
-            case 2:
-                if (rootList.size == 0) {
-                    printf("항목이 없습니다. 아무 키나 누르면 메뉴로 돌아갑니다...");
-                    dummy = getchar();
-                    break;
-                }
-                printItemList(&rootList);
-                printf("\n삭제할 항목 번호를 입력하세요 (0을 입력하면 취소됩니다): ");
-                int deleteIndex;
-                scanf("%d", &deleteIndex);
-                dummy = getchar();  // 버퍼 비우기
-                if (deleteIndex == 0) {
-                    printf("삭제를 취소했습니다.\n");
-                    dummy = getchar();
-                    break;
-                }
-                deleteItem(&rootList, deleteIndex - 1);
-                break;
-            case 3:
-                if (rootList.size == 0) {
-                    printf("항목이 없습니다. 아무 키나 누르면 메뉴로 돌아갑니다...");
-                    dummy = getchar();
-                    break;
-                }
-                printItemList(&rootList);
-                printf("\n수정할 항목 번호를 입력하세요 (0을 입력하면 취소됩니다): ");
-                int editIndex;
-                scanf("%d", &editIndex);
-                dummy = getchar();  // 버퍼 비우기
-                if (editIndex == 0) {
-                    printf("수정을 취소했습니다.\n");
-                    dummy = getchar();
-                    break;
-                }
-                if (editIndex > 0 && editIndex <= rootList.size) {
-                    printf("새로운 항목 이름을 입력하세요: ");
-                    fgets(itemName, sizeof(itemName), stdin);
-                    itemName[strcspn(itemName, "\n")] = '\0';  // 개행 문자 제거
-                    editItemName(rootList.items[editIndex - 1], itemName);
-                }
-                else {
-                    printf("잘못된 선택입니다. 아무 키나 누르면 계속합니다...");
-                    dummy = getchar();
-                }
-                break;
-            case 4:
-                if (rootList.size == 0) {
-                    printf("항목이 없습니다. 아무 키나 누르면 메뉴로 돌아갑니다...");
-                    dummy = getchar();
-                    break;
-                }
-                printItemList(&rootList);
-                printf("\n몇 번째 항목을 선택하시겠습니까? (번호 입력): ");
-                int index;
-                scanf("%d", &index);
-                dummy = getchar();  // 버퍼 비우기
-
-                if (index > 0 && index <= rootList.size) {
-                    navigateItem(rootList.items[index - 1]);
-                }
-                else {
-                    printf("잘못된 선택입니다. 아무 키나 누르면 메뉴로 돌아갑니다...");
-                    dummy = getchar();
-                }
-                break;
-
-            case 5:
-                saveDatabaseToFile("database.txt", &rootList);  // 프로그램 종료 시 데이터 저장
-                printf("프로그램을 종료합니다.\n");
-                freeItemList(&rootList);
-                return 0;
-            default:
-                printf("잘못된 선택입니다. 다시 시도해주세요.\n");
-                printf("\n아무 키나 누르면 계속합니다...");
-                dummy = getchar();
-            }
+        switch (choice) {
+        case '1': {
+            clearScreen();
+            printBanner("새 항목 추가");
+            char itemName[NAME_LENGTH];
+            printf("추가할 항목 이름: ");
+            fgets(itemName, sizeof(itemName), stdin);
+            itemName[strcspn(itemName, "\n")] = '\0'; // 개행 문자 제거
+            addItem(&rootList, itemName);
+            break;
         }
-        else {
-            char moduleChoice;
-            dummy = getchar();  // 버퍼 비우기
-            if (dummy == 'n' || dummy == 'N') {
-                printAvailableModules();
-                printf("\n모듈을 선택하세요 (1, 2): ");
-                scanf(" %c", &moduleChoice);
-                dummy = getchar(); // 버퍼 비우기
-                if (moduleChoice == '1') {
-                    runAccountingModule(&rootList);
-                }
-                else if (moduleChoice == '2') {
-                    runTodolistModule();
-                }
-                else {
-                    printf("잘못된 선택입니다.\n아무 키나 누르면 계속합니다...");
-                    dummy = getchar();
-                }
+        case '2': {
+            clearScreen();
+            printBanner("항목 삭제");
+            if (rootList.size == 0) {
+                setTextColor(12); // 빨간색
+                printf("항목이 없습니다. 아무 키나 누르면 돌아갑니다...\n");
+                dummy = getchar();
+                setTextColor(7); // 기본 색상
+                break;
             }
+            printItemList(&rootList);
+            printf("삭제할 항목 번호를 입력하세요 (0: 취소): ");
+            int deleteIndex;
+            scanf("%d", &deleteIndex);
+            dummy = getchar();
+            if (deleteIndex == 0) {
+                printf("삭제를 취소했습니다.\n");
+            }
+            else if (deleteIndex > 0 && deleteIndex <= rootList.size) {
+                deleteItem(&rootList, deleteIndex - 1);
+            }
+            else {
+                printf("잘못된 선택입니다.\n");
+            }
+            break;
+        }
+        case '3': {
+            clearScreen();
+            printBanner("항목 수정");
+            if (rootList.size == 0) {
+                setTextColor(12); // 빨간색
+                printf("항목이 없습니다. 아무 키나 누르면 돌아갑니다...\n");
+                dummy = getchar();
+                setTextColor(7); // 기본 색상
+                break;
+            }
+            printItemList(&rootList);
+            printf("수정할 항목 번호를 입력하세요 (0: 취소): ");
+            int editIndex;
+            scanf("%d", &editIndex);
+            dummy = getchar();
+            if (editIndex == 0) {
+                printf("수정을 취소했습니다.\n");
+            }
+            else if (editIndex > 0 && editIndex <= rootList.size) {
+                char itemName[NAME_LENGTH];
+                printf("새 이름: ");
+                fgets(itemName, sizeof(itemName), stdin);
+                itemName[strcspn(itemName, "\n")] = '\0';
+                editItemName(rootList.items[editIndex - 1], itemName);
+            }
+            else {
+                printf("잘못된 선택입니다.\n");
+            }
+            break;
+        }
+        case '4': {
+            clearScreen();
+            printBanner("항목 선택");
+            if (rootList.size == 0) {
+                setTextColor(12); // 빨간색
+                printf("항목이 없습니다. 아무 키나 누르면 돌아갑니다...\n");
+                dummy = getchar();
+                setTextColor(7); // 기본 색상
+                break;
+            }
+            printItemList(&rootList);
+            printf("선택할 항목 번호를 입력하세요 (0: 취소): ");
+            int index;
+            scanf("%d", &index);
+            dummy = getchar();
+            if (index > 0 && index <= rootList.size) {
+                navigateItem(rootList.items[index - 1]);
+            }
+            else {
+                printf("잘못된 선택입니다.\n");
+            }
+            break;
+        }
+        case '5':
+            clearScreen();
+            printBanner("프로그램 종료");
+            saveDatabaseToFile("database.txt", &rootList);
+            printf("데이터를 저장하고 프로그램을 종료합니다.\n");
+            freeItemList(&rootList);
+            return 0;
+        case 'n':
+        case 'N':
+            handleModuleChoice(&rootList);
+            break;
+        default:
+            setTextColor(12); // 빨간색
+            printf("잘못된 선택입니다. 다시 시도해주세요.\n");
+            setTextColor(7); // 기본 색상
+            printf("\n아무 키나 누르면 계속합니다...");
+            dummy = getchar();
+            break;
         }
     }
-
-    return 0;
 }
+
 
 void clearScreen() {
     system("cls"); // Windows에서 화면을 지움
@@ -272,10 +276,16 @@ void addItem(ItemList* list, const char* itemName) {
 
 // 항목 목록 출력 함수
 void printItemList(const ItemList* list) {
-    printf("\n항목 목록:\n");
+    clearScreen();
+    printBanner("항목 목록");
+    setTextColor(11); // 청록색
+    printf("번호      항목 이름\n");
+    printf("---------------------\n");
     for (int i = 0; i < list->size; i++) {
-        printf("%d. %s\n", i + 1, list->items[i]->name);
+        printf("%-9d%s\n", i + 1, list->items[i]->name);
     }
+    printf("---------------------\n");
+    setTextColor(7); // 기본 색상
 }
 
 // 항목 메모리 해제 함수
@@ -857,9 +867,9 @@ void navigateItem(Item* item) {
     while (1) {
         clearScreen();
         printf("\n현재 위치: %s\n", item->name);
-        printf("1. 새 항목 추가\n");
-        printf("2. 항목 목록 출력\n");
-        printf("3. 항목 삭제\n");
+        printf("1. 새 하위 항목 추가\n");
+        printf("2. 하위 항목 출력\n");
+        printf("3. 하위 항목 삭제\n");
         printf("4. 상위 메뉴로 돌아가기\n");
         printf("선택: ");
         scanf("%d", &choice);
@@ -913,4 +923,66 @@ void navigateItem(Item* item) {
 
 void cleanup(ItemList* list) {
     freeItemList(list);
+}
+
+void printBanner(const char* title) {
+    setTextColor(14); // 노란색
+    printf("\n=================================\n");
+    printf("||%-29s||\n", title);
+    printf("=================================\n\n");
+    setTextColor(7); // 기본 색상
+}
+
+void setTextColor(int color) {
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    SetConsoleTextAttribute(hConsole, color);
+}
+
+void printMenu() {
+    clearScreen();
+    printBanner("메인 메뉴");
+    setTextColor(11); // 청록색
+    printf("1. 새 항목 추가\n");
+    printf("2. 항목 삭제\n");
+    printf("3. 항목 수정\n");
+    printf("4. 항목 선택\n");
+    printf("5. 종료\n");
+    printf("n. 사용 가능한 모듈\n");
+    setTextColor(7); // 기본 색상
+    printf("==========================\n");
+}
+
+void handleModuleChoice(ItemList* rootList) {
+    while (1) {
+        clearScreen();
+        printBanner("사용 가능한 모듈");
+        printAvailableModules();
+        printf("\n모듈을 선택하세요 (1, 2, q=종료): ");
+        char moduleChoice;
+        scanf(" %c", &moduleChoice);
+        clearInputBuffer();
+
+        if (moduleChoice == '1') {
+            runAccountingModule(rootList);
+            break;
+        }
+        else if (moduleChoice == '2') {
+            runTodolistModule();
+            break;
+        }
+        else if (moduleChoice == 'q' || moduleChoice == 'Q') {
+            printf("모듈 선택을 종료합니다.\n");
+            break;
+        }
+        else {
+            setTextColor(12); // 빨간색
+            printf("잘못된 선택입니다. 다시 시도해주세요.\n");
+            setTextColor(7); // 기본 색상
+        }
+    }
+}
+
+void clearInputBuffer() {
+    int ch;
+    while ((ch = getchar()) != '\n' && ch != EOF);
 }
