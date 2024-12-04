@@ -222,7 +222,7 @@ void runAccountingModule(ItemList* rootList) {
                 "\n4. 수익 정정(수정 및 삭제)"
                 "\n5. 지출 정정(수정 및 삭제)"
                 "\n6. 종료"
-                "\n==============================\n");
+                "\n=================================\n");
             printf("선택: ");
             scanf("%d", &moduleChoice);
             dummy = getchar(); // 버퍼 비우기
