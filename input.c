@@ -601,9 +601,33 @@ void editTodo(Todo todos[], int* count) {
 void runTodolistModule() {
     Todo todos[MAX_TODOS];
     int todoCount = 0;
+
+    // 데이터 삭제 알림 추가
+    char choice;
+    printf("ToDolist 모듈 실행 시 현재 저장 파일이 초기화될 수 있습니다. 진행하시겠습니까? (Y/N): ");
+    scanf(" %c", &choice);
+    getchar(); // 버퍼 비우기
+
+    if (choice == 'Y' || choice == 'y') {
+        // 파일 초기화
+        FILE* file = fopen("database.txt", "w");
+        if (file == NULL) {
+            fprintf(stderr, "파일 초기화 실패\n");
+            return;
+        }
+        fprintf(file, "0\n"); // 초기화된 파일은 데이터 개수 0으로 기록
+        fclose(file);
+        printf("데이터베이스가 초기화되었습니다.\n");
+    }
+    else {
+        printf("ToDolist 모듈 실행이 취소되었습니다.\n");
+        return;
+    }
+
+    // 초기화 후 데이터 로드
     loadTodoListFromFile("database.txt", todos, &todoCount);
 
-    int choice;
+    int choiceMenu;
     while (1) {
         clearScreen();
         printf("\n========== ToDolist 입력 모듈 ==========\n"
@@ -614,9 +638,9 @@ void runTodolistModule() {
             "5. 종료\n"
             "======================================\n");
         printf("선택: ");
-        scanf("%d", &choice);
+        scanf("%d", &choiceMenu);
         getchar(); // 버퍼 비우기
-        switch (choice) {
+        switch (choiceMenu) {
         case 1:
             addTodo(todos, &todoCount);
             break;
@@ -638,6 +662,7 @@ void runTodolistModule() {
         }
     }
 }
+
 
 void navigateItem(Item* item) {
     int choice;
