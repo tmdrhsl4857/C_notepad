@@ -72,7 +72,14 @@ void display_schedule(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH]) {
         printf("\n");
     }
 }
-
+void display_menu() {
+    printf("\n--- 시간표 프로그램 ---\n");
+    printf("1. 시간표 추가 및 수정\n");
+    printf("2. 시간표 보기\n");
+    printf("3. 시간표 초기화\n");
+    printf("4. 프로그램 종료\n");
+    printf("선택: ");
+}
 void modify_schedule(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH]) {
     char input[MAX_LENGTH];
     char day[MAX_LENGTH];
