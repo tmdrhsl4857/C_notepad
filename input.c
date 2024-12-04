@@ -515,10 +515,17 @@ void addTodo(Todo todos[], int* count) {
 // ToDolist 상태 수정 함수
 void updateTodoStatus(Todo todos[], int count) {
     if (count == 0) {
-        printf("수정할 할 일이 없습니다.\n");
+        printf("수정할 할 일이 없습니다.");
+        printf("\n아무 키나 누르면 계속합니다...");
+        dummy = getchar();
         return;
     }
-    printTodoList(todos, count);
+    printf("\n========== 할 일 목록 ==========\n");
+    for (int i = 0; i < count; i++) {
+        printf("%d. 날짜: %s, 타입: %s, 내용: %s, 상태: %s\n",
+            i + 1, todos[i].date, todos[i].type, todos[i].task, STATUS_TEXT[todos[i].status]);
+    }
+    printf("\n================================\n");
     printf("상태를 수정할 할 일 번호를 입력하세요 (0을 입력하면 취소됩니다): ");
     int index;
     scanf("%d", &index);
@@ -543,10 +550,17 @@ void updateTodoStatus(Todo todos[], int count) {
 // ToDolist 항목 수정/삭제 함수
 void editTodo(Todo todos[], int* count) {
     if (*count == 0) {
-        printf("수정할 할 일이 없습니다.\n");
+        printf("수정할 할 일이 없습니다.");
+        printf("\n아무 키나 누르면 계속합니다...");
+        dummy = getchar();
         return;
     }
-    printTodoList(todos, *count);
+    printf("\n========== 할 일 목록 ==========\n");
+    for (int i = 0; i < count; i++) {
+        printf("%d. 날짜: %s, 타입: %s, 내용: %s, 상태: %s\n",
+            i + 1, todos[i].date, todos[i].type, todos[i].task, STATUS_TEXT[todos[i].status]);
+    }
+    printf("\n================================\n");
     printf("수정 또는 삭제할 할 일 번호를 입력하세요 (0을 입력하면 취소됩니다): ");
     int index;
     scanf("%d", &index);
