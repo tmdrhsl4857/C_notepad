@@ -491,7 +491,7 @@ void addTodo(Todo todos[], int* count) {
     fgets(newTodo.date, sizeof(newTodo.date), stdin);
     newTodo.date[strcspn(newTodo.date, "\n")] = '\0';
 
-    printf("타입을 입력해주세요: ");
+    printf("타입을 입력해주세요 (해야할 것): ");
     fgets(newTodo.type, sizeof(newTodo.type), stdin);
     newTodo.type[strcspn(newTodo.type, "\n")] = '\0';
 
