@@ -19,16 +19,16 @@ void setTextColor(int textColor, int backgroundColor) {
 // 도움말 출력 함수
 void printHelp() {
     clearScreen();
-    setTextColor(15, 0);
+    setTextColor(11, 0);
     printf("\n========== 도움말 =========="
-        "\n이 프로그램은 사용자 항목 관리 기능을 제공합니다. 사용자는 항목을 추가하고, 삭제하고, 수정할 수 있으며, 하위 항목을 탐색할 수 있습니다.\n"
+        "\n이 프로그램은 사용자 항목 관리 기능을 제공합니다. \n사용자는 항목을 추가하고, 삭제하고, 수정할 수 있으며, 하위 항목을 탐색할 수 있습니다.\n\n"
         "1. 새 항목 추가: 새 항목을 추가합니다.\n"
         "2. 항목 삭제: 기존 항목을 삭제합니다.\n"
         "3. 항목 수정: 기존 항목의 이름을 변경합니다.\n"
         "4. 항목 선택: 특정 항목을 선택하여 그 하위 항목을 관리합니다.\n"
         "5. 종료: 프로그램을 종료하고 데이터베이스를 저장합니다.\n"
         "n. 사용 가능한 모듈: 현재 지원 가능한 모듈을 확인하고 실행합니다.\n"
-        "==========================\n");
+        "============================\n");
         setTextColor(7, 0);
     printf("\n아무 키나 누르면 계속합니다...");
     dummy = getchar();
@@ -129,7 +129,9 @@ void freeItemList(ItemList* list) {
 // 항목 삭제 함수
 void deleteItem(ItemList* list, int index) {
     if (index < 0 || index >= list->size) {
+        setTextColor(12,0);
         printf("잘못된 인덱스입니다.\n");
+        setTextColor(7,0);
         return;
     }
     freeItem(list->items[index]);
@@ -242,7 +244,7 @@ void runAccountingModule(ItemList* rootList) {
                 "\n4. 수익 정정(수정 및 삭제)"
                 "\n5. 지출 정정(수정 및 삭제)"
                 "\n6. 종료"
-                "\n==============================\n");
+                "\n=================================\n");
             printf("선택: ");
             setTextColor(7, 0);
             scanf("%d", &moduleChoice);
@@ -324,17 +326,17 @@ void runAccountingModule(ItemList* rootList) {
                 break;
             case 3:
                 // 수익/지출 내역 보기
-                setTextColor(10, 0);
+                setTextColor(2, 0);
                 printf("\n========== 수익 내역 =========="
                     "\n총 %d개의 수익 내역이 있습니다.\n\n", incomeCount);
-                    setTextColor(14, 0);
+                    setTextColor(10, 0);
                 for (int i = 0; i < incomeCount; i++) {
                     printf("%d. 금액: %d, 출처: %s, 날짜: %s\n", i + 1, incomeRecords[i].amount, incomeRecords[i].description, incomeRecords[i].date);
                 }
-                setTextColor(12, 0);
+                setTextColor(4, 0);
                 printf("\n========== 지출 내역 =========="
                     "\n총 %d개의 지출 내역이 있습니다.\n\n", expenseCount);
-                    setTextColor(14, 0);
+                    setTextColor(12, 0);
                 for (int i = 0; i < expenseCount; i++) {
                     printf("%d. 금액: %d, 출처: %s, 날짜: %s\n", i + 1, expenseRecords[i].amount, expenseRecords[i].description, expenseRecords[i].date);
                 }
@@ -351,10 +353,10 @@ void runAccountingModule(ItemList* rootList) {
                     dummy = getchar();
                     break;
                 }
-                setTextColor(10, 0);
+                setTextColor(2, 0);
                 printf("\n========== 수익 내역 수정 =========="
                     "\n총 %d개의 수익 내역이 있습니다.\n\n", incomeCount);
-                    setTextColor(14, 0);
+                    setTextColor(10, 0);
                 for (int i = 0; i < incomeCount; i++) {
                     printf("%d. 금액: %d, 출처: %s, 날짜: %s\n", i + 1, incomeRecords[i].amount, incomeRecords[i].description, incomeRecords[i].date);
                 }
@@ -373,8 +375,11 @@ void runAccountingModule(ItemList* rootList) {
                     break;
                 }
                 setTextColor(14, 0);
-                printf("\n1. 수정\n2. 삭제\n선택: ");
-                setTextColor(7, 0);
+                printf("\n1. 수정");
+                setTextColor(12, 0);
+                printf("\n2. 삭제");
+                setTextColor(15, 0);
+                printf("\n선택: ");
                 int action;
                 scanf("%d", &action);
                 dummy = getchar();
@@ -418,10 +423,10 @@ void runAccountingModule(ItemList* rootList) {
                     dummy = getchar();
                     break;
                 }
-                setTextColor(12, 0);
+                setTextColor(4, 0);
                 printf("\n========== 지출 내역 수정 =========="
                     "\n총 %d개의 지출 내역이 있습니다.\n\n", expenseCount);
-                    setTextColor(14, 0);
+                    setTextColor(12, 0);
                 for (int i = 0; i < expenseCount; i++) {
                     printf("%d. 금액: %d, 출처: %s, 날짜: %s\n", i + 1, expenseRecords[i].amount, expenseRecords[i].description, expenseRecords[i].date);
                 }
@@ -440,8 +445,11 @@ void runAccountingModule(ItemList* rootList) {
                     break;
                 }
                 setTextColor(14, 0);
-                printf("\n1. 수정\n2. 삭제\n선택: ");
-                setTextColor(7, 0);
+                printf("\n1. 수정");
+                setTextColor(12, 0);
+                printf("\n2. 삭제");
+                setTextColor(15, 0);
+                printf("\n선택: ");
                 scanf("%d", &action);
                 dummy = getchar();
                 if (action == 1) {
@@ -735,7 +743,7 @@ int main() {
                 }
                 else {
                     setTextColor(12, 0);
-                    printf("잘못된 선택입니다.\n아무 키나 누르면 계속합니다...");
+                    printf("잘못된 선택입니다. 아무 키나 누르면 계속합니다...");
                     setTextColor(7, 0);
                     dummy = getchar();
                 }
