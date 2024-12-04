@@ -37,13 +37,27 @@ void save_to_file(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH], const char* 
         perror("파일 저장 오류");
         exit(1);
     }
+
+    int count = 0; // 저장된 수업의 개수 세기
+    for (int i = 0; i < MAX_DAYS; i++) {
+        for (int j = 0; j < MAX_PERIODS; j++) {
+            if (strlen(schedule[i][j]) > 0) {
+                count++;
+            }
+        }
+    }
+
+    fprintf(file, "%d\n", count); // 수업의 개수를 파일의 첫 번째 줄에 저장
+
     for (int i = 0; i < MAX_DAYS; i++) {
         for (int j = 0; j < MAX_PERIODS; j++) {
             if (strlen(schedule[i][j]) > 0) {
                 fprintf(file, "%s %d교시: %s\n", days[i], j + 1, schedule[i][j]);
+                fprintf(file, "0\n"); // 수업 뒤에 0 추가
             }
         }
     }
+
     fclose(file);
 }
 
@@ -53,17 +67,32 @@ void load_from_file(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH], const char
     if (file == NULL) {
         return; // 파일이 없으면 초기 상태 유지
     }
+
+    int count;
+    fscanf(file, "%d", &count); // 수업의 개수를 읽어들임
+
     char day[MAX_LENGTH];
     int period;
     char subject[MAX_LENGTH];
     while (fscanf(file, "%s %d교시: %[^\n]", day, &period, subject) == 3) {
+        // 요일 매칭
+        int day_index = -1;
         for (int i = 0; i < MAX_DAYS; i++) {
             if (strcmp(day, days[i]) == 0) {
-                strcpy(schedule[i][period - 1], subject);
+                day_index = i;
                 break;
             }
         }
+
+        if (day_index != -1 && period >= 1 && period <= MAX_PERIODS) {
+            strcpy(schedule[day_index][period - 1], subject);
+        }
+
+        // '0'을 읽어드림 (다음 수업을 구분하는 0)
+        int temp;
+        fscanf(file, "%d", &temp);
     }
+
     fclose(file);
 }
 
