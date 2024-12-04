@@ -419,8 +419,58 @@ void runAccountingModule(ItemList* rootList) {
     }
 }
 
+// 상태 상수 정의
+const char* STATUS_TEXT[] = { "준비", "진행", "완료", "보관" };
 
+// ToDolist 구조체 정의
+typedef struct Todo {
+    char date[NAME_LENGTH];   // 날짜
+    char type[NAME_LENGTH];   // 타입
+    char task[NAME_LENGTH];   // 내용
+    int status;               // 상태: 0: 준비, 1: 진행, 2: 완료, 3: 보관
+} Todo;
 
+// ToDolist 모듈 실행 함수
+void runTodolistModule() {
+    Todo todos[MAX_TODOS];
+    int todoCount = 0;
+    loadTodoListFromFile("database.txt", todos, &todoCount);
+
+    int choice;
+    while (1) {
+        clearScreen();
+        printf("\n========== ToDolist 입력 모듈 ==========\n"
+            "1. 할 일 입력\n"
+            "2. 할 일 목록\n"
+            "3. 상태 수정\n"
+            "4. 할 일 정정(수정 및 삭제)\n"
+            "5. 종료\n"
+            "======================================\n");
+        printf("선택: ");
+        scanf("%d", &choice);
+        getchar(); // 버퍼 비우기
+        switch (choice) {
+        case 1:
+            addTodo(todos, &todoCount);
+            break;
+        case 2:
+            printTodoList(todos, todoCount);
+            break;
+        case 3:
+            updateTodoStatus(todos, todoCount);
+            break;
+        case 4:
+            editTodo(todos, &todoCount);
+            break;
+        case 5:
+            saveTodoListToFile("database.txt", todos, todoCount);
+            printf("ToDolist 모듈을 종료합니다. 모든 변경 사항이 저장되었습니다.\n");
+            return;
+        default:
+            printf("잘못된 선택입니다. 다시 시도해주세요.\n");
+        }
+    }
+}
 
 void navigateItem(Item* item) {
     int choice;
