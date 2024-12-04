@@ -447,6 +447,26 @@ void loadTodoListFromFile(const char* filename, Todo todos[], int* count) {
     fclose(file);
 }
 
+// Todolist 데이터 저장 함수
+void saveTodoListToFile(const char* filename, Todo todos[], int count) {
+    FILE* file = fopen(filename, "w");
+    if (file == NULL) {
+        fprintf(stderr, "ToDolist 파일 저장 실패\n");
+        return;
+    }
+
+    // 파일의 첫 줄에 데이터 개수를 기록
+    fprintf(file, "%d\n", count);
+
+    // 데이터 저장
+    for (int i = 0; i < count; i++) {
+        fprintf(file, "%s %s %s\n0\n", todos[i].date, todos[i].type, todos[i].task);
+    }
+
+    fclose(file);
+    printf("ToDolist 파일 저장 완료.\n");
+}
+
 // ToDolist 모듈 실행 함수
 void runTodolistModule() {
     Todo todos[MAX_TODOS];
