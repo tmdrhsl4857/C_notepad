@@ -54,24 +54,38 @@ void reset_schedule(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH]) {
 }
 
 void display_schedule(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH]) {
+    int max_period = 1;
+
+    // 최대 교시 계산
+    for (int i = 0; i < MAX_DAYS; i++) {
+        for (int j = 0; j < MAX_PERIODS; j++) {
+            if (strlen(schedule[i][j]) > 0 && j + 1 > max_period) {
+                max_period = j + 1;
+            }
+        }
+    }
+
     printf("\n시간표:\n");
     printf("      ");
     for (int i = 0; i < MAX_DAYS; i++) {
         printf("%5s ", days[i]);
     }
     printf("\n");
-    for (int j = 0; j < MAX_PERIODS; j++) {
+
+    for (int j = 0; j < max_period; j++) {
         printf("%2d교시 ", j + 1);
         for (int i = 0; i < MAX_DAYS; i++) {
             if (strlen(schedule[i][j]) > 0) {
                 printf("%5s ", schedule[i][j]);
-            } else {
+            }
+            else {
                 printf("     - ");
             }
         }
         printf("\n");
     }
 }
+
 void display_menu() {
     printf("\n--- 시간표 프로그램 ---\n");
     printf("1. 시간표 추가 및 수정\n");
