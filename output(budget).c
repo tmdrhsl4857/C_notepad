@@ -109,39 +109,28 @@ int calculateBalance(Record* head) {
     return balance;
 }
 
-// 수익 내역 출력 함수
-void printIncomeDetails(Record* head) {
+// 전체 지출 내역 출력 함수
+void printAllExpenses(Record* head) {
     Record* current = head;
+    int hasExpenses = 0;
 
-    printf("\n수익 내역:\n");
+    printf("\n전체 지출 내역:\n");
     while (current != NULL) {
-        if (current->type == '+') {
+        if (current->type == '-') {
+            hasExpenses = 1;
             printf("날짜: %s, 금액: %d원, 이유: %s\n", current->date, current->amount, current->description);
         }
         current = current->next;
     }
-    printf("\n아무 키나 누르면 계속합니다...");
-    getchar(); // 사용자 입력 대기
-}
-
-// 월별 지출 계산 함수
-void calculateMonthlyExpenses(Record* head, int monthlyExpenses[12]) {
-    Record* current = head;
-    while (current != NULL) {
-        if (current->type == '-') {
-            int month;
-            sscanf(current->date, "%*4d%2d", &month);
-            if (month >= 1 && month <= 12) {
-                monthlyExpenses[month - 1] += current->amount;
-            }
-        }
-        current = current->next;
+    if (!hasExpenses) {
+        printf("지출 내역이 없습니다.\n");
     }
 }
 
 // 특정 월의 지출 내역 출력 함수
 void printMonthlyDetails(Record* head, int month) {
     Record* current = head;
+    int hasMonthlyExpenses = 0;
 
     printf("\n%d월의 지출 내역:\n", month);
     while (current != NULL) {
@@ -149,13 +138,33 @@ void printMonthlyDetails(Record* head, int month) {
             int recordMonth;
             sscanf(current->date, "%*4d%2d", &recordMonth);
             if (recordMonth == month) {
+                hasMonthlyExpenses = 1;
                 printf("날짜: %s, 금액: %d원, 이유: %s\n", current->date, current->amount, current->description);
             }
         }
         current = current->next;
     }
-    printf("\n아무 키나 누르면 계속합니다...");
-    getchar(); // 사용자 입력 대기
+    if (!hasMonthlyExpenses) {
+        printf("해당 월에 지출 내역이 없습니다.\n");
+    }
+}
+
+// 수익 내역 출력 함수
+void printIncomeDetails(Record* head) {
+    Record* current = head;
+    int hasIncome = 0;
+
+    printf("\n수익 내역:\n");
+    while (current != NULL) {
+        if (current->type == '+') {
+            hasIncome = 1;
+            printf("날짜: %s, 금액: %d원, 이유: %s\n", current->date, current->amount, current->description);
+        }
+        current = current->next;
+    }
+    if (!hasIncome) {
+        printf("수익 내역이 없습니다.\n");
+    }
 }
 
 int main() {
@@ -166,42 +175,68 @@ int main() {
         int balance = calculateBalance(records);
         printf("잔액: %d\n", balance);
 
-        int monthlyExpenses[12] = { 0 };
-        calculateMonthlyExpenses(records, monthlyExpenses);
-
         printf("\n===== 메뉴 =====\n");
-        printf("1. 월별 지출 내역 확인\n");
+        printf("1. 전체 지출 내역 보기\n");
         printf("2. 수익 내역 확인\n");
-        printf("3. 프로그램 종료\n");
+        printf("3. 상위 메뉴로 돌아가기\n");
+        printf("4. 프로그램 종료\n");
         printf("선택: ");
         int choice;
         scanf("%d", &choice);
         getchar(); // 버퍼 비우기
 
-        if (choice == 1) {
-            int month;
-            printf("보고 싶은 월을 입력하세요 (1-12): ");
-            scanf("%d", &month);
-            getchar(); // 버퍼 비우기
-            if (month >= 1 && month <= 12) {
-                printMonthlyDetails(records, month);
+        switch (choice) {
+        case 1: {
+            clearScreen();
+            printAllExpenses(records);
+
+            while (1) {
+                printf("\n===== 월별 지출 내역 확인 메뉴 =====\n");
+                printf("1. 특정 월 지출 내역 보기\n");
+                printf("2. 상위 메뉴로 돌아가기\n");
+                printf("선택: ");
+                int subChoice;
+                scanf("%d", &subChoice);
+                getchar(); // 버퍼 비우기
+
+                if (subChoice == 1) {
+                    int month;
+                    printf("보고 싶은 월을 입력하세요 (1-12): ");
+                    scanf("%d", &month);
+                    getchar(); // 버퍼 비우기
+                    if (month >= 1 && month <= 12) {
+                        printMonthlyDetails(records, month);
+                    }
+                    else {
+                        printf("잘못된 월을 입력하셨습니다.\n");
+                    }
+                }
+                else if (subChoice == 2) {
+                    break;
+                }
+                else {
+                    printf("잘못된 선택입니다. 다시 시도해주세요.\n");
+                }
             }
-            else {
-                printf("잘못된 월을 입력하셨습니다.\n");
-            }
-        }
-        else if (choice == 2) {
-            printIncomeDetails(records);
-        }
-        else if (choice == 3) {
             break;
         }
-        else {
+        case 2:
+            clearScreen();
+            printIncomeDetails(records);
+            break;
+
+        case 3:
+            clearScreen();
+            continue;
+
+        case 4:
+            freeRecords(records);
+            printf("프로그램을 종료합니다.\n");
+            exit(0);
+
+        default:
             printf("잘못된 선택입니다. 다시 시도해주세요.\n");
         }
-        clearScreen();
     }
-
-    freeRecords(records);
     return 0;
 }
