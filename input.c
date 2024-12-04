@@ -467,6 +467,16 @@ void saveTodoListToFile(const char* filename, Todo todos[], int count) {
     printf("ToDolist 파일 저장 완료.\n");
 }
 
+// ToDolist 출력 함수
+void printTodoList(Todo todos[], int count) {
+    printf("\n========== 할 일 목록 ==========\n");
+    for (int i = 0; i < count; i++) {
+        printf("%d. 날짜: %s, 타입: %s, 내용: %s, 상태: %s\n",
+            i + 1, todos[i].date, todos[i].type, todos[i].task, STATUS_TEXT[todos[i].status]);
+    }
+    printf("\n================================\n");
+}
+
 // ToDolist 모듈 실행 함수
 void runTodolistModule() {
     Todo todos[MAX_TODOS];
