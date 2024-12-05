@@ -110,40 +110,87 @@ void reset_schedule(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH]) {
 // 시간표 표시
 void display_schedule(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH]) {
     int max_period = 1; // 최소 1교시 출력 보장
+    int col_width[MAX_DAYS]; // 각 열의 최대 너비를 저장하는 배열
 
     // 최대 교시 계산
     for (int i = 0; i < MAX_DAYS; i++) {
+        col_width[i] = strlen(days[i]); // 초기값: 요일 길이
         for (int j = 0; j < MAX_PERIODS; j++) {
-            if (strlen(schedule[i][j]) > 0 && j + 1 > max_period) {
-                max_period = j + 1;
+            if (strlen(schedule[i][j]) > 0) {
+                // 현재 열의 최대 너비 업데이트
+                if (strlen(schedule[i][j]) > col_width[i]) {
+                    col_width[i] = strlen(schedule[i][j]);
+                }
+                // 최대 교시 갱신
+                if (j + 1 > max_period) {
+                    max_period = j + 1;
+                }
             }
         }
     }
 
+    // 각 열 너비의 합과 테두리 크기를 고려해 교시 열 너비 설정
+    int first_col_width = 8; // "1교시" 같은 교시 번호 열의 고정 너비
+
+    // 전체 표 출력 시작
     printf("\n시간표:\n");
-    printf("           ");  // 첫 번째 열에 요일을 위한 충분한 공간 확보
+
+    // 상단 구분선
+    printf("┌───────────");
     for (int i = 0; i < MAX_DAYS; i++) {
-        printf("%-12s ", days[i]);  // 고정 너비로 요일 출력
+        for (int k = 0; k < col_width[i] + 2; k++) printf("─");
+        printf("┬");
     }
-    printf("\n");
+    printf("\b┐\n"); // 마지막 "┬" 대신 "┐"
 
+    // 요일 출력
+    printf("│ %-*s ", first_col_width, " ");
+    for (int i = 0; i < MAX_DAYS; i++) {
+        printf("│ %-*s ", col_width[i], days[i]);
+    }
+    printf("│\n");
+
+    // 중간 구분선 (요일 아래)
+    printf("├───────────");
+    for (int i = 0; i < MAX_DAYS; i++) {
+        for (int k = 0; k < col_width[i] + 2; k++) printf("─");
+        printf("┼");
+    }
+    printf("\b┤\n");
+
+    // 교시와 수업 출력
     for (int j = 0; j < max_period; j++) {
-        // 교시 번호와 수업 간 간격을 줄이기 위한 수정
-        printf("%-2d교시  ", j + 1);  // 교시 번호와 글자가 밀리지 않게 조정
-
+        printf("│ %-*d ", first_col_width, j + 1); // 교시 번호 출력
         for (int i = 0; i < MAX_DAYS; i++) {
             if (strlen(schedule[i][j]) > 0) {
-                // 수업이 있으면 교시 번호와 수업 이름을 붙여서 출력
-                printf(" %-12s ", schedule[i][j]);
+                printf("│ %-*s ", col_width[i], schedule[i][j]);
             }
             else {
-                // 수업이 없으면 교시 번호와 "-"를 붙여서 출력
-                printf("%-12s ", "");
+                printf("│ %-*s ", col_width[i], " "); // 빈 칸 출력
             }
         }
-        printf("\n");
+        printf("│\n");
+
+        // 교시 구분선 (마지막 행 제외)
+        if (j < max_period - 1) {
+            printf("├───────────");
+            for (int i = 0; i < MAX_DAYS; i++) {
+                for (int k = 0; k < col_width[i] + 2; k++) printf("─");
+                printf("┼");
+            }
+            printf("\b┤\n");
+        }
     }
+
+    // 하단 구분선
+    printf("└───────────");
+    for (int i = 0; i < MAX_DAYS; i++) {
+        for (int k = 0; k < col_width[i] + 2; k++) printf("─");
+        printf("┴");
+    }
+    printf("\b┘\n"); // 마지막 "┴" 대신 "┘"
 }
+
 
 
 // 시간표 추가 및 수정
