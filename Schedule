@@ -160,7 +160,11 @@ void display_schedule(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH]) {
 
     // 교시와 수업 출력
     for (int j = 0; j < max_period; j++) {
-        printf("│ %-*d ", first_col_width, j + 1); // 교시 번호 출력
+        // "교시"를 포함한 문자열 출력
+        char period_label[16]; // 교시 문자열 생성용
+        snprintf(period_label, sizeof(period_label), "%d교시", j + 1); // "1교시", "2교시" 등 생성
+        printf("│ %-*s ", first_col_width, period_label); // 교시 번호 출력
+
         for (int i = 0; i < MAX_DAYS; i++) {
             if (strlen(schedule[i][j]) > 0) {
                 printf("│ %-*s ", col_width[i], schedule[i][j]);
@@ -190,6 +194,7 @@ void display_schedule(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH]) {
     }
     printf("\b┘\n"); // 마지막 "┴" 대신 "┘"
 }
+
 
 
 
