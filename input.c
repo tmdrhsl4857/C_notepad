@@ -80,7 +80,9 @@ int main() {
 
     // 도움말 출력
     char helpChoice;
+    setTextColor(15);
     printf("프로그램을 시작하기 전에 도움말을 보시겠습니까? (Y/N): ");
+    setTextColor(7);
     scanf(" %c", &helpChoice);
     dummy = getchar(); // 버퍼 비우기
     if (helpChoice == 'Y' || helpChoice == 'y') {
@@ -101,9 +103,12 @@ int main() {
         switch (choice) {
         case '1': {
             clearScreen();
+            setTextColor(11);
             printBanner("새 항목 추가");
             char itemName[NAME_LENGTH];
+            setTextColor(10);
             printf("추가할 항목 이름: ");
+            setTextColor(7);
             fgets(itemName, sizeof(itemName), stdin);
             itemName[strcspn(itemName, "\n")] = '\0'; // 개행 문자 제거
             addItem(&rootList, itemName);
@@ -120,18 +125,24 @@ int main() {
                 break;
             }
             printItemList(&rootList);
+            setTextColor(12);
             printf("삭제할 항목 번호를 입력하세요 (0: 취소): ");
+            setTextColor(7);
             int deleteIndex;
             scanf("%d", &deleteIndex);
             dummy = getchar();
             if (deleteIndex == 0) {
+                setTextColor(12);
                 printf("삭제를 취소했습니다.\n");
+                setTextColor(7);
             }
             else if (deleteIndex > 0 && deleteIndex <= rootList.size) {
                 deleteItem(&rootList, deleteIndex - 1);
             }
             else {
+                setTextColor(12);
                 printf("잘못된 선택입니다.\n");
+                setTextColor(7);
             }
             break;
         }
@@ -829,7 +840,7 @@ void runTodolistModule() {
             "3. 상태 수정\n"
             "4. 할 일 정정(수정 및 삭제)\n"
             "5. 종료\n"
-            "======================================\n");
+            "========================================\n");
         printf("선택: ");
         scanf("%d", &choiceMenu);
         getchar(); // 버퍼 비우기
@@ -855,7 +866,9 @@ void runTodolistModule() {
             printf("ToDolist 모듈을 종료합니다. 모든 변경 사항이 저장되었습니다.\n");
             exit(0);
         default:
+        setTextColor(12);
             printf("잘못된 선택입니다. 다시 시도해주세요.\n");
+            setTextColor(7);
         }
     }
 }
