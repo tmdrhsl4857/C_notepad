@@ -548,38 +548,53 @@ void runAccountingModule(ItemList* rootList) {
             case 4:
                 // 수익 정정(수정 및 삭제)
                 if (incomeCount == 0) {
+                    setTextColor(12);
                     printf("수정할 수익 항목이 없습니다.\n아무 키나 누르면 계속합니다...");
                     dummy = getchar();
                     break;
                 }
+                setTextColor(2);
                 printf("\n========== 수익 내역 수정 =========="
                     "\n총 %d개의 수익 내역이 있습니다.\n\n", incomeCount);
+                    setTextColor(10);
                 for (int i = 0; i < incomeCount; i++) {
                     printf("%d. 금액: %d, 출처: %s, 날짜: %s\n", i + 1, incomeRecords[i].amount, incomeRecords[i].description, incomeRecords[i].date);
                 }
                 int incomeIndex;
+                setTextColor(14);
                 printf("\n수정 또는 삭제할 항목 번호를 입력하세요 (0을 입력하면 취소됩니다): ");
+                setTextColor(7);
                 scanf("%d", &incomeIndex);
                 dummy = getchar();
                 if (incomeIndex == 0 || incomeIndex > incomeCount) {
+                    setTextColor(12);
                     printf("잘못된 선택이거나 취소를 선택하셨습니다. 아무 키나 누르면 계속합니다...");
+                    setTextColor(7);
                     dummy = getchar();
                     break;
                 }
-                printf("\n1. 수정\n2. 삭제\n선택: ");
+                setTextColor(14);
+                printf("\n1. 수정");
+                setTextColor(12);
+                printf("\n2. 삭제");
+                setTextColor(7);
+                printf("\n선택: ");
                 int action;
                 scanf("%d", &action);
                 dummy = getchar();
                 if (action == 1) {
                     // 수정 기능
-                    printf("\n새 금액을 입력해주세요: ");
+                    setTextColor(2);
+                    printf("\n새 수익 금액을 입력해주세요: ");
                     scanf("%d", &incomeRecords[incomeIndex - 1].amount);
                     dummy = getchar();
 
+                    setTextColor(6);
                     printf("새 출처를 입력해주세요: ");
                     fgets(incomeRecords[incomeIndex - 1].description, sizeof(incomeRecords[incomeIndex - 1].description), stdin);
                     incomeRecords[incomeIndex - 1].description[strcspn(incomeRecords[incomeIndex - 1].description, "\n")] = '\0';
 
+                    setTextColor(7);
                     printf("새 날짜를 입력해주세요 (예시: 20250101): ");
                     fgets(incomeRecords[incomeIndex - 1].date, sizeof(incomeRecords[incomeIndex - 1].date), stdin);
                     incomeRecords[incomeIndex - 1].date[strcspn(incomeRecords[incomeIndex - 1].date, "\n")] = '\0';
@@ -592,7 +607,9 @@ void runAccountingModule(ItemList* rootList) {
                     incomeCount--;
                 }
                 else {
+                    setTextColor(4);
                     printf("잘못된 선택입니다. 아무 키나 누르면 계속합니다...");
+                    setTextColor(7);
                     dummy = getchar();
                 }
                 break;
