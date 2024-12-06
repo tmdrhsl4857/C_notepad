@@ -241,15 +241,16 @@ void clearScreen() {
 // 도움말 출력 함수
 void printHelp() {
     clearScreen();
+    setTextColor(15);
     printf("\n========== 도움말 =========="
-        "\n이 프로그램은 사용자 항목 관리 기능을 제공합니다. 사용자는 항목을 추가하고, 삭제하고, 수정할 수 있으며, 하위 항목을 탐색할 수 있습니다.\n"
-        "1. 새 항목 추가: 새 항목을 추가합니다.\n"
+        "\n이 프로그램은 사용자 항목 관리 기능을 제공합니다. \n사용자는 항목을 추가하고, 삭제하고, 수정할 수 있으며, 하위 항목을 탐색할 수 있습니다.\n"
+        "\n1. 새 항목 추가: 새 항목을 추가합니다.\n"
         "2. 항목 삭제: 기존 항목을 삭제합니다.\n"
         "3. 항목 수정: 기존 항목의 이름을 변경합니다.\n"
         "4. 항목 선택: 특정 항목을 선택하여 그 하위 항목을 관리합니다.\n"
         "5. 종료: 프로그램을 종료하고 데이터베이스를 저장합니다.\n"
         "n. 사용 가능한 모듈: 현재 지원 가능한 모듈을 확인하고 실행합니다.\n"
-        "==========================\n");
+        "============================\n");
     printf("\n아무 키나 누르면 계속합니다...");
     dummy = getchar();
 }
@@ -305,7 +306,7 @@ void printItemList(const ItemList* list) {
     printf("번호      항목 이름\n");
     printf("---------------------\n");
     for (int i = 0; i < list->size; i++) {
-        printf("%-9d%s\n", i + 1, list->items[i]->name);
+        printf("%-10d%s\n", i + 1, list->items[i]->name);
     }
     printf("---------------------\n");
     setTextColor(7); // 기본 색상
@@ -340,13 +341,17 @@ void deleteItem(ItemList* list, int index) {
         list->items[i] = list->items[i + 1];
     }
     list->size--;
+    setTextColor(12);
     printf("항목 삭제 완료!\n");
+    setTextColor(7);
 }
 
 // 항목 이름 수정 함수
 void editItemName(Item* item, const char* newName) {
     strcpy(item->name, newName);
+    setTextColor(14);
     printf("항목 이름이 '%s'로 변경되었습니다.\n", newName);
+    setTextColor(7);
 }
 
 // 데이터베이스를 파일에 저장하는 함수
@@ -361,7 +366,9 @@ void saveItemListToFile(const ItemList* list, FILE* file) {
 void saveDatabaseToFile(const char* filename, const ItemList* rootList) {
     FILE* file = fopen(filename, "w");
     if (file == NULL) {
+        setTextColor(4);
         fprintf(stderr, "파일 저장 실패\n");
+        setTextColor(7);
         return;
     }
     saveItemListToFile(rootList, file);
@@ -399,9 +406,13 @@ void loadDatabaseFromFile(const char* filename, ItemList* rootList) {
 
 // 모듈 목록 출력 함수
 void printAvailableModules() {
+    setTextColor(11);
+    printf("======================");
     printf("\n현재 지원 가능한 모듈:\n");
     printf("1. 가계부 모듈\n");
     printf("2. ToDolist 모듈\n");
+    printf("======================\n");
+    setTextColor(7);
 }
 
 // 가계부 모듈 실행 함수
@@ -411,13 +422,17 @@ void runAccountingModule(ItemList* rootList) {
     initItemList(rootList);
 
     char choice;
+    setTextColor(4);
     printf("가계부 모듈 실행 시 현재 저장 파일이 훼손될 가능성이 있습니다. 진행하시겠습니까? (Y/N): ");
+    setTextColor(7);
     scanf(" %c", &choice);
     dummy = getchar(); // 버퍼 비우기
     if (choice == 'Y' || choice == 'y') {
         FILE* file = fopen("database.txt", "w");
         if (file == NULL) {
+            setTextColor(4);
             fprintf(stderr, "파일 저장 실패\n");
+            setTextColor(7);
             return;
         }
 
