@@ -140,7 +140,7 @@ int main() {
                 deleteItem(&rootList, deleteIndex - 1);
             }
             else {
-                setTextColor(12);
+                setTextColor(4);
                 printf("잘못된 선택입니다.\n");
                 setTextColor(7);
             }
@@ -157,22 +157,30 @@ int main() {
                 break;
             }
             printItemList(&rootList);
+            setTextColor(14);
             printf("수정할 항목 번호를 입력하세요 (0: 취소): ");
+            setTextColor(7);
             int editIndex;
             scanf("%d", &editIndex);
             dummy = getchar();
             if (editIndex == 0) {
+                setTextColor(12);
                 printf("수정을 취소했습니다.\n");
+                setTextColor(7);
             }
             else if (editIndex > 0 && editIndex <= rootList.size) {
                 char itemName[NAME_LENGTH];
+                setTextColor(10);
                 printf("새 이름: ");
+                setTextColor(7);
                 fgets(itemName, sizeof(itemName), stdin);
                 itemName[strcspn(itemName, "\n")] = '\0';
                 editItemName(rootList.items[editIndex - 1], itemName);
             }
             else {
+                setTextColor(4);
                 printf("잘못된 선택입니다.\n");
+                setTextColor(7);
             }
             break;
         }
@@ -187,7 +195,9 @@ int main() {
                 break;
             }
             printItemList(&rootList);
+            setTextColor(14);
             printf("선택할 항목 번호를 입력하세요 (0: 취소): ");
+            setTextColor(7);
             int index;
             scanf("%d", &index);
             dummy = getchar();
@@ -195,7 +205,9 @@ int main() {
                 navigateItem(rootList.items[index - 1]);
             }
             else {
+                setTextColor(4);
                 printf("잘못된 선택입니다.\n");
+                setTextColor(7);
             }
             break;
         }
@@ -211,7 +223,7 @@ int main() {
             handleModuleChoice(&rootList);
             break;
         default:
-            setTextColor(12); // 빨간색
+            setTextColor(4); // 빨간색
             printf("잘못된 선택입니다. 다시 시도해주세요.\n");
             setTextColor(7); // 기본 색상
             printf("\n아무 키나 누르면 계속합니다...");
