@@ -57,13 +57,13 @@ _how_to_use(self use)_
   9. If you selected 1, select the number of the data you want to sort by
   10. If you pressed 2, enter the task number you want to change the status of, then press 1-4 to set the status
 
-## output(Phone battery usege).c (휴대폰 배터리 사용량/Hwanghyeonjong)
+# output(kcal note).c (칼로리 메모장/Hwanghyeonjong)
 + add_output.c_20241204 
 
 _how_to_use(self use)_
   1. Run database input program
-  2. Add new item (PBU)
-  3. Add in 'App Name Usage Date' format (Important for output programs)
+  2. Add new item (남자(man) or 여자(woman))
+  3. Add in 'food Name kcal Date' format (Important for output programs)
   4. Input Program Exit
   5. Copy 'database.txt' to output program repository
   6. Execute output program
