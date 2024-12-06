@@ -1,30 +1,33 @@
-#define _CRT_NO_SECURE_WARNINGS_
+define _CRT_NO_SECURE_WARNINGS_
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#define MAX_APPS 100  // 최대 앱 수
-#define MAX_NAME_LEN 50  // 앱 이름의 최대 길이
+#define MAX_FOODS 100  // 최대 음식 수
+#define MAX_NAME_LEN 50  // 음식 이름의 최대 길이
 #define MAX_DATE_LEN 10  // 날짜의 최대 길이
+
 
 // 구조체 정의
 typedef struct {
-    char appName[MAX_NAME_LEN];  // 앱 이름
-    int usagePercent;            // 사용 비율
-    char date[MAX_DATE_LEN];     // 날짜
-} AppUsage;
+    char foodName[MAX_NAME_LEN];  // 음식 이름
+    int calories;                 // 칼로리
+    char date[MAX_DATE_LEN];      // 날짜
+} FoodRecord;
 
 // 전역 변수
-AppUsage appUsages[MAX_APPS];
-int appCount = 0;
+FoodRecord foodRecords[MAX_FOODS];
+int foodCount = 0;
+int recommendedCalories = 0;  // 하루 권장 칼로리
 
 // 함수 선언
 void loadFromFile();
-void sortByDateAndUsage();
-void sortByAppAndDate();
+void sortByDateAndCalories();
+void sortByFoodAndDate();
 void displayByDate();
-void displayByApp();
+void displayByFood();
 void clearScreen();
+void displayAnalysis();
 
 int main() {
     int choice;
@@ -35,8 +38,8 @@ int main() {
     // 메뉴 출력
     while (1) {
         printf("\n==== 메뉴 ====\n");
-        printf("1. 날짜별 사용량 출력\n");
-        printf("2. 앱별 사용량 출력\n");
+        printf("1. 날짜별 음식 섭취 출력\n");
+        printf("2. 음식별 섭취 출력\n");
         printf("3. 종료\n");
         printf("선택: ");
         if (scanf("%d", &choice) != 1) {
@@ -50,13 +53,13 @@ int main() {
 
         switch (choice) {
         case 1:
-            sortByDateAndUsage();
+            sortByDateAndCalories();
             displayByDate();
             clearScreen();
             break;
         case 2:
-            sortByAppAndDate();
-            displayByApp();
+            sortByFoodAndDate();
+            displayByFood();
             clearScreen();
             break;
         case 3:
@@ -90,16 +93,16 @@ void loadFromFile() {
         }
     }
 
-    // 두 번째 줄에 'PBU'가 있는지 확인
+     // 두 번째 줄에 'PBU'가 있는지 확인
     if (fgets(line, sizeof(line), file)) {
-        if (strncmp(line, "PBU", 3) != 0) {  // 두 번째 줄이 'PBU'가 아니면 잘못된 형식
-            printf("잘못된 파일 형식: 두 번째 줄이 'PBU'이어야 합니다.\n");
+        if (strncmp(line, "kcal", 3) != 0) {  
+            printf("잘못된 파일 형식: 두 번째 줄이 'kcal'이어야 합니다.\n");
             fclose(file);
             exit(1);
         }
     }
 
-    // PBU 뒤에 올 숫자 (읽어들일 데이터의 개수) 읽기
+    // kcal 뒤에 올 숫자 (읽어들일 데이터의 개수) 읽기
     int numData = 0;
     if (fgets(line, sizeof(line), file)) {
         if (sscanf(line, "%d", &numData) != 1 || numData < 0) {
@@ -110,17 +113,17 @@ void loadFromFile() {
     }
 
     // 파일에서 나머지 데이터 읽기
-    while (fgets(line, sizeof(line), file) && appCount < numData) {
+    while (fgets(line, sizeof(line), file) && foodCount < numData) {
         if (line[0] == '0') continue;  // '0'이면 데이터를 끝낸 것으로 간주
 
-        if (appCount >= MAX_APPS) {  // 배열 초과 방지
-            printf("데이터가 너무 많습니다. %d개의 데이터만 로드합니다.\n", MAX_APPS);
+        if (foodCount >= MAX_FOODS) {  // 배열 초과 방지
+            printf("데이터가 너무 많습니다. %d개의 데이터만 로드합니다.\n", MAX_FOODS);
             break;
         }
 
-        AppUsage app = { "", 0, "" };  // 구조체 초기화
-        if (sscanf(line, "%s %d%% %s", app.appName, &app.usagePercent, app.date) == 3) {
-            appUsages[appCount++] = app;
+        FoodRecord food = { "", 0, "" };  // 구조체 초기화
+        if (sscanf(line, "%s %d %s", food.foodName, &food.calories, food.date) == 3) {
+            foodRecords[foodCount++] = food;
         }
         else {
             printf("잘못된 데이터 형식: %s", line);
@@ -128,86 +131,79 @@ void loadFromFile() {
     }
 
     fclose(file);
-    printf("파일에서 %d개의 기록을 읽었습니다.\n", appCount);
+    printf("칼로리 섭취량\n", foodCount);
 }
 
-// 날짜와 사용량 기준으로 정렬
-void sortByDateAndUsage() {
-    for (int i = 0; i < appCount - 1; i++) {
-        for (int j = i + 1; j < appCount; j++) {
-            // 날짜 우선 정렬, 동일 날짜일 경우 사용량 내림차순 정렬
-            if (strcmp(appUsages[i].date, appUsages[j].date) > 0 ||
-                (strcmp(appUsages[i].date, appUsages[j].date) == 0 &&
-                    appUsages[i].usagePercent < appUsages[j].usagePercent)) {
-                AppUsage temp = appUsages[i];
-                appUsages[i] = appUsages[j];
-                appUsages[j] = temp;
+// 날짜와 칼로리 기준으로 정렬
+void sortByDateAndCalories() {
+    for (int i = 0; i < foodCount - 1; i++) {
+        for (int j = i + 1; j < foodCount; j++) {
+            // 날짜 우선 정렬, 동일 날짜일 경우 칼로리 내림차순 정렬
+            if (strcmp(foodRecords[i].date, foodRecords[j].date) > 0 ||
+                (strcmp(foodRecords[i].date, foodRecords[j].date) == 0 &&
+                    foodRecords[i].calories < foodRecords[j].calories)) {
+                FoodRecord temp = foodRecords[i];
+                foodRecords[i] = foodRecords[j];
+                foodRecords[j] = temp;
             }
         }
     }
 }
 
-// 앱 이름과 날짜 기준으로 정렬
-void sortByAppAndDate() {
-    for (int i = 0; i < appCount - 1; i++) {
-        for (int j = i + 1; j < appCount; j++) {
-            // 앱 이름 우선 정렬, 동일 앱일 경우 날짜 오름차순 정렬
-            if (strcmp(appUsages[i].appName, appUsages[j].appName) > 0 ||
-                (strcmp(appUsages[i].appName, appUsages[j].appName) == 0 &&
-                    strcmp(appUsages[i].date, appUsages[j].date) > 0)) {
-                AppUsage temp = appUsages[i];
-                appUsages[i] = appUsages[j];
-                appUsages[j] = temp;
+// 음식 이름과 날짜 기준으로 정렬
+void sortByFoodAndDate() {
+    for (int i = 0; i < foodCount - 1; i++) {
+        for (int j = i + 1; j < foodCount; j++) {
+            // 음식 이름 우선 정렬, 동일 음식일 경우 날짜 오름차순 정렬
+            if (strcmp(foodRecords[i].foodName, foodRecords[j].foodName) > 0 ||
+                (strcmp(foodRecords[i].foodName, foodRecords[j].foodName) == 0 &&
+                    strcmp(foodRecords[i].date, foodRecords[j].date) > 0)) {
+                FoodRecord temp = foodRecords[i];
+                foodRecords[i] = foodRecords[j];
+                foodRecords[j] = temp;
             }
         }
     }
 }
 
-// 날짜별 사용량 출력
+// 날짜별 음식 섭취 출력
 void displayByDate() {
-    printf("\n==== 날짜별 사용량 ====\n");
-    if (appCount == 0) {
+    printf("\n==== 날짜별 음식 섭취 ====\n");
+    if (foodCount == 0) {
         printf("기록이 없습니다.\n");
         return;
     }
 
     char currentDate[MAX_DATE_LEN] = "";
 
-    for (int i = 0; i < appCount; i++) {
+    for (int i = 0; i < foodCount; i++) {
         // 새로운 날짜가 나오면 날짜를 출력
-        if (strcmp(currentDate, appUsages[i].date) != 0) {
-            strcpy(currentDate, appUsages[i].date);
+        if (strcmp(currentDate, foodRecords[i].date) != 0) {
+            strcpy(currentDate, foodRecords[i].date);
             printf("\n%s\n", currentDate);
         }
-        // 같은 날짜의 앱 사용량 출력
-        printf("%s - %d%%\n", appUsages[i].appName, appUsages[i].usagePercent);
+        // 같은 날짜의 음식 섭취 출력
+        printf("%s - %d 칼로리\n", foodRecords[i].foodName, foodRecords[i].calories);
     }
 }
 
-// 앱별 사용량 출력
-void displayByApp() {
-    printf("\n==== 앱별 사용량 ====\n");
-    if (appCount == 0) {
+// 음식별 섭취 출력
+void displayByFood() {
+    printf("\n==== 음식별 섭취 ====\n");
+    if (foodCount == 0) {
         printf("기록이 없습니다.\n");
         return;
     }
 
-    char currentApp[MAX_NAME_LEN] = "";
+    char currentFood[MAX_NAME_LEN] = "";
 
-    for (int i = 0; i < appCount; i++) {
-        // 새로운 앱이 나오면 앱 이름을 출력
-        if (strcmp(currentApp, appUsages[i].appName) != 0) {
-            strcpy(currentApp, appUsages[i].appName);
-            printf("\n%s\n", currentApp);  // 앱 이름 출력
+    for (int i = 0; i < foodCount; i++) {
+        // 새로운 음식이 나오면 음식 이름을 출력
+        if (strcmp(currentFood, foodRecords[i].foodName) != 0) {
+            strcpy(currentFood, foodRecords[i].foodName);
+            printf("\n%s\n", currentFood);  // 음식 이름 출력
         }
-        // 같은 앱의 날짜별 사용량 출력
-        printf("  날짜: %s, 사용량: %d%%\n", appUsages[i].date, appUsages[i].usagePercent);
+        // 같은 음식의 날짜별 섭취만 출력
+        printf("  날짜: %s, 칼로리: %d\n", foodRecords[i].date, foodRecords[i].calories);
     }
-}
-
-// 화면 지우기
-void clearScreen() {
-    printf("\n출력을 확인하려면 아무 키나 누르세요...\n");
-    getchar();  // 입력 대기
-    system("clear || cls");  // Linux/Mac에서는 'clear', Windows에서는 'cls'
 }
