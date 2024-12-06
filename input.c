@@ -444,6 +444,7 @@ void runAccountingModule(ItemList* rootList) {
 
         while (1) {
             clearScreen();
+            setTextColor(11);
             printf("\n========== 가계부 전용 입력 모듈 =========="
                 "\n1. 수익 입력"
                 "\n2. 지출 입력"
@@ -452,6 +453,7 @@ void runAccountingModule(ItemList* rootList) {
                 "\n5. 지출 정정(수정 및 삭제)"
                 "\n6. 종료"
                 "\n===========================================\n");
+                setTextColor(7);
             printf("선택: ");
             scanf("%d", &moduleChoice);
             dummy = getchar(); // 버퍼 비우기
@@ -480,16 +482,19 @@ void runAccountingModule(ItemList* rootList) {
             case 1:
                 newRecord.type = '+';
                 // 금액 입력
-                printf("금액을 입력해주세요: ");
+                setTextColor(2);
+                printf("수익 금액을 입력해주세요: ");
                 scanf("%d", &newRecord.amount);
                 dummy = getchar(); // 버퍼 비우기
 
                 // 출처 입력
+                setTextColor(6);
                 printf("출처를 입력해주세요: ");
                 fgets(newRecord.description, sizeof(newRecord.description), stdin);
                 newRecord.description[strcspn(newRecord.description, "\n")] = '\0';  // 개행 문자 제거
 
                 // 날짜 입력
+                setTextColor(7);
                 printf("날짜를 입력해주세요 (예시: 20250101): ");
                 fgets(newRecord.date, sizeof(newRecord.date), stdin);
                 newRecord.date[strcspn(newRecord.date, "\n")] = '\0';  // 개행 문자 제거
@@ -500,16 +505,19 @@ void runAccountingModule(ItemList* rootList) {
             case 2:
                 newRecord.type = '-';
                 // 금액 입력
-                printf("금액을 입력해주세요: ");
+                setTextColor(2);
+                printf("지출 금액을 입력해주세요: ");
                 scanf("%d", &newRecord.amount);
                 dummy = getchar(); // 버퍼 비우기
 
                 // 출처 입력
+                setTextColor(6);
                 printf("출처를 입력해주세요: ");
                 fgets(newRecord.description, sizeof(newRecord.description), stdin);
                 newRecord.description[strcspn(newRecord.description, "\n")] = '\0';  // 개행 문자 제거
 
                 // 날짜 입력
+                setTextColor(7);
                 printf("날짜를 입력해주세요 (예시: 20250101): ");
                 fgets(newRecord.date, sizeof(newRecord.date), stdin);
                 newRecord.date[strcspn(newRecord.date, "\n")] = '\0';  // 개행 문자 제거
@@ -519,16 +527,21 @@ void runAccountingModule(ItemList* rootList) {
                 break;
             case 3:
                 // 수익/지출 내역 보기
+                setTextColor(2);
                 printf("\n========== 수익 내역 =========="
                     "\n총 %d개의 수익 내역이 있습니다.\n\n", incomeCount);
+                    setTextColor(10);
                 for (int i = 0; i < incomeCount; i++) {
                     printf("%d. 금액: %d, 출처: %s, 날짜: %s\n", i + 1, incomeRecords[i].amount, incomeRecords[i].description, incomeRecords[i].date);
                 }
+                setTextColor(4);
                 printf("\n========== 지출 내역 =========="
                     "\n총 %d개의 지출 내역이 있습니다.\n\n", expenseCount);
+                    setTextColor(12);
                 for (int i = 0; i < expenseCount; i++) {
                     printf("%d. 금액: %d, 출처: %s, 날짜: %s\n", i + 1, expenseRecords[i].amount, expenseRecords[i].description, expenseRecords[i].date);
                 }
+                setTextColor(7);
                 printf("\n아무 키나 누르면 계속합니다...");
                 dummy = getchar();
                 break;
