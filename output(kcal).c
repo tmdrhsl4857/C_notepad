@@ -37,6 +37,7 @@ int main() {
 
     // 메뉴 출력
     while (1) {
+        printf("칼로리 메모장\n");
         printf("\n==== 메뉴 ====\n");
         printf("1. 날짜별 음식 섭취 출력\n");
         printf("2. 음식별 섭취 출력\n");
@@ -147,7 +148,7 @@ void loadFromFile() {
     }
 
     fclose(file);
-    printf("칼로리 섭취량\n", foodCount);
+    
 }
 
 // 날짜와 칼로리 기준으로 정렬
@@ -199,7 +200,7 @@ void displayByDate() {
             printf("\n%s\n", currentDate);
         }
         // 같은 날짜의 음식 섭취 출력
-        printf("%s - %d 칼로리\n", foodRecords[i].foodName, foodRecords[i].calories);
+        printf("%s - %d kcal\n", foodRecords[i].foodName, foodRecords[i].calories);
     }
 }
 
@@ -220,7 +221,7 @@ void displayByFood() {
             printf("\n%s\n", currentFood);  // 음식 이름 출력
         }
         // 같은 음식의 날짜별 섭취만 출력
-        printf("  날짜: %s, 칼로리: %d\n", foodRecords[i].date, foodRecords[i].calories);
+        printf("  Date : %s, Kcal : %d\n", foodRecords[i].date, foodRecords[i].calories);
     }
 }
 
@@ -248,7 +249,7 @@ void displayAnalysis() {
     // 가장 높은 칼로리를 섭취한 모든 음식 출력
     for (int i = 0; i < foodCount; i++) {
         if (foodRecords[i].calories == maxCalories) {
-            printf("%s - %d 칼로리\n", foodRecords[i].foodName, foodRecords[i].calories);
+            printf("%s - %d kcal\n", foodRecords[i].foodName, foodRecords[i].calories);
         }
     }
 
@@ -272,7 +273,7 @@ void displayAnalysis() {
     printf("2. 자주 먹은 음식: %s - %d번\n", frequentFood, maxCount);
 
     // 3. 입력된 날짜에 대한 하루 권장 칼로리 초과 여부 확인
-    printf("\n3. 하루 권장 칼로리 초과 여부:\n");
+    printf("\n3. 하루 권장 칼로리 초과 여부 (%dkcal):\n", recommendedCalories);
 
     // 날짜별로 칼로리 합산 후 초과 여부 출력
     char currentDate[MAX_DATE_LEN] = ""; // 날짜 초기화
@@ -285,10 +286,10 @@ void displayAnalysis() {
             // 이전 날짜의 칼로리 합산 후 결과 출력
             if (strlen(currentDate) > 0) {  // 날짜가 초기값이 아니면 출력
                 if (dailyCalories > recommendedCalories) {
-                    printf("  날짜: %s, 권장 칼로리 초과 (%d 칼로리 섭취)\n", currentDate, dailyCalories);
+                    printf("  날짜: %s, 권장 칼로리 초과 (%d kcal 섭취)\n", currentDate, dailyCalories);
                 }
                 else {
-                    printf("  날짜: %s, 권장 칼로리 이하 (%d 칼로리 섭취)\n", currentDate, dailyCalories);
+                    printf("  날짜: %s, 권장 칼로리 이하 (%d kcal 섭취)\n", currentDate, dailyCalories);
                 }
             }
             // 날짜 갱신
@@ -302,10 +303,10 @@ void displayAnalysis() {
 
     // 마지막 날짜에 대한 결과 출력
     if (dailyCalories > recommendedCalories) {
-        printf("  날짜: %s, 권장 칼로리 초과 (%d 칼로리 섭취)\n", currentDate, dailyCalories);
+        printf("  날짜: %s, 권장 칼로리 초과 (%d kcal 섭취)\n", currentDate, dailyCalories);
     }
     else {
-        printf("  날짜: %s, 권장 칼로리 이하 (%d 칼로리 섭취)\n", currentDate, dailyCalories);
+        printf("  날짜: %s, 권장 칼로리 이하 (%d kcal 섭취)\n", currentDate, dailyCalories);
     }
 }
 
