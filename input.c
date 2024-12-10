@@ -1,38 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <windows.h>
+#include <windows.h> // Windows 환경에서 색상 변경에 필요
+
 #define NAME_LENGTH 100
 char dummy;  // getchar 경고 없애기 용도
-
-void clearScreen() {
-    system("cls"); // Windows에서 화면을 지움
-}
-
-void setTextColor(int textColor, int backgroundColor) {
-    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-    // 배경색은 상위 비트(<< 4)에 설정, 텍스트 색상과 OR 연산
-    int colorAttribute = (backgroundColor << 4) | textColor;
-    SetConsoleTextAttribute(hConsole, colorAttribute);
-}
-
-// 도움말 출력 함수
-void printHelp() {
-    clearScreen();
-    setTextColor(11, 0);
-    printf("\n========== 도움말 =========="
-        "\n이 프로그램은 사용자 항목 관리 기능을 제공합니다. \n사용자는 항목을 추가하고, 삭제하고, 수정할 수 있으며, 하위 항목을 탐색할 수 있습니다.\n\n"
-        "1. 새 항목 추가: 새 항목을 추가합니다.\n"
-        "2. 항목 삭제: 기존 항목을 삭제합니다.\n"
-        "3. 항목 수정: 기존 항목의 이름을 변경합니다.\n"
-        "4. 항목 선택: 특정 항목을 선택하여 그 하위 항목을 관리합니다.\n"
-        "5. 종료: 프로그램을 종료하고 데이터베이스를 저장합니다.\n"
-        "n. 사용 가능한 모듈: 현재 지원 가능한 모듈을 확인하고 실행합니다.\n"
-        "============================\n");
-        setTextColor(7, 0);
-    printf("\n아무 키나 누르면 계속합니다...");
-    dummy = getchar();
-}
 
 // 항목 구조체 정의
 typedef struct Item {
@@ -54,6 +26,234 @@ typedef struct Record {
     char description[NAME_LENGTH];
     char date[NAME_LENGTH];
 } Record;
+
+#define NAME_LENGTH 100
+#define MAX_TODOS 100
+
+// 상태 상수 정의
+const char* STATUS_TEXT[] = { "준비", "진행", "완료", "보관" };
+
+// ToDolist 구조체 정의
+typedef struct Todo {
+    char date[NAME_LENGTH];   // 날짜
+    char type[NAME_LENGTH];   // 타입
+    char task[NAME_LENGTH];   // 내용
+    int status;               // 상태: 0: 준비, 1: 진행, 2: 완료, 3: 보관
+} Todo;
+
+void clearScreen();
+void printHelp();
+void initItemList(ItemList* list);
+void resizeItemList(ItemList* list);
+void addItem(ItemList* list, const char* itemName);
+void printItemList(const ItemList* list);
+void freeItem(Item* item);
+void freeItemList(ItemList* list);
+void deleteItem(ItemList* list, int index);
+void editItemName(Item* item, const char* newName);
+void saveItemListToFile(const ItemList* list, FILE* file);
+void saveDatabaseToFile(const char* filename, const ItemList* rootList);
+void loadItemListFromFile(ItemList* list, FILE* file);
+void loadDatabaseFromFile(const char* filename, ItemList* rootList);
+void printAvailableModules();
+void runAccountingModule(ItemList* rootList);
+void loadTodoListFromFile(const char* filename, Todo todos[], int* count);
+void saveTodoListToFile(const char* filename, Todo todos[], int count);
+void printTodoList(Todo todos[], int count);
+void addTodo(Todo todos[], int* count);
+void updateTodoStatus(Todo todos[], int count);
+void editTodo(Todo todos[], int* count);
+void runTodolistModule();
+void navigateItem(Item* item);
+void cleanup(ItemList* list);
+void printBanner(const char* title);
+void setTextColor(int color);
+void printMenu();
+void handleModuleChoice(ItemList* rootList);
+void clearInputBuffer();
+
+
+int main() {
+    ItemList rootList;
+    initItemList(&rootList);
+    atexit(cleanup); // 프로그램 종료 시 메모리 해제
+
+    // 도움말 출력
+    char helpChoice;
+    setTextColor(15);
+    printf("프로그램을 시작하기 전에 도움말을 보시겠습니까? (Y/N): ");
+    setTextColor(7);
+    scanf(" %c", &helpChoice);
+    dummy = getchar(); // 버퍼 비우기
+    if (helpChoice == 'Y' || helpChoice == 'y') {
+        printHelp();
+    }
+
+    // 데이터 로드
+    loadDatabaseFromFile("database.txt", &rootList);
+
+    char choice; // char로 변경하여 숫자와 문자를 모두 처리
+
+    while (1) {
+        printMenu(); // 메뉴 출력
+        printf("선택: ");
+        scanf(" %c", &choice); // 단일 문자 입력 처리
+        dummy = getchar(); // 버퍼 비우기
+
+        switch (choice) {
+        case '1': {
+            clearScreen();
+            setTextColor(11);
+            printBanner("새 항목 추가");
+            char itemName[NAME_LENGTH];
+            setTextColor(10);
+            printf("추가할 항목 이름: ");
+            setTextColor(7);
+            fgets(itemName, sizeof(itemName), stdin);
+            itemName[strcspn(itemName, "\n")] = '\0'; // 개행 문자 제거
+            addItem(&rootList, itemName);
+            break;
+        }
+        case '2': {
+            clearScreen();
+            printBanner("항목 삭제");
+            if (rootList.size == 0) {
+                setTextColor(12); // 빨간색
+                printf("항목이 없습니다. 아무 키나 누르면 돌아갑니다...\n");
+                dummy = getchar();
+                setTextColor(7); // 기본 색상
+                break;
+            }
+            printItemList(&rootList);
+            setTextColor(12);
+            printf("삭제할 항목 번호를 입력하세요 (0: 취소): ");
+            setTextColor(7);
+            int deleteIndex;
+            scanf("%d", &deleteIndex);
+            dummy = getchar();
+            if (deleteIndex == 0) {
+                setTextColor(12);
+                printf("삭제를 취소했습니다.\n");
+                setTextColor(7);
+            }
+            else if (deleteIndex > 0 && deleteIndex <= rootList.size) {
+                deleteItem(&rootList, deleteIndex - 1);
+            }
+            else {
+                setTextColor(4);
+                printf("잘못된 선택입니다.\n");
+                setTextColor(7);
+            }
+            break;
+        }
+        case '3': {
+            clearScreen();
+            printBanner("항목 수정");
+            if (rootList.size == 0) {
+                setTextColor(12); // 빨간색
+                printf("항목이 없습니다. 아무 키나 누르면 돌아갑니다...\n");
+                dummy = getchar();
+                setTextColor(7); // 기본 색상
+                break;
+            }
+            printItemList(&rootList);
+            setTextColor(14);
+            printf("수정할 항목 번호를 입력하세요 (0: 취소): ");
+            setTextColor(7);
+            int editIndex;
+            scanf("%d", &editIndex);
+            dummy = getchar();
+            if (editIndex == 0) {
+                setTextColor(12);
+                printf("수정을 취소했습니다.\n");
+                setTextColor(7);
+            }
+            else if (editIndex > 0 && editIndex <= rootList.size) {
+                char itemName[NAME_LENGTH];
+                setTextColor(10);
+                printf("새 이름: ");
+                setTextColor(7);
+                fgets(itemName, sizeof(itemName), stdin);
+                itemName[strcspn(itemName, "\n")] = '\0';
+                editItemName(rootList.items[editIndex - 1], itemName);
+            }
+            else {
+                setTextColor(4);
+                printf("잘못된 선택입니다.\n");
+                setTextColor(7);
+            }
+            break;
+        }
+        case '4': {
+            clearScreen();
+            printBanner("항목 선택");
+            if (rootList.size == 0) {
+                setTextColor(12); // 빨간색
+                printf("항목이 없습니다. 아무 키나 누르면 돌아갑니다...\n");
+                dummy = getchar();
+                setTextColor(7); // 기본 색상
+                break;
+            }
+            printItemList(&rootList);
+            setTextColor(14);
+            printf("선택할 항목 번호를 입력하세요 (0: 취소): ");
+            setTextColor(7);
+            int index;
+            scanf("%d", &index);
+            dummy = getchar();
+            if (index > 0 && index <= rootList.size) {
+                navigateItem(rootList.items[index - 1]);
+            }
+            else {
+                setTextColor(4);
+                printf("잘못된 선택입니다.\n");
+                setTextColor(7);
+            }
+            break;
+        }
+        case '5':
+            clearScreen();
+            printBanner("프로그램 종료");
+            saveDatabaseToFile("database.txt", &rootList);
+            printf("데이터를 저장하고 프로그램을 종료합니다.\n");
+            freeItemList(&rootList);
+            return 0;
+        case 'n':
+        case 'N':
+            handleModuleChoice(&rootList);
+            break;
+        default:
+            setTextColor(4); // 빨간색
+            printf("잘못된 선택입니다. 다시 시도해주세요.\n");
+            setTextColor(7); // 기본 색상
+            printf("\n아무 키나 누르면 계속합니다...");
+            dummy = getchar();
+            break;
+        }
+    }
+}
+
+
+void clearScreen() {
+    system("cls"); // Windows에서 화면을 지움
+}
+
+// 도움말 출력 함수
+void printHelp() {
+    clearScreen();
+    setTextColor(15);
+    printf("\n========== 도움말 =========="
+        "\n이 프로그램은 사용자 항목 관리 기능을 제공합니다. \n사용자는 항목을 추가하고, 삭제하고, 수정할 수 있으며, 하위 항목을 탐색할 수 있습니다.\n"
+        "\n1. 새 항목 추가: 새 항목을 추가합니다.\n"
+        "2. 항목 삭제: 기존 항목을 삭제합니다.\n"
+        "3. 항목 수정: 기존 항목의 이름을 변경합니다.\n"
+        "4. 항목 선택: 특정 항목을 선택하여 그 하위 항목을 관리합니다.\n"
+        "5. 종료: 프로그램을 종료하고 데이터베이스를 저장합니다.\n"
+        "n. 사용 가능한 모듈: 현재 지원 가능한 모듈을 확인하고 실행합니다.\n"
+        "============================\n");
+    printf("\n아무 키나 누르면 계속합니다...");
+    dummy = getchar();
+}
 
 // 리스트 초기화 함수
 void initItemList(ItemList* list) {
@@ -100,12 +300,16 @@ void addItem(ItemList* list, const char* itemName) {
 
 // 항목 목록 출력 함수
 void printItemList(const ItemList* list) {
-    setTextColor(14, 0);
-    printf("\n항목 목록:\n");
+    clearScreen();
+    printBanner("항목 목록");
+    setTextColor(11); // 청록색
+    printf("번호      항목 이름\n");
+    printf("---------------------\n");
     for (int i = 0; i < list->size; i++) {
-        printf("%d. %s\n", i + 1, list->items[i]->name);
+        printf("%-10d%s\n", i + 1, list->items[i]->name);
     }
-    setTextColor(7, 0);
+    printf("---------------------\n");
+    setTextColor(7); // 기본 색상
 }
 
 // 항목 메모리 해제 함수
@@ -129,9 +333,7 @@ void freeItemList(ItemList* list) {
 // 항목 삭제 함수
 void deleteItem(ItemList* list, int index) {
     if (index < 0 || index >= list->size) {
-        setTextColor(12,0);
         printf("잘못된 인덱스입니다.\n");
-        setTextColor(7,0);
         return;
     }
     freeItem(list->items[index]);
@@ -139,13 +341,17 @@ void deleteItem(ItemList* list, int index) {
         list->items[i] = list->items[i + 1];
     }
     list->size--;
+    setTextColor(12);
     printf("항목 삭제 완료!\n");
+    setTextColor(7);
 }
 
 // 항목 이름 수정 함수
 void editItemName(Item* item, const char* newName) {
     strcpy(item->name, newName);
+    setTextColor(14);
     printf("항목 이름이 '%s'로 변경되었습니다.\n", newName);
+    setTextColor(7);
 }
 
 // 데이터베이스를 파일에 저장하는 함수
@@ -160,16 +366,14 @@ void saveItemListToFile(const ItemList* list, FILE* file) {
 void saveDatabaseToFile(const char* filename, const ItemList* rootList) {
     FILE* file = fopen(filename, "w");
     if (file == NULL) {
-        setTextColor(12, 0);
+        setTextColor(4);
         fprintf(stderr, "파일 저장 실패\n");
-        setTextColor(7, 0);
+        setTextColor(7);
         return;
     }
     saveItemListToFile(rootList, file);
     fclose(file);
-    setTextColor(10, 0);
     printf("데이터베이스가 파일에 저장되었습니다.\n");
-    setTextColor(7, 0);
 }
 
 // 파일에서 데이터베이스를 불러오는 함수
@@ -202,13 +406,15 @@ void loadDatabaseFromFile(const char* filename, ItemList* rootList) {
 
 // 모듈 목록 출력 함수
 void printAvailableModules() {
-    setTextColor(14, 0);
+    setTextColor(11);
+    printf("======================");
     printf("\n현재 지원 가능한 모듈:\n");
     printf("1. 가계부 모듈\n");
-    setTextColor(7, 0);
+    printf("2. ToDolist 모듈\n");
+    printf("======================\n");
+    setTextColor(7);
 }
 
-// 가계부 모듈 실행 함수
 // 가계부 모듈 실행 함수
 void runAccountingModule(ItemList* rootList) {
     // 가계부 모듈 시작 시 기존 정보 초기화
@@ -216,15 +422,17 @@ void runAccountingModule(ItemList* rootList) {
     initItemList(rootList);
 
     char choice;
-    setTextColor(12, 0);
+    setTextColor(4);
     printf("가계부 모듈 실행 시 현재 저장 파일이 훼손될 가능성이 있습니다. 진행하시겠습니까? (Y/N): ");
-    setTextColor(7, 0);
+    setTextColor(7);
     scanf(" %c", &choice);
     dummy = getchar(); // 버퍼 비우기
     if (choice == 'Y' || choice == 'y') {
         FILE* file = fopen("database.txt", "w");
         if (file == NULL) {
+            setTextColor(4);
             fprintf(stderr, "파일 저장 실패\n");
+            setTextColor(7);
             return;
         }
 
@@ -236,17 +444,17 @@ void runAccountingModule(ItemList* rootList) {
 
         while (1) {
             clearScreen();
-            setTextColor(11, 0);
-            printf("\n========== 가계부 모듈 =========="
+            setTextColor(11);
+            printf("\n========== 가계부 전용 입력 모듈 =========="
                 "\n1. 수익 입력"
                 "\n2. 지출 입력"
                 "\n3. 수익/지출 내역 보기"
                 "\n4. 수익 정정(수정 및 삭제)"
                 "\n5. 지출 정정(수정 및 삭제)"
                 "\n6. 종료"
-                "\n=================================\n");
+                "\n===========================================\n");
+                setTextColor(7);
             printf("선택: ");
-            setTextColor(7, 0);
             scanf("%d", &moduleChoice);
             dummy = getchar(); // 버퍼 비우기
 
@@ -261,9 +469,8 @@ void runAccountingModule(ItemList* rootList) {
                 for (int i = 0; i < expenseCount; i++) {
                     fprintf(file, "%d %s %s\n0\n", expenseRecords[i].amount, expenseRecords[i].description, expenseRecords[i].date);
                 }
-                fclose(file);setTextColor(15, 0);
+                fclose(file);
                 printf("가계부 모듈을 종료합니다. 모든 입력된 정보가 저장되었습니다.\n");
-                setTextColor(7, 0);
                 printf("\n아무 키나 누르면 계속합니다...");
                 dummy = getchar();
                 exit(0); // 프로그램 종료
@@ -275,23 +482,20 @@ void runAccountingModule(ItemList* rootList) {
             case 1:
                 newRecord.type = '+';
                 // 금액 입력
-                setTextColor(10, 0);
-                printf("금액을 입력해주세요: ");
-                setTextColor(7, 0);
+                setTextColor(2);
+                printf("수익 금액을 입력해주세요: ");
                 scanf("%d", &newRecord.amount);
                 dummy = getchar(); // 버퍼 비우기
 
                 // 출처 입력
-                setTextColor(14, 0);
+                setTextColor(6);
                 printf("출처를 입력해주세요: ");
-                setTextColor(7, 0);
                 fgets(newRecord.description, sizeof(newRecord.description), stdin);
                 newRecord.description[strcspn(newRecord.description, "\n")] = '\0';  // 개행 문자 제거
 
                 // 날짜 입력
-                setTextColor(15, 0);
+                setTextColor(7);
                 printf("날짜를 입력해주세요 (예시: 20250101): ");
-                setTextColor(7, 0);
                 fgets(newRecord.date, sizeof(newRecord.date), stdin);
                 newRecord.date[strcspn(newRecord.date, "\n")] = '\0';  // 개행 문자 제거
 
@@ -301,23 +505,20 @@ void runAccountingModule(ItemList* rootList) {
             case 2:
                 newRecord.type = '-';
                 // 금액 입력
-                setTextColor(10, 0);
-                printf("금액을 입력해주세요: ");
-                setTextColor(7, 0);
+                setTextColor(2);
+                printf("지출 금액을 입력해주세요: ");
                 scanf("%d", &newRecord.amount);
                 dummy = getchar(); // 버퍼 비우기
 
                 // 출처 입력
-                setTextColor(14, 0);
+                setTextColor(6);
                 printf("출처를 입력해주세요: ");
-                setTextColor(7, 0);
                 fgets(newRecord.description, sizeof(newRecord.description), stdin);
                 newRecord.description[strcspn(newRecord.description, "\n")] = '\0';  // 개행 문자 제거
 
                 // 날짜 입력
-                setTextColor(15, 0);
+                setTextColor(7);
                 printf("날짜를 입력해주세요 (예시: 20250101): ");
-                setTextColor(7, 0);
                 fgets(newRecord.date, sizeof(newRecord.date), stdin);
                 newRecord.date[strcspn(newRecord.date, "\n")] = '\0';  // 개행 문자 제거
 
@@ -326,76 +527,74 @@ void runAccountingModule(ItemList* rootList) {
                 break;
             case 3:
                 // 수익/지출 내역 보기
-                setTextColor(2, 0);
+                setTextColor(2);
                 printf("\n========== 수익 내역 =========="
                     "\n총 %d개의 수익 내역이 있습니다.\n\n", incomeCount);
-                    setTextColor(10, 0);
+                    setTextColor(10);
                 for (int i = 0; i < incomeCount; i++) {
                     printf("%d. 금액: %d, 출처: %s, 날짜: %s\n", i + 1, incomeRecords[i].amount, incomeRecords[i].description, incomeRecords[i].date);
                 }
-                setTextColor(4, 0);
+                setTextColor(4);
                 printf("\n========== 지출 내역 =========="
                     "\n총 %d개의 지출 내역이 있습니다.\n\n", expenseCount);
-                    setTextColor(12, 0);
+                    setTextColor(12);
                 for (int i = 0; i < expenseCount; i++) {
                     printf("%d. 금액: %d, 출처: %s, 날짜: %s\n", i + 1, expenseRecords[i].amount, expenseRecords[i].description, expenseRecords[i].date);
                 }
-                setTextColor(7, 0);
+                setTextColor(7);
                 printf("\n아무 키나 누르면 계속합니다...");
                 dummy = getchar();
                 break;
             case 4:
                 // 수익 정정(수정 및 삭제)
-                setTextColor(12, 0);
                 if (incomeCount == 0) {
+                    setTextColor(12);
                     printf("수정할 수익 항목이 없습니다.\n아무 키나 누르면 계속합니다...");
-                    setTextColor(7, 0);
                     dummy = getchar();
                     break;
                 }
-                setTextColor(2, 0);
+                setTextColor(2);
                 printf("\n========== 수익 내역 수정 =========="
                     "\n총 %d개의 수익 내역이 있습니다.\n\n", incomeCount);
-                    setTextColor(10, 0);
+                    setTextColor(10);
                 for (int i = 0; i < incomeCount; i++) {
                     printf("%d. 금액: %d, 출처: %s, 날짜: %s\n", i + 1, incomeRecords[i].amount, incomeRecords[i].description, incomeRecords[i].date);
                 }
-                setTextColor(7, 0);
                 int incomeIndex;
-                setTextColor(14, 0);
+                setTextColor(14);
                 printf("\n수정 또는 삭제할 항목 번호를 입력하세요 (0을 입력하면 취소됩니다): ");
-                setTextColor(7, 0);
+                setTextColor(7);
                 scanf("%d", &incomeIndex);
                 dummy = getchar();
                 if (incomeIndex == 0 || incomeIndex > incomeCount) {
-                    setTextColor(12, 0);
+                    setTextColor(12);
                     printf("잘못된 선택이거나 취소를 선택하셨습니다. 아무 키나 누르면 계속합니다...");
-                    setTextColor(7, 0);
+                    setTextColor(7);
                     dummy = getchar();
                     break;
                 }
-                setTextColor(14, 0);
+                setTextColor(14);
                 printf("\n1. 수정");
-                setTextColor(12, 0);
+                setTextColor(12);
                 printf("\n2. 삭제");
-                setTextColor(15, 0);
+                setTextColor(7);
                 printf("\n선택: ");
                 int action;
                 scanf("%d", &action);
                 dummy = getchar();
                 if (action == 1) {
                     // 수정 기능
-                    setTextColor(10, 0);
-                    printf("\n새 금액을 입력해주세요: ");
+                    setTextColor(2);
+                    printf("\n새 수익 금액을 입력해주세요: ");
                     scanf("%d", &incomeRecords[incomeIndex - 1].amount);
                     dummy = getchar();
 
-                    setTextColor(14, 0);
+                    setTextColor(6);
                     printf("새 출처를 입력해주세요: ");
-                    setTextColor(7, 0);
                     fgets(incomeRecords[incomeIndex - 1].description, sizeof(incomeRecords[incomeIndex - 1].description), stdin);
                     incomeRecords[incomeIndex - 1].description[strcspn(incomeRecords[incomeIndex - 1].description, "\n")] = '\0';
 
+                    setTextColor(7);
                     printf("새 날짜를 입력해주세요 (예시: 20250101): ");
                     fgets(incomeRecords[incomeIndex - 1].date, sizeof(incomeRecords[incomeIndex - 1].date), stdin);
                     incomeRecords[incomeIndex - 1].date[strcspn(incomeRecords[incomeIndex - 1].date, "\n")] = '\0';
@@ -408,61 +607,43 @@ void runAccountingModule(ItemList* rootList) {
                     incomeCount--;
                 }
                 else {
-                    setTextColor(12, 0);
+                    setTextColor(4);
                     printf("잘못된 선택입니다. 아무 키나 누르면 계속합니다...");
-                    setTextColor(7, 0);
+                    setTextColor(7);
                     dummy = getchar();
                 }
                 break;
             case 5:
                 // 지출 정정(수정 및 삭제)
                 if (expenseCount == 0) {
-                    setTextColor(12, 0);
                     printf("수정할 지출 항목이 없습니다.\n아무 키나 누르면 계속합니다...");
-                    setTextColor(7, 0);
                     dummy = getchar();
                     break;
                 }
-                setTextColor(4, 0);
                 printf("\n========== 지출 내역 수정 =========="
                     "\n총 %d개의 지출 내역이 있습니다.\n\n", expenseCount);
-                    setTextColor(12, 0);
                 for (int i = 0; i < expenseCount; i++) {
                     printf("%d. 금액: %d, 출처: %s, 날짜: %s\n", i + 1, expenseRecords[i].amount, expenseRecords[i].description, expenseRecords[i].date);
                 }
-                setTextColor(7, 0);
                 int expenseIndex;
-                setTextColor(14, 0);
                 printf("\n수정 또는 삭제할 항목 번호를 입력하세요 (0을 입력하면 취소됩니다): ");
-                setTextColor(7, 0);
                 scanf("%d", &expenseIndex);
                 dummy = getchar();
                 if (expenseIndex == 0 || expenseIndex > expenseCount) {
-                    setTextColor(12, 0);
                     printf("잘못된 선택이거나 취소를 선택하셨습니다. 아무 키나 누르면 계속합니다...");
-                    setTextColor(7, 0);
                     dummy = getchar();
                     break;
                 }
-                setTextColor(14, 0);
-                printf("\n1. 수정");
-                setTextColor(12, 0);
-                printf("\n2. 삭제");
-                setTextColor(15, 0);
-                printf("\n선택: ");
+                printf("\n1. 수정\n2. 삭제\n선택: ");
                 scanf("%d", &action);
                 dummy = getchar();
                 if (action == 1) {
                     // 수정 기능
-                    setTextColor(10, 0);
                     printf("\n새 금액을 입력해주세요: ");
-                    setTextColor(7, 0);
                     scanf("%d", &expenseRecords[expenseIndex - 1].amount);
                     dummy = getchar();
 
-                    setTextColor(14, 0);
                     printf("새 출처를 입력해주세요: ");
-                    setTextColor(7, 0);
                     fgets(expenseRecords[expenseIndex - 1].description, sizeof(expenseRecords[expenseIndex - 1].description), stdin);
                     expenseRecords[expenseIndex - 1].description[strcspn(expenseRecords[expenseIndex - 1].description, "\n")] = '\0';
 
@@ -478,15 +659,12 @@ void runAccountingModule(ItemList* rootList) {
                     expenseCount--;
                 }
                 else {
-                    setTextColor(12, 0);
                     printf("잘못된 선택입니다. 아무 키나 누르면 계속합니다...");
                     dummy = getchar();
                 }
                 break;
             default:
-            setTextColor(12, 0);
                 printf("잘못된 선택입니다. 다시 시도해주세요.\n");
-                setTextColor(7, 0);
                 printf("\n아무 키나 누르면 계속합니다...");
                 dummy = getchar();
                 break;
@@ -500,8 +678,257 @@ void runAccountingModule(ItemList* rootList) {
     }
 }
 
+// ToDolist 데이터 로드 함수
+void loadTodoListFromFile(const char* filename, Todo todos[], int* count) {
+    FILE* file = fopen(filename, "r");
+    if (file == NULL) {
+        printf("저장된 ToDolist 파일이 없거나 파일을 열 수 없습니다.\n");
+        return;
+    }
+    *count = 0;
+    while (fscanf(file, "%s %s %[^\n] %d", todos[*count].date, todos[*count].type, todos[*count].task, &todos[*count].status) == 4) {
+        (*count)++;
+    }
+    fclose(file);
+}
 
+// Todolist 데이터 저장 함수
+void saveTodoListToFile(const char* filename, Todo todos[], int count) {
+    FILE* file = fopen(filename, "w");
+    if (file == NULL) {
+        fprintf(stderr, "ToDolist 파일 저장 실패\n");
+        return;
+    }
 
+    // 파일의 첫 줄에 데이터 개수를 기록
+    fprintf(file, "%d\n", count);
+
+    // 데이터 저장
+    for (int i = 0; i < count; i++) {
+        fprintf(file, "%s %s %s\n0\n", todos[i].date, todos[i].type, todos[i].task);
+    }
+
+    fclose(file);
+    printf("ToDolist 파일 저장 완료.\n");
+}
+
+// ToDolist 출력 함수
+void printTodoList(Todo todos[], int count) {
+    printf("\n========== 할 일 목록 ==========\n");
+    for (int i = 0; i < count; i++) {
+        printf("%d. 날짜: %s, 타입: %s, 내용: %s, 상태: %s\n",
+            i + 1, todos[i].date, todos[i].type, todos[i].task, STATUS_TEXT[todos[i].status]);
+    }
+    printf("\n================================\n");
+    printf("\n아무 키나 누르면 계속합니다...");
+    dummy = getchar();
+}
+
+// ToDolist 항목 추가 함수
+void addTodo(Todo todos[], int* count) {
+    if (*count >= MAX_TODOS) {
+        printf("할 일 목록이 가득 찼습니다!\n");
+        return;
+    }
+    Todo newTodo;
+
+    printf("날짜를 입력해주세요 (예시: 20250101): ");
+    fgets(newTodo.date, sizeof(newTodo.date), stdin);
+    newTodo.date[strcspn(newTodo.date, "\n")] = '\0';
+
+    printf("타입을 입력해주세요 (해야할 것): ");
+    fgets(newTodo.type, sizeof(newTodo.type), stdin);
+    newTodo.type[strcspn(newTodo.type, "\n")] = '\0';
+
+    printf("내용을 입력해주세요: ");
+    fgets(newTodo.task, sizeof(newTodo.task), stdin);
+    newTodo.task[strcspn(newTodo.task, "\n")] = '\0';
+
+    printf("상태를 선택해주세요 (0: 준비, 1: 진행, 2: 완료, 3: 보관): ");
+    scanf("%d", &newTodo.status);
+    getchar(); // 버퍼 비우기
+
+    if (newTodo.status < 0 || newTodo.status > 3) {
+        printf("잘못된 상태 선택입니다. 기본값(준비)으로 설정합니다.\n");
+        newTodo.status = 0; // 기본값: 준비
+    }
+
+    todos[(*count)++] = newTodo;
+    printf("새로운 할 일이 추가되었습니다!\n");
+}
+
+// ToDolist 상태 수정 함수
+void updateTodoStatus(Todo todos[], int count) {
+    if (count == 0) {
+        printf("수정할 할 일이 없습니다.");
+        printf("\n아무 키나 누르면 계속합니다...");
+        dummy = getchar();
+        return;
+    }
+    printf("\n========== 할 일 목록 ==========\n");
+    for (int i = 0; i < count; i++) {
+        printf("%d. 날짜: %s, 타입: %s, 내용: %s, 상태: %s\n",
+            i + 1, todos[i].date, todos[i].type, todos[i].task, STATUS_TEXT[todos[i].status]);
+    }
+    printf("\n================================\n");
+    printf("상태를 수정할 할 일 번호를 입력하세요 (0을 입력하면 취소됩니다): ");
+    int index;
+    scanf("%d", &index);
+    getchar(); // 버퍼 비우기
+    if (index <= 0 || index > count) {
+        printf("잘못된 선택이거나 취소를 선택하셨습니다.\n");
+        return;
+    }
+    index--; // 배열 인덱스 보정
+    printf("새로운 상태를 입력해주세요 (0: 준비, 1: 진행, 2: 완료, 3: 보관): ");
+    int newStatus;
+    scanf("%d", &newStatus);
+    getchar(); // 버퍼 비우기
+    if (newStatus < 0 || newStatus > 3) {
+        printf("잘못된 상태 선택입니다.\n");
+        return;
+    }
+    todos[index].status = newStatus;
+    printf("상태가 '%s'로 수정되었습니다.\n", STATUS_TEXT[newStatus]);
+}
+
+// ToDolist 항목 수정/삭제 함수
+void editTodo(Todo todos[], int* count) {
+    if (*count == 0) {
+        printf("수정할 할 일이 없습니다.");
+        printf("\n아무 키나 누르면 계속합니다...");
+        dummy = getchar();
+        return;
+    }
+    printf("\n========== 할 일 목록 ==========\n");
+    for (int i = 0; i < count; i++) {
+        printf("%d. 날짜: %s, 타입: %s, 내용: %s, 상태: %s\n",
+            i + 1, todos[i].date, todos[i].type, todos[i].task, STATUS_TEXT[todos[i].status]);
+    }
+    printf("\n================================\n");
+    printf("수정 또는 삭제할 할 일 번호를 입력하세요 (0을 입력하면 취소됩니다): ");
+    int index;
+    scanf("%d", &index);
+    getchar(); // 버퍼 비우기
+    if (index <= 0 || index > *count) {
+        printf("잘못된 선택이거나 취소를 선택하셨습니다.\n");
+        return;
+    }
+    index--; // 배열 인덱스 보정
+    printf("\n1. 수정\n2. 삭제\n선택: ");
+    int action;
+    scanf("%d", &action);
+    getchar();
+    if (action == 1) {
+        // 수정 기능
+        printf("새 날짜를 입력해주세요 (예시: 20250101): ");
+        fgets(todos[index].date, sizeof(todos[index].date), stdin);
+        todos[index].date[strcspn(todos[index].date, "\n")] = '\0';
+
+        printf("새 타입을 입력해주세요: ");
+        fgets(todos[index].type, sizeof(todos[index].type), stdin);
+        todos[index].type[strcspn(todos[index].type, "\n")] = '\0';
+
+        printf("새 내용을 입력해주세요: ");
+        fgets(todos[index].task, sizeof(todos[index].task), stdin);
+        todos[index].task[strcspn(todos[index].task, "\n")] = '\0';
+
+        printf("새 상태를 입력해주세요 (0: 준비, 1: 진행, 2: 완료, 3: 보관): ");
+        int newStatus;
+        scanf("%d", &newStatus);
+        getchar();
+        if (newStatus < 0 || newStatus > 3) {
+            printf("잘못된 상태 선택입니다.\n");
+        }
+        else {
+            todos[index].status = newStatus;
+        }
+        printf("할 일이 수정되었습니다.\n");
+    }
+    else if (action == 2) {
+        // 삭제 기능
+        for (int i = index; i < *count - 1; i++) {
+            todos[i] = todos[i + 1];
+        }
+        (*count)--;
+        printf("할 일이 삭제되었습니다.\n");
+    }
+    else {
+        printf("잘못된 선택입니다.\n");
+    }
+}
+
+// ToDolist 모듈 실행 함수
+void runTodolistModule() {
+    Todo todos[MAX_TODOS];
+    int todoCount = 0;
+
+    // 데이터 삭제 알림 추가
+    char choice;
+    printf("ToDolist 모듈 실행 시 현재 저장 파일이 초기화될 수 있습니다. 진행하시겠습니까? (Y/N): ");
+    scanf(" %c", &choice);
+    getchar(); // 버퍼 비우기
+
+    if (choice == 'Y' || choice == 'y') {
+        // 파일 초기화
+        FILE* file = fopen("database.txt", "w");
+        if (file == NULL) {
+            fprintf(stderr, "파일 초기화 실패\n");
+            return;
+        }
+        fprintf(file, "0\n"); // 초기화된 파일은 데이터 개수 0으로 기록
+        fclose(file); // 초기화 후 파일 닫기
+        printf("데이터베이스가 초기화되었습니다.\n");
+    }
+    else {
+        printf("ToDolist 모듈 실행이 취소되었습니다.\n");
+        return;
+    }
+
+    // 초기화 후 데이터 로드
+    loadTodoListFromFile("database.txt", todos, &todoCount);
+
+    int choiceMenu;
+    while (1) {
+        clearScreen();
+        printf("\n========== ToDolist 입력 모듈 ==========\n"
+            "1. 할 일 입력\n"
+            "2. 할 일 목록\n"
+            "3. 상태 수정\n"
+            "4. 할 일 정정(수정 및 삭제)\n"
+            "5. 종료\n"
+            "========================================\n");
+        printf("선택: ");
+        scanf("%d", &choiceMenu);
+        getchar(); // 버퍼 비우기
+
+        switch (choiceMenu) {
+        case 1:
+            addTodo(todos, &todoCount);
+            saveTodoListToFile("database.txt", todos, todoCount); // 변경 사항 저장
+            break;
+        case 2:
+            printTodoList(todos, todoCount);
+            break;
+        case 3:
+            updateTodoStatus(todos, todoCount);
+            saveTodoListToFile("database.txt", todos, todoCount); // 변경 사항 저장
+            break;
+        case 4:
+            editTodo(todos, &todoCount);
+            saveTodoListToFile("database.txt", todos, todoCount); // 변경 사항 저장
+            break;
+        case 5:
+            saveTodoListToFile("database.txt", todos, todoCount); // 종료 전에 저장
+            printf("ToDolist 모듈을 종료합니다. 모든 변경 사항이 저장되었습니다.\n");
+            exit(0);
+        default:
+        setTextColor(12);
+            printf("잘못된 선택입니다. 다시 시도해주세요.\n");
+            setTextColor(7);
+        }
+    }
+}
 
 void navigateItem(Item* item) {
     int choice;
@@ -509,23 +936,18 @@ void navigateItem(Item* item) {
 
     while (1) {
         clearScreen();
-        setTextColor(11, 0);
-        printf("\n======현재 위치: %s====\n", item->name);
-        printf("1. 새 항목 추가\n");
-        printf("2. 항목 목록 출력\n");
-        printf("3. 항목 삭제\n");
+        printf("\n현재 위치: %s\n", item->name);
+        printf("1. 새 하위 항목 추가\n");
+        printf("2. 하위 항목 출력\n");
+        printf("3. 하위 항목 삭제\n");
         printf("4. 상위 메뉴로 돌아가기\n");
-        printf("==========================\n");
         printf("선택: ");
-        setTextColor(7, 0);
         scanf("%d", &choice);
         dummy = getchar(); // 버퍼 비우기
 
         switch (choice) {
         case 1:
-        setTextColor(10, 0);
             printf("\n추가할 항목 이름을 입력하세요: ");
-            setTextColor(7, 0);
             fgets(itemName, sizeof(itemName), stdin);
             itemName[strcspn(itemName, "\n")] = '\0';  // 개행 문자 제거
             addItem(item->children, itemName);
@@ -537,22 +959,17 @@ void navigateItem(Item* item) {
             break;
         case 3:
             if (item->children->size == 0) {
-                setTextColor(12, 0);
                 printf("삭제할 항목이 없습니다. 아무 키나 누르면 메뉴로 돌아갑니다...");
                 dummy = getchar();
                 break;
             }
             printItemList(item->children);
-            setTextColor(12, 0);
             printf("\n삭제할 항목 번호를 입력하세요 (0을 입력하면 취소됩니다): ");
             int deleteIndex;
-            setTextColor(7, 0);
             scanf("%d", &deleteIndex);
             dummy = getchar();  // 버퍼 비우기
             if (deleteIndex == 0) {
-                setTextColor(12, 0);
                 printf("삭제를 취소했습니다.\n");
-                setTextColor(7, 0);
                 dummy = getchar();
                 break;
             }
@@ -560,18 +977,14 @@ void navigateItem(Item* item) {
                 deleteItem(item->children, deleteIndex - 1);
             }
             else {
-                setTextColor(12, 0);
                 printf("잘못된 선택입니다. 아무 키나 누르면 계속합니다...");
-                setTextColor(7, 0);
                 dummy = getchar();
             }
             break;
         case 4:
             return;
         default:
-        setTextColor(12, 0);
             printf("잘못된 선택입니다. 다시 시도해주세요.\n");
-            setTextColor(7, 0);
             printf("\n아무 키나 누르면 계속합니다...");
             dummy = getchar();
         }
@@ -582,174 +995,64 @@ void cleanup(ItemList* list) {
     freeItemList(list);
 }
 
-int main() {
-    ItemList rootList;
-    initItemList(&rootList);
-    atexit(cleanup);  // 프로그램 종료 시 메모리 해제
+void printBanner(const char* title) {
+    setTextColor(14); // 노란색
+    printf("\n=================================\n");
+    printf("||%-29s||\n", title);
+    printf("=================================\n\n");
+    setTextColor(7); // 기본 색상
+}
 
-    char helpChoice;
-    setTextColor(15, 0);
-    printf("프로그램을 시작하기 전에 도움말을 보시겠습니까? (Y/N): ");
-    scanf(" %c", &helpChoice);
-    setTextColor(7, 0);
-    dummy = getchar(); // 버퍼 비우기
-    if (helpChoice == 'Y' || helpChoice == 'y') {
-        printHelp();
-    }
+void setTextColor(int color) {
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    SetConsoleTextAttribute(hConsole, color);
+}
 
-    loadDatabaseFromFile("database.txt", &rootList);  // 프로그램 시작 시 데이터 로드
+void printMenu() {
+    clearScreen();
+    printBanner("메인 메뉴");
+    setTextColor(11); // 청록색
+    printf("1. 새 항목 추가\n");
+    printf("2. 항목 삭제\n");
+    printf("3. 항목 수정\n");
+    printf("4. 항목 선택\n");
+    printf("5. 종료\n");
+    printf("n. 사용 가능한 모듈\n");
+    setTextColor(7); // 기본 색상
+    printf("==========================\n");
+}
 
-    char itemName[NAME_LENGTH];
-    int choice;
-
+void handleModuleChoice(ItemList* rootList) {
     while (1) {
         clearScreen();
-        setTextColor(11, 0);
-        printf("\n========== 메뉴 ==========");
-        printf("\n1. 새 항목 추가\n");
-        printf("2. 항목 삭제\n");
-        printf("3. 항목 수정\n");
-        printf("4. 항목 선택\n");
-        printf("5. 종료\n");
-        printf("n. 사용 가능한 모듈\n");
-        printf("==========================\n");
-        printf("선택: ");
-        setTextColor(7, 0);
-        if (scanf("%d", &choice) == 1) {
-            dummy = getchar();  // 버퍼 비우기
+        printBanner("사용 가능한 모듈");
+        printAvailableModules();
+        printf("\n모듈을 선택하세요 (1, 2, q=종료): ");
+        char moduleChoice;
+        scanf(" %c", &moduleChoice);
+        clearInputBuffer();
 
-            switch (choice) {
-            case 1:
-            setTextColor(10, 0);
-                printf("\n추가할 항목 이름을 입력하세요: ");
-                setTextColor(7, 0);
-                fgets(itemName, sizeof(itemName), stdin);
-                itemName[strcspn(itemName, "\n")] = '\0';  // 개행 문자 제거
-                addItem(&rootList, itemName);
-                break;
-            case 2:
-                if (rootList.size == 0) {
-                    setTextColor(12, 0);
-                    printf("항목이 없습니다. 아무 키나 누르면 메뉴로 돌아갑니다...");
-                    setTextColor(7, 0);
-                    dummy = getchar();
-                    break;
-                }
-                printItemList(&rootList);
-                setTextColor(12, 0);
-                printf("\n삭제할 항목 번호를 입력하세요 (0을 입력하면 취소됩니다): ");
-                setTextColor(7, 0);
-                int deleteIndex;
-                scanf("%d", &deleteIndex);
-                dummy = getchar();  // 버퍼 비우기
-                if (deleteIndex == 0) {
-                    setTextColor(12, 0);
-                    printf("삭제를 취소했습니다.\n");
-                    setTextColor(7, 0);
-                    dummy = getchar();
-                    break;
-                }
-                deleteItem(&rootList, deleteIndex - 1);
-                break;
-            case 3:
-                if (rootList.size == 0) {
-                    setTextColor(12, 0);
-                    printf("항목이 없습니다. 아무 키나 누르면 메뉴로 돌아갑니다...");
-                    setTextColor(7, 0);
-                    dummy = getchar();
-                    break;
-                }
-                printItemList(&rootList);
-                setTextColor(14, 0);
-                printf("\n수정할 항목 번호를 입력하세요 (0을 입력하면 취소됩니다): ");
-                setTextColor(7, 0);
-                int editIndex;
-                scanf("%d", &editIndex);
-                dummy = getchar();  // 버퍼 비우기
-                if (editIndex == 0) {
-                    setTextColor(14, 0);
-                    printf("수정을 취소했습니다.\n");
-                    setTextColor(7, 0);
-                    dummy = getchar();
-                    break;
-                }
-                if (editIndex > 0 && editIndex <= rootList.size) {
-                    setTextColor(10, 0);
-                    printf("새로운 항목 이름을 입력하세요: ");
-                    setTextColor(7, 0);
-                    fgets(itemName, sizeof(itemName), stdin);
-                    itemName[strcspn(itemName, "\n")] = '\0';  // 개행 문자 제거
-                    editItemName(rootList.items[editIndex - 1], itemName);
-                }
-                else {
-                    setTextColor(12, 0);
-                    printf("잘못된 선택입니다. 아무 키나 누르면 계속합니다...");
-                    setTextColor(7, 0);
-                    dummy = getchar();
-                }
-                break;
-            case 4:
-                if (rootList.size == 0) {
-                    setTextColor(12, 0);
-                    printf("항목이 없습니다. 아무 키나 누르면 메뉴로 돌아갑니다...");
-                    setTextColor(7, 0);
-                    dummy = getchar();
-                    break;
-                }
-                printItemList(&rootList);
-                setTextColor(14, 0);
-                printf("\n몇 번째 항목을 선택하시겠습니까? (번호 입력): ");
-                setTextColor(7, 0);
-                int index;
-                scanf("%d", &index);
-                dummy = getchar();  // 버퍼 비우기
-
-                if (index > 0 && index <= rootList.size) {
-                    navigateItem(rootList.items[index - 1]);
-                }
-                else {
-                    setTextColor(12, 0);
-                    printf("잘못된 선택입니다. 아무 키나 누르면 메뉴로 돌아갑니다...");
-                    setTextColor(7, 0);
-                    dummy = getchar();
-                }
-                break;
-
-            case 5:
-                saveDatabaseToFile("database.txt", &rootList);  // 프로그램 종료 시 데이터 저장
-                printf("프로그램을 종료합니다.\n");
-                freeItemList(&rootList);
-                return 0;
-            default:
-            setTextColor(12, 0);
-                printf("잘못된 선택입니다. 다시 시도해주세요.\n");
-                setTextColor(7, 0);
-                printf("\n아무 키나 누르면 계속합니다...");
-                dummy = getchar();
-            }
+        if (moduleChoice == '1') {
+            runAccountingModule(rootList);
+            break;
+        }
+        else if (moduleChoice == '2') {
+            runTodolistModule();
+            break;
+        }
+        else if (moduleChoice == 'q' || moduleChoice == 'Q') {
+            printf("모듈 선택을 종료합니다.\n");
+            break;
         }
         else {
-            char moduleChoice;
-            dummy = getchar();  // 버퍼 비우기
-            if (dummy == 'n' || dummy == 'N') {
-                printAvailableModules();
-                setTextColor(14, 0);
-                printf("\n모듈을 선택하세요 (1): ");
-                setTextColor(7, 0);
-                scanf(" %c", &moduleChoice);
-                dummy = getchar(); // 버퍼 비우기
-                if (moduleChoice == '1') {
-                    runAccountingModule(&rootList);
-                }
-                else {
-                    setTextColor(12, 0);
-                    printf("잘못된 선택입니다. 아무 키나 누르면 계속합니다...");
-                    setTextColor(7, 0);
-                    dummy = getchar();
-                }
-            }
+            setTextColor(12); // 빨간색
+            printf("잘못된 선택입니다. 다시 시도해주세요.\n");
+            setTextColor(7); // 기본 색상
         }
     }
+}
 
-    return 0;
+void clearInputBuffer() {
+    int ch;
+    while ((ch = getchar()) != '\n' && ch != EOF);
 }
