@@ -616,37 +616,52 @@ void runAccountingModule(ItemList* rootList) {
             case 5:
                 // 지출 정정(수정 및 삭제)
                 if (expenseCount == 0) {
+                    setTextColor(12);
                     printf("수정할 지출 항목이 없습니다.\n아무 키나 누르면 계속합니다...");
+                    setTextColor(7);
                     dummy = getchar();
                     break;
                 }
+                setTextColor(2);
                 printf("\n========== 지출 내역 수정 =========="
                     "\n총 %d개의 지출 내역이 있습니다.\n\n", expenseCount);
+                    setTextColor(10);
                 for (int i = 0; i < expenseCount; i++) {
                     printf("%d. 금액: %d, 출처: %s, 날짜: %s\n", i + 1, expenseRecords[i].amount, expenseRecords[i].description, expenseRecords[i].date);
                 }
+                setTextColor(7);
                 int expenseIndex;
+                setTextColor(14);
                 printf("\n수정 또는 삭제할 항목 번호를 입력하세요 (0을 입력하면 취소됩니다): ");
+                setTextColor(7);
                 scanf("%d", &expenseIndex);
                 dummy = getchar();
                 if (expenseIndex == 0 || expenseIndex > expenseCount) {
+                    setTextColor(12);
                     printf("잘못된 선택이거나 취소를 선택하셨습니다. 아무 키나 누르면 계속합니다...");
+                    setTextColor(7);
                     dummy = getchar();
                     break;
                 }
-                printf("\n1. 수정\n2. 삭제\n선택: ");
+                setTextColor(14);
+                printf("\n1. 수정");
+                setTextColor(12);
+                printf("\n2. 삭제");
+                setTextColor(7);
+                printf("\n선택: ");
                 scanf("%d", &action);
                 dummy = getchar();
                 if (action == 1) {
                     // 수정 기능
+                    setTextColor(2);
                     printf("\n새 금액을 입력해주세요: ");
                     scanf("%d", &expenseRecords[expenseIndex - 1].amount);
                     dummy = getchar();
-
+                    setTextColor(6);
                     printf("새 출처를 입력해주세요: ");
                     fgets(expenseRecords[expenseIndex - 1].description, sizeof(expenseRecords[expenseIndex - 1].description), stdin);
                     expenseRecords[expenseIndex - 1].description[strcspn(expenseRecords[expenseIndex - 1].description, "\n")] = '\0';
-
+                    setTextColor(7);
                     printf("새 날짜를 입력해주세요 (예시: 20250101): ");
                     fgets(expenseRecords[expenseIndex - 1].date, sizeof(expenseRecords[expenseIndex - 1].date), stdin);
                     expenseRecords[expenseIndex - 1].date[strcspn(expenseRecords[expenseIndex - 1].date, "\n")] = '\0';
@@ -659,20 +674,26 @@ void runAccountingModule(ItemList* rootList) {
                     expenseCount--;
                 }
                 else {
+                    setTextColor(4);
                     printf("잘못된 선택입니다. 아무 키나 누르면 계속합니다...");
+                    setTextColor(7);
                     dummy = getchar();
                 }
                 break;
             default:
+            setTextColor(4);
                 printf("잘못된 선택입니다. 다시 시도해주세요.\n");
                 printf("\n아무 키나 누르면 계속합니다...");
+                setTextColor(7);
                 dummy = getchar();
                 break;
             }
         }
     }
     else {
+        setTextColor(12);
         printf("가계부 모듈 실행이 취소되었습니다.\n");
+        setTextColor(7);
         printf("\n아무 키나 누르면 계속합니다...");
         dummy = getchar();
     }
