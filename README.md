@@ -62,7 +62,7 @@ _how_to_use(self use)_
 
 _how_to_use(self use)_
   1. Run database input program
-  2. Add new item (남자(man) or 여자(woman))
+  2. Add new item (kcal)
   3. Add in 'food Name kcal Date' format (Important for output programs)
   4. Input Program Exit
   5. Copy 'database.txt' to output program repository
