@@ -622,10 +622,10 @@ void runAccountingModule(ItemList* rootList) {
                     dummy = getchar();
                     break;
                 }
-                setTextColor(2);
+                setTextColor(4);
                 printf("\n========== 지출 내역 수정 =========="
                     "\n총 %d개의 지출 내역이 있습니다.\n\n", expenseCount);
-                    setTextColor(10);
+                    setTextColor(12);
                 for (int i = 0; i < expenseCount; i++) {
                     printf("%d. 금액: %d, 출처: %s, 날짜: %s\n", i + 1, expenseRecords[i].amount, expenseRecords[i].description, expenseRecords[i].date);
                 }
@@ -703,7 +703,9 @@ void runAccountingModule(ItemList* rootList) {
 void loadTodoListFromFile(const char* filename, Todo todos[], int* count) {
     FILE* file = fopen(filename, "r");
     if (file == NULL) {
+        setTextColor(4);
         printf("저장된 ToDolist 파일이 없거나 파일을 열 수 없습니다.\n");
+        setTextColor(7);
         return;
     }
     *count = 0;
@@ -717,7 +719,9 @@ void loadTodoListFromFile(const char* filename, Todo todos[], int* count) {
 void saveTodoListToFile(const char* filename, Todo todos[], int count) {
     FILE* file = fopen(filename, "w");
     if (file == NULL) {
+        setTextColor(4);
         fprintf(stderr, "ToDolist 파일 저장 실패\n");
+        setTextColor(7);
         return;
     }
 
@@ -730,17 +734,21 @@ void saveTodoListToFile(const char* filename, Todo todos[], int count) {
     }
 
     fclose(file);
+    setTextColor(4);
     printf("ToDolist 파일 저장 완료.\n");
+    setTextColor(7);
 }
 
 // ToDolist 출력 함수
 void printTodoList(Todo todos[], int count) {
+    setTextColor(10);
     printf("\n========== 할 일 목록 ==========\n");
     for (int i = 0; i < count; i++) {
         printf("%d. 날짜: %s, 타입: %s, 내용: %s, 상태: %s\n",
             i + 1, todos[i].date, todos[i].type, todos[i].task, STATUS_TEXT[todos[i].status]);
     }
     printf("\n================================\n");
+    setTextColor(7);
     printf("\n아무 키나 누르면 계속합니다...");
     dummy = getchar();
 }
@@ -748,34 +756,39 @@ void printTodoList(Todo todos[], int count) {
 // ToDolist 항목 추가 함수
 void addTodo(Todo todos[], int* count) {
     if (*count >= MAX_TODOS) {
+        setTextColor(12);
         printf("할 일 목록이 가득 찼습니다!\n");
+        setTextColor(7);
         return;
     }
     Todo newTodo;
-
+    setTextColor(1);
     printf("날짜를 입력해주세요 (예시: 20250101): ");
     fgets(newTodo.date, sizeof(newTodo.date), stdin);
     newTodo.date[strcspn(newTodo.date, "\n")] = '\0';
-
+    setTextColor(13);
     printf("타입을 입력해주세요 (해야할 것): ");
     fgets(newTodo.type, sizeof(newTodo.type), stdin);
     newTodo.type[strcspn(newTodo.type, "\n")] = '\0';
-
+    setTextColor(15);
     printf("내용을 입력해주세요: ");
     fgets(newTodo.task, sizeof(newTodo.task), stdin);
     newTodo.task[strcspn(newTodo.task, "\n")] = '\0';
-
+    setTextColor(6);
     printf("상태를 선택해주세요 (0: 준비, 1: 진행, 2: 완료, 3: 보관): ");
     scanf("%d", &newTodo.status);
     getchar(); // 버퍼 비우기
 
     if (newTodo.status < 0 || newTodo.status > 3) {
+        setTextColor(4);
         printf("잘못된 상태 선택입니다. 기본값(준비)으로 설정합니다.\n");
         newTodo.status = 0; // 기본값: 준비
     }
 
     todos[(*count)++] = newTodo;
+    setTextColor(10);
     printf("새로운 할 일이 추가되었습니다!\n");
+    setTextColor(7);
 }
 
 // ToDolist 상태 수정 함수
