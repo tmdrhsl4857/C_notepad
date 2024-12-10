@@ -101,22 +101,13 @@ void loadFromFile() {
 
     // 두 번째 줄에 '남자', 'man', '여자', 'woman'이 있는지 확인
     if (fgets(line, sizeof(line), file)) {
-        // 성별이 '남자', 'man', '여자', 'woman' 중 하나가 아닌 경우 종료
-        if (strncmp(line, "남자", 2) != 0 && strncmp(line, "man", 3) != 0 &&
-            strncmp(line, "여자", 2) != 0 && strncmp(line, "woman", 5) != 0) {
-            printf("잘못된 파일 형식: 두 번째 줄은 '남자', 'man', '여자', 'woman'이어야 합니다.\n");
+        // kcal가 아닌 경우 종료
+        if (strncmp(line, "kcal", 2) != 0  ) {
+            printf("잘못된 파일 형식: 두 번째 줄은 'kcal'이어야 합니다.\n");
             fclose(file);
             exit(1);
         }
-        // 성별 출력 및 권장 칼로리 설정
-        if (strncmp(line, "남자", 2) == 0 || strncmp(line, "man", 3) == 0) {
-            
-            recommendedCalories = 2500;
-        }
-        else if (strncmp(line, "여자", 2) == 0 || strncmp(line, "woman", 5) == 0) {
-            
-            recommendedCalories = 2000;
-        }
+        
     }
 
     // PBU 뒤에 올 숫자 (읽어들일 데이터의 개수) 읽기
@@ -237,6 +228,25 @@ void displayAnalysis() {
 
     printf("\n==== 섭취 음식 분석 ====\n");
 
+    // 성별 입력
+    while (1) {
+        printf("성별을 입력해주세요 (남자/man 또는 여자/woman): ");
+        char se[10];  // 문자열 배열로 선언
+        scanf("%s", se);  // 문자열 입력받기
+
+        if (strcmp(se, "남자") == 0 || strcmp(se, "man") == 0) {
+            recommendedCalories = 2500;
+            break;
+        }
+        else if (strcmp(se, "여자") == 0 || strcmp(se, "woman") == 0) {
+            recommendedCalories = 2000;
+            break;
+        }
+        else {
+            printf("잘못된 입력입니다. 다시 입력해주세요.\n");
+        }
+    }
+
     // 1. 가장 높은 칼로리를 섭취한 음식 찾기
     int maxCalories = 0;
     printf("1. 가장 높은 칼로리를 섭취한 음식 : ");
@@ -308,7 +318,13 @@ void displayAnalysis() {
     else {
         printf("  날짜: %s, 권장 칼로리 이하 (%d kcal 섭취)\n", currentDate, dailyCalories);
     }
+
+    // 출력 유지 후 화면 지우기
+    getchar();  // 추가 입력 대기 (성별 입력 후 남아 있는 '\n' 제거)
+    
 }
+
+
 
 // 화면 지우기
 void clearScreen() {
