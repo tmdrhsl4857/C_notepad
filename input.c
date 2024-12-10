@@ -1314,6 +1314,10 @@ void runKcalInputModule() {
             printf("음식 이름: ");
             fgets(foodName, MAX_NAME_LEN, stdin);
             foodName[strcspn(foodName, "\n")] = '\0'; // 개행 문자 제거
+            if (strlen(foodName) == 0) {
+                fprintf(stderr, "음식 이름을 입력해주세요.\n");
+                continue;
+            }
 
             printf("칼로리: ");
             if (scanf("%d", &calories) != 1 || calories < 0) {
@@ -1328,6 +1332,22 @@ void runKcalInputModule() {
             date[strcspn(date, "\n")] = '\0'; // 개행 문자 제거
             if (!isValidDate(date)) {
                 fprintf(stderr, "잘못된 날짜 형식입니다. 다시 입력해주세요.\n");
+                continue;
+            }
+
+            // 중복 확인
+            KcalRecord* temp = head;
+            int duplicate = 0;
+            while (temp) {
+                if (strcmp(temp->foodName, foodName) == 0 && strcmp(temp->date, date) == 0) {
+                    duplicate = 1;
+                    break;
+                }
+                temp = temp->next;
+            }
+
+            if (duplicate) {
+                fprintf(stderr, "중복된 데이터가 이미 존재합니다.\n");
                 continue;
             }
 
