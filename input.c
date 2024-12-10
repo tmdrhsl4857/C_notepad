@@ -1168,6 +1168,7 @@ void runKcalInputModule() {
             fprintf(stderr, "파일을 초기화할 수 없습니다: database.txt\n");
             return;
         }
+        fprintf(file, "1\nman\n"); // 최상단 형식: 항목 개수와 이름
         printf("기존 데이터가 초기화되었습니다. 새로운 데이터를 입력하세요.\n");
     }
     else if (resetChoice == 'N' || resetChoice == 'n') {
@@ -1183,11 +1184,11 @@ void runKcalInputModule() {
         clearScreen();
         printf("==== 칼로리 입력 모듈 ====\n");
         printf("1. 데이터 입력\n");
-        printf("2. 입력 종료\n");
+        printf("2. 프로그램 종료\n");
         printf("==========================\n");
 
         int choice;
-        printf("선택: ");
+        printf("\n선택: ");
         if (scanf("%d", &choice) != 1) {
             handleInvalidInput();
             continue;
@@ -1195,8 +1196,13 @@ void runKcalInputModule() {
         clearInputBuffer_();
 
         if (choice == 2) {
-            printf("입력을 종료합니다.\n");
-            break;
+            fprintf(file, "%d\n", recordCount); // 입력된 정보의 개수 기록
+            for (int i = 0; i < recordCount; i++) {
+                fprintf(file, "%s %d %s\n0\n", records[i].foodName, records[i].calories, records[i].date);
+            }
+            fclose(file);
+            printf("모든 데이터가 저장되었습니다. 프로그램을 종료합니다.\n");
+            exit(0); // 프로그램 종료
         }
         else if (choice == 1) {
             if (recordCount >= MAX_RECORDS) {
@@ -1224,20 +1230,15 @@ void runKcalInputModule() {
                 continue;
             }
 
-            // 파일에 저장
-            fprintf(file, "%s %d %s\n", record.foodName, record.calories, record.date);
+            records[recordCount++] = record; // 메모리에 저장
             printf("입력된 데이터: %s - %d kcal - %s\n", record.foodName, record.calories, record.date);
-
-            records[recordCount++] = record;
         }
         else {
             fprintf(stderr, "잘못된 선택입니다. 다시 입력해주세요.\n");
         }
     }
-
-    fclose(file);
-    printf("모든 데이터가 저장되었습니다.\n");
 }
+
 
 void handleInvalidInput() {
     fprintf(stderr, "잘못된 입력입니다. 다시 시도해주세요.\n");
