@@ -1162,7 +1162,6 @@ void runKcalInputModule() {
     scanf(" %c", &resetChoice);
     clearInputBuffer_();
 
-    //바꿀 예정
     if (resetChoice == 'Y' || resetChoice == 'y') {
         file = fopen("database.txt", "w"); // 초기화 모드
         if (!file) {
@@ -1171,13 +1170,13 @@ void runKcalInputModule() {
         }
         printf("기존 데이터가 초기화되었습니다. 새로운 데이터를 입력하세요.\n");
     }
+    else if (resetChoice == 'N' || resetChoice == 'n') {
+        printf("선택을 취소하고 초기 화면으로 돌아갑니다.\n");
+        return; // 초기 화면으로 돌아가기
+    }
     else {
-        file = fopen("database.txt", "a"); // 추가 모드
-        if (!file) {
-            fprintf(stderr, "파일을 열 수 없습니다: database.txt\n");
-            return;
-        }
-        printf("기존 데이터에 추가합니다.\n");
+        fprintf(stderr, "잘못된 선택입니다. 다시 시도해주세요.\n");
+        return; // 초기 화면으로 돌아가기
     }
 
     while (1) {
@@ -1256,4 +1255,3 @@ int isValidDate(const char* date) {
     }
     return 1;
 }
-
