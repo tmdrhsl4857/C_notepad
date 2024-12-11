@@ -94,6 +94,7 @@ void printKcalData();
 void saveToFile();
 void freeMemory();
 void runKcalInputModule();
+int deleteKcalRecord(const char* foodName, const char* date);
 
 int main() {
     ItemList rootList;
@@ -1227,7 +1228,7 @@ void saveToFile() {
         return;
     }
 
-    fprintf(file, "1\nkcal\n");
+    fprintf(file, "1\kcal\n");
 
     int recordCount = 0;
     KcalRecord* temp = head;
@@ -1288,7 +1289,8 @@ void runKcalInputModule() {
         printf("\n==== 칼로리 입력 모듈 ====\n");
         printf("1. 데이터 입력\n");
         printf("2. 입력 데이터 출력\n");
-        printf("3. 프로그램 종료\n");
+        printf("3. 데이터 삭제\n");
+        printf("4. 프로그램 종료\n");
         printf("==========================\n");
 
         int choice;
@@ -1300,7 +1302,7 @@ void runKcalInputModule() {
         }
         while (getchar() != '\n'); // 입력 버퍼 비우기
 
-        if (choice == 3) {
+        if (choice == 4) {
             saveToFile(); // 종료 시 데이터 파일에 저장
             freeMemory(); // 메모리 해제
             printf("프로그램을 종료합니다.\n");
@@ -1314,10 +1316,6 @@ void runKcalInputModule() {
             printf("음식 이름: ");
             fgets(foodName, MAX_NAME_LEN, stdin);
             foodName[strcspn(foodName, "\n")] = '\0'; // 개행 문자 제거
-            if (strlen(foodName) == 0) {
-                fprintf(stderr, "음식 이름을 입력해주세요.\n");
-                continue;
-            }
 
             printf("칼로리: ");
             if (scanf("%d", &calories) != 1 || calories < 0) {
@@ -1335,30 +1333,56 @@ void runKcalInputModule() {
                 continue;
             }
 
-            // 중복 확인
-            KcalRecord* temp = head;
-            int duplicate = 0;
-            while (temp) {
-                if (strcmp(temp->foodName, foodName) == 0 && strcmp(temp->date, date) == 0) {
-                    duplicate = 1;
-                    break;
-                }
-                temp = temp->next;
-            }
-
-            if (duplicate) {
-                fprintf(stderr, "중복된 데이터가 이미 존재합니다.\n");
-                continue;
-            }
-
             addKcalRecord(foodName, calories, date); // 연결리스트에 추가
             printf("입력된 데이터: %s - %d kcal - %s\n", foodName, calories, date);
         }
         else if (choice == 2) {
             printKcalData(); // 저장된 데이터를 출력
         }
+        else if (choice == 3) {
+            char foodName[MAX_NAME_LEN];
+            char date[MAX_DATE_LEN];
+
+            printf("(주의: 같은 이름과 날짜를 지닌 음식이 있다면 먼저 작성된 요소가 삭제됩니다.)\n\n");
+
+            printf("삭제할 데이터의 음식 이름: ");
+            fgets(foodName, MAX_NAME_LEN, stdin);
+            foodName[strcspn(foodName, "\n")] = '\0'; // 개행 문자 제거
+            printf("삭제할 데이터의 날짜 (YYYYMMDD): ");
+            fgets(date, MAX_DATE_LEN, stdin);
+            date[strcspn(date, "\n")] = '\0'; // 개행 문자 제거
+
+            if (deleteKcalRecord(foodName, date)) {
+                printf("데이터가 성공적으로 삭제되었습니다.\n");
+            }
+            else {
+                printf("삭제할 데이터를 찾을 수 없습니다.\n");
+            }
+        }
         else {
             fprintf(stderr, "잘못된 선택입니다. 다시 입력해주세요.\n");
         }
     }
+}
+
+int deleteKcalRecord(const char* foodName, const char* date) {
+    if (!head) return 0; // 데이터가 비어있으면 삭제 불가
+
+    KcalRecord* current = head, * prev = NULL;
+
+    while (current) {
+        if (strcmp(current->foodName, foodName) == 0 && strcmp(current->date, date) == 0) {
+            if (prev) {
+                prev->next = current->next;
+            }
+            else {
+                head = current->next; // 삭제할 데이터가 첫 노드인 경우
+            }
+            free(current);
+            return 1; // 삭제 성공
+        }
+        prev = current;
+        current = current->next;
+    }
+    return 0; // 삭제 실패
 }
