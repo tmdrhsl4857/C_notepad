@@ -1227,7 +1227,7 @@ void saveToFile() {
         return;
     }
 
-    fprintf(file, "1\nman\n");
+    fprintf(file, "1\nkcal\n");
 
     int recordCount = 0;
     KcalRecord* temp = head;
