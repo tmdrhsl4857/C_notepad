@@ -23,8 +23,8 @@ _how_to_use(input.c support ver.)_  // Developer recommended method
   7. Execute output program
 
 # output(schedule).c  (시간표/Hyeonjoowon)
-+ add_input.c_module_support(schedule)_not_yet
-+ add_module_not_yet
++ add_input.c_module_support(schedule)_20241211
++ add_module_20241211
 
 _how_to_use(self use)_ 
   1. Run schedule module
