@@ -1124,8 +1124,9 @@ void handleModuleChoice(ItemList* rootList) {
         clearScreen();
         printBanner("사용 가능한 모듈");
         printAvailableModules();
+        setTextColor(13);
         printf("\n모듈을 선택하세요 (1, 2, 3, q=종료): ");
-
+        setTextColor(7);
         char moduleChoice;
         scanf(" %c", &moduleChoice);
         clearInputBuffer();
@@ -1147,7 +1148,7 @@ void handleModuleChoice(ItemList* rootList) {
             break;
         }
         else {
-            setTextColor(12); // 빨간색
+            setTextColor(4); // 빨간색
             printf("잘못된 선택입니다. 다시 시도해주세요.\n");
             setTextColor(7); // 기본 색상
         }
@@ -1165,20 +1166,25 @@ void printKcalData() {
         printf("저장된 데이터가 없습니다.\n");
         return;
     }
-
+    setTextColor(4);
     printf("\n==== 저장된 데이터 ====\n");
+    setTextColor(12);
     KcalRecord* temp = head;
     while (temp) {
         printf("%s - %d kcal - %s\n", temp->foodName, temp->calories, temp->date);
         temp = temp->next;
     }
+    setTextColor(4);
     printf("========================\n");
-    printf("\n출력이 완료되었습니다. 아무 키나 누르면 계속합니다...\n");
+    setTextColor(7);
+    printf("\n아무 키나 누르면 계속합니다...\n");
     getchar(); // 대기
 }
 
 void handleInvalidInput() {
+    setTextColor(4);
     fprintf(stderr, "잘못된 입력입니다. 다시 시도해주세요.\n");
+    setTextColor(7);
     clearInputBuffer_();
 }
 
@@ -1265,8 +1271,9 @@ void freeMemory() {
 // 칼로리 입력 모듈
 void runKcalInputModule() {
     char resetChoice;
-
+    setTextColor(4);
     printf("칼로리 입력 모듈 실행 시 기존 데이터를 초기화할 수 있습니다. 초기화하시겠습니까? (Y/N): ");
+    setTextColor(7);
     scanf(" %c", &resetChoice);
     while (getchar() != '\n'); // 입력 버퍼 비우기
 
@@ -1279,24 +1286,29 @@ void runKcalInputModule() {
         return;
     }
     else {
+        setTextColor(4);
         fprintf(stderr, "잘못된 선택입니다. 다시 시도해주세요.\n");
+        setTextColor(7);
         return;
     }
 
     while (1) {
         clearScreen();
-
+        setTextColor(11);
         printf("\n==== 칼로리 입력 모듈 ====\n");
         printf("1. 데이터 입력\n");
         printf("2. 입력 데이터 출력\n");
         printf("3. 데이터 삭제\n");
         printf("4. 프로그램 종료\n");
         printf("==========================\n");
+        setTextColor(7);
 
         int choice;
         printf("\n선택: ");
         if (scanf("%d", &choice) != 1) {
+            setTextColor(4);
             fprintf(stderr, "잘못된 입력입니다. 다시 시도해주세요.\n");
+            setTextColor(7);
             while (getchar() != '\n'); // 입력 버퍼 비우기
             continue;
         }
@@ -1312,24 +1324,31 @@ void runKcalInputModule() {
             char foodName[MAX_NAME_LEN];
             int calories;
             char date[MAX_DATE_LEN];
-
+            setTextColor(6);
             printf("음식 이름: ");
+            setTextColor(7);
             fgets(foodName, MAX_NAME_LEN, stdin);
             foodName[strcspn(foodName, "\n")] = '\0'; // 개행 문자 제거
-
+            setTextColor(12);
             printf("칼로리: ");
+            setTextColor(7);
             if (scanf("%d", &calories) != 1 || calories < 0) {
+                setTextColor(4);
                 fprintf(stderr, "잘못된 입력입니다. 다시 시도해주세요.\n");
+                setTextColor(7);
                 while (getchar() != '\n'); // 입력 버퍼 비우기
                 continue;
             }
             while (getchar() != '\n'); // 입력 버퍼 비우기
-
+            setTextColor(15);
             printf("날짜 (YYYYMMDD): ");
+            setTextColor(7);
             fgets(date, MAX_DATE_LEN, stdin);
             date[strcspn(date, "\n")] = '\0'; // 개행 문자 제거
             if (!isValidDate(date)) {
+                setTextColor(4);
                 fprintf(stderr, "잘못된 날짜 형식입니다. 다시 입력해주세요.\n");
+                setTextColor(7);
                 continue;
             }
 
@@ -1342,13 +1361,16 @@ void runKcalInputModule() {
         else if (choice == 3) {
             char foodName[MAX_NAME_LEN];
             char date[MAX_DATE_LEN];
-
+            setTextColor(6);
             printf("(주의: 같은 이름과 날짜를 지닌 음식이 있다면 먼저 작성된 요소가 삭제됩니다.)\n\n");
-
+            setTextColor(12);
             printf("삭제할 데이터의 음식 이름: ");
+            setTextColor(7);
             fgets(foodName, MAX_NAME_LEN, stdin);
             foodName[strcspn(foodName, "\n")] = '\0'; // 개행 문자 제거
+            setTextColor(12);
             printf("삭제할 데이터의 날짜 (YYYYMMDD): ");
+            setTextColor(7);
             fgets(date, MAX_DATE_LEN, stdin);
             date[strcspn(date, "\n")] = '\0'; // 개행 문자 제거
 
@@ -1359,8 +1381,10 @@ void runKcalInputModule() {
                 printf("삭제할 데이터를 찾을 수 없습니다.\n");
             }
         }
-        else {
+        else {\
+        setTextColor(4);
             fprintf(stderr, "잘못된 선택입니다. 다시 입력해주세요.\n");
+            setTextColor(7);
         }
     }
 }
