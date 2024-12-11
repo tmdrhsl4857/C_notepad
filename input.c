@@ -56,6 +56,16 @@ typedef struct KcalRecord {
 // 연결리스트의 시작 노드
 KcalRecord* head = NULL;
 
+#define MAX_DAYS 7
+#define MAX_PERIODS 10
+#define MAX_LENGTH 100
+
+// 요일 배열
+const char* days[] = { "월", "화", "수", "목", "금", "토", "일" };
+
+// 전역 변수: 시간표 배열
+char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH] = { 0 };
+
 void clearScreen();
 void printHelp();
 void initItemList(ItemList* list);
@@ -95,6 +105,11 @@ void saveToFile();
 void freeMemory();
 void runKcalInputModule();
 int deleteKcalRecord(const char* foodName, const char* date);
+void resetTimetable();
+void saveTimetableToFile();
+void inputTimetable();
+void displayTimetable();
+void runTimetableInputModule();
 
 int main() {
     ItemList rootList;
@@ -268,12 +283,12 @@ void printHelp() {
     printf("\n========== 도움말 =========="
         "\n이 프로그램은 사용자 항목 관리 기능을 제공합니다. \n사용자는 항목을 추가하고, 삭제하고, 수정할 수 있으며, 하위 항목을 탐색할 수 있습니다.\n"
         "\n1. 새 항목 추가: 새 항목을 추가합니다.\n"
-        "2. 항목 삭제: 기존 항목을 삭제합니다.\n"
-        "3. 항목 수정: 기존 항목의 이름을 변경합니다.\n"
-        "4. 항목 선택: 특정 항목을 선택하여 그 하위 항목을 관리합니다.\n"
-        "5. 종료: 프로그램을 종료하고 데이터베이스를 저장합니다.\n"
-        "n. 사용 가능한 모듈: 현재 지원 가능한 모듈을 확인하고 실행합니다.\n"
-        "============================\n");
+        "\n2. 항목 삭제: 기존 항목을 삭제합니다.\n"
+        "\n3. 항목 수정: 기존 항목의 이름을 변경합니다.\n"
+        "\n4. 항목 선택: 특정 항목을 선택하여 그 하위 항목을 관리합니다.\n"
+        "\n5. 종료: 프로그램을 종료하고 데이터베이스를 저장합니다.\n"
+        "\nn. 사용 가능한 모듈: 현재 지원 가능한 모듈을 확인하고 실행합니다.\n"
+        "\n============================\n");
     printf("\n아무 키나 누르면 계속합니다...");
     dummy = getchar();
 }
@@ -435,6 +450,7 @@ void printAvailableModules() {
     printf("1. 가계부 모듈\n");
     printf("2. ToDolist 모듈\n");
     printf("3. Kcal 모듈\n");
+    printf("4. 시간표 모듈\n");
     printf("======================\n");
     setTextColor(7);
 }
@@ -1119,38 +1135,36 @@ void printMenu() {
     printf("==========================\n");
 }
 
+
 void handleModuleChoice(ItemList* rootList) {
     while (1) {
         clearScreen();
         printBanner("사용 가능한 모듈");
         printAvailableModules();
-        setTextColor(13);
-        printf("\n모듈을 선택하세요 (1, 2, 3, q=종료): ");
-        setTextColor(7);
+        printf("\n모듈을 선택하세요 (1, 2, 3, 4, q=종료): ");
+
         char moduleChoice;
         scanf(" %c", &moduleChoice);
         clearInputBuffer();
 
         if (moduleChoice == '1') {
             runAccountingModule(rootList);
-            break;
         }
         else if (moduleChoice == '2') {
             runTodolistModule();
-            break;
         }
         else if (moduleChoice == '3') {
-            runKcalInputModule(); // 칼로리 입력 모듈 실행
-            break;
+            runKcalInputModule();
+        }
+        else if (moduleChoice == '4') {
+            runTimetableInputModule(); // 시간표 입력 모듈 실행
         }
         else if (moduleChoice == 'q' || moduleChoice == 'Q') {
             printf("모듈 선택을 종료합니다.\n");
             break;
         }
         else {
-            setTextColor(4); // 빨간색
-            printf("잘못된 선택입니다. 다시 시도해주세요.\n");
-            setTextColor(7); // 기본 색상
+            fprintf(stderr, "잘못된 선택입니다. 다시 시도해주세요.\n");
         }
     }
 }
@@ -1166,25 +1180,20 @@ void printKcalData() {
         printf("저장된 데이터가 없습니다.\n");
         return;
     }
-    setTextColor(4);
+
     printf("\n==== 저장된 데이터 ====\n");
-    setTextColor(12);
     KcalRecord* temp = head;
     while (temp) {
         printf("%s - %d kcal - %s\n", temp->foodName, temp->calories, temp->date);
         temp = temp->next;
     }
-    setTextColor(4);
     printf("========================\n");
-    setTextColor(7);
-    printf("\n아무 키나 누르면 계속합니다...\n");
+    printf("\n출력이 완료되었습니다. 아무 키나 누르면 계속합니다...\n");
     getchar(); // 대기
 }
 
 void handleInvalidInput() {
-    setTextColor(4);
     fprintf(stderr, "잘못된 입력입니다. 다시 시도해주세요.\n");
-    setTextColor(7);
     clearInputBuffer_();
 }
 
@@ -1271,9 +1280,8 @@ void freeMemory() {
 // 칼로리 입력 모듈
 void runKcalInputModule() {
     char resetChoice;
-    setTextColor(4);
+
     printf("칼로리 입력 모듈 실행 시 기존 데이터를 초기화할 수 있습니다. 초기화하시겠습니까? (Y/N): ");
-    setTextColor(7);
     scanf(" %c", &resetChoice);
     while (getchar() != '\n'); // 입력 버퍼 비우기
 
@@ -1286,29 +1294,24 @@ void runKcalInputModule() {
         return;
     }
     else {
-        setTextColor(4);
         fprintf(stderr, "잘못된 선택입니다. 다시 시도해주세요.\n");
-        setTextColor(7);
         return;
     }
 
     while (1) {
         clearScreen();
-        setTextColor(11);
+
         printf("\n==== 칼로리 입력 모듈 ====\n");
         printf("1. 데이터 입력\n");
         printf("2. 입력 데이터 출력\n");
         printf("3. 데이터 삭제\n");
         printf("4. 프로그램 종료\n");
         printf("==========================\n");
-        setTextColor(7);
 
         int choice;
         printf("\n선택: ");
         if (scanf("%d", &choice) != 1) {
-            setTextColor(4);
             fprintf(stderr, "잘못된 입력입니다. 다시 시도해주세요.\n");
-            setTextColor(7);
             while (getchar() != '\n'); // 입력 버퍼 비우기
             continue;
         }
@@ -1324,31 +1327,24 @@ void runKcalInputModule() {
             char foodName[MAX_NAME_LEN];
             int calories;
             char date[MAX_DATE_LEN];
-            setTextColor(6);
+
             printf("음식 이름: ");
-            setTextColor(7);
             fgets(foodName, MAX_NAME_LEN, stdin);
             foodName[strcspn(foodName, "\n")] = '\0'; // 개행 문자 제거
-            setTextColor(12);
+
             printf("칼로리: ");
-            setTextColor(7);
             if (scanf("%d", &calories) != 1 || calories < 0) {
-                setTextColor(4);
                 fprintf(stderr, "잘못된 입력입니다. 다시 시도해주세요.\n");
-                setTextColor(7);
                 while (getchar() != '\n'); // 입력 버퍼 비우기
                 continue;
             }
             while (getchar() != '\n'); // 입력 버퍼 비우기
-            setTextColor(15);
+
             printf("날짜 (YYYYMMDD): ");
-            setTextColor(7);
             fgets(date, MAX_DATE_LEN, stdin);
             date[strcspn(date, "\n")] = '\0'; // 개행 문자 제거
             if (!isValidDate(date)) {
-                setTextColor(4);
                 fprintf(stderr, "잘못된 날짜 형식입니다. 다시 입력해주세요.\n");
-                setTextColor(7);
                 continue;
             }
 
@@ -1361,16 +1357,13 @@ void runKcalInputModule() {
         else if (choice == 3) {
             char foodName[MAX_NAME_LEN];
             char date[MAX_DATE_LEN];
-            setTextColor(6);
+
             printf("(주의: 같은 이름과 날짜를 지닌 음식이 있다면 먼저 작성된 요소가 삭제됩니다.)\n\n");
-            setTextColor(12);
+
             printf("삭제할 데이터의 음식 이름: ");
-            setTextColor(7);
             fgets(foodName, MAX_NAME_LEN, stdin);
             foodName[strcspn(foodName, "\n")] = '\0'; // 개행 문자 제거
-            setTextColor(12);
             printf("삭제할 데이터의 날짜 (YYYYMMDD): ");
-            setTextColor(7);
             fgets(date, MAX_DATE_LEN, stdin);
             date[strcspn(date, "\n")] = '\0'; // 개행 문자 제거
 
@@ -1381,10 +1374,8 @@ void runKcalInputModule() {
                 printf("삭제할 데이터를 찾을 수 없습니다.\n");
             }
         }
-        else {\
-        setTextColor(4);
+        else {
             fprintf(stderr, "잘못된 선택입니다. 다시 입력해주세요.\n");
-            setTextColor(7);
         }
     }
 }
@@ -1409,4 +1400,140 @@ int deleteKcalRecord(const char* foodName, const char* date) {
         current = current->next;
     }
     return 0; // 삭제 실패
+}
+
+
+// 시간표 초기화
+void resetTimetable() {
+    for (int i = 0; i < MAX_DAYS; i++) {
+        for (int j = 0; j < MAX_PERIODS; j++) {
+            schedule[i][j][0] = '\0';
+        }
+    }
+    printf("시간표가 초기화되었습니다.\n");
+}
+
+// 시간표 데이터 저장
+void saveTimetableToFile() {
+    FILE* file = fopen("database.txt", "w");
+    if (!file) {
+        fprintf(stderr, "파일을 열 수 없습니다: database.txt\n");
+        return;
+    }
+
+    int count = 0;
+    for (int i = 0; i < MAX_DAYS; i++) {
+        for (int j = 0; j < MAX_PERIODS; j++) {
+            if (strlen(schedule[i][j]) > 0) {
+                count++;
+            }
+        }
+    }
+
+    fprintf(file, "%d\n", count); // 총 데이터 개수
+    for (int i = 0; i < MAX_DAYS; i++) {
+        for (int j = 0; j < MAX_PERIODS; j++) {
+            if (strlen(schedule[i][j]) > 0) {
+                fprintf(file, "%s %d교시: %s\n0\n", days[i], j + 1, schedule[i][j]);
+            }
+        }
+    }
+
+    fclose(file);
+    printf("시간표가 저장되었습니다.\n");
+}
+
+// 시간표 입력
+void inputTimetable() {
+    char day[MAX_LENGTH];
+    int period;
+    char subject[MAX_LENGTH];
+
+    printf("시간표를 입력하세요 (예: 월 1 수학): ");
+    scanf(" %s %d %[^\n]", day, &period, subject);
+
+    // 요일 인덱스 찾기
+    int dayIndex = -1;
+    for (int i = 0; i < MAX_DAYS; i++) {
+        if (strcmp(day, days[i]) == 0) {
+            dayIndex = i;
+            break;
+        }
+    }
+
+    if (dayIndex == -1 || period < 1 || period > MAX_PERIODS) {
+        fprintf(stderr, "잘못된 입력입니다. 다시 시도해주세요.\n");
+        return;
+    }
+
+    strcpy(schedule[dayIndex][period - 1], subject);
+    printf("%s %d교시가 %s로 저장되었습니다.\n", days[dayIndex], period, subject);
+}
+
+// 시간표 출력
+void displayTimetable() {
+    printf("\n==== 현재 시간표 ====\n");
+    for (int i = 0; i < MAX_DAYS; i++) {
+        for (int j = 0; j < MAX_PERIODS; j++) {
+            if (strlen(schedule[i][j]) > 0) {
+                printf("%s %d교시: %s\n", days[i], j + 1, schedule[i][j]);
+            }
+        }
+    }
+    printf("=====================\n");
+}
+
+// 시간표 입력 모듈 실행
+void runTimetableInputModule() {
+    char resetChoice;
+
+    // 경고 문구 추가
+    printf("시간표 입력 모듈 실행 시 기존 데이터를 초기화할 수 있습니다. 초기화하시겠습니까? (Y/N): ");
+    scanf(" %c", &resetChoice);
+    clearInputBuffer_();
+
+    if (resetChoice == 'Y' || resetChoice == 'y') {
+        resetTimetable(); // 시간표 초기화
+    }
+    else if (resetChoice == 'N' || resetChoice == 'n') {
+        printf("선택을 취소하고 초기 화면으로 돌아갑니다.\n");
+        return; // 초기 화면으로 돌아가기
+    }
+    else {
+        fprintf(stderr, "잘못된 선택입니다. 다시 시도해주세요.\n");
+        return; // 초기 화면으로 돌아가기
+    }
+
+    int choice;
+
+    while (1) {
+        clearScreen();
+        printf("\n==== 시간표 입력 모듈 ====\n");
+        printf("1. 시간표 입력\n");
+        printf("2. 시간표 보기\n");
+        printf("3. 시간표 초기화\n");
+        printf("4. 시간표 저장 및 종료\n");
+        printf("==========================\n");
+        printf("선택: ");
+        scanf("%d", &choice);
+        clearInputBuffer_(); // 입력 버퍼 비우기
+
+        switch (choice) {
+        case 1:
+            inputTimetable();
+            break;
+        case 2:
+            displayTimetable();
+            break;
+        case 3:
+            resetTimetable();
+            break;
+        case 4:
+            saveTimetableToFile();
+            printf("프로그램을 종료합니다.\n");
+            exit(0); // 프로그램 종료
+        default:
+            fprintf(stderr, "잘못된 선택입니다. 다시 시도해주세요.\n");
+        }
+    }
 }
