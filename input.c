@@ -41,6 +41,21 @@ typedef struct Todo {
     int status;               // 상태: 0: 준비, 1: 진행, 2: 완료, 3: 보관
 } Todo;
 
+#define MAX_NAME_LEN 50
+#define MAX_DATE_LEN 10
+#define MAX_RECORDS 100
+
+// 데이터 구조체 정의
+typedef struct KcalRecord {
+    char foodName[MAX_NAME_LEN];
+    int calories;
+    char date[MAX_DATE_LEN];
+    struct KcalRecord* next; // 연결리스트의 다음 노드
+} KcalRecord;
+
+// 연결리스트의 시작 노드
+KcalRecord* head = NULL;
+
 void clearScreen();
 void printHelp();
 void initItemList(ItemList* list);
@@ -71,7 +86,14 @@ void setTextColor(int color);
 void printMenu();
 void handleModuleChoice(ItemList* rootList);
 void clearInputBuffer();
-
+void handleInvalidInput();
+void clearInputBuffer_();
+int isValidDate(const char* date);
+void addKcalRecord(const char* foodName, int calories, const char* date);
+void printKcalData();
+void saveToFile();
+void freeMemory();
+void runKcalInputModule();
 
 int main() {
     ItemList rootList;
@@ -411,6 +433,7 @@ void printAvailableModules() {
     printf("\n현재 지원 가능한 모듈:\n");
     printf("1. 가계부 모듈\n");
     printf("2. ToDolist 모듈\n");
+    printf("3. Kcal 모듈\n");
     printf("======================\n");
     setTextColor(7);
 }
@@ -453,7 +476,7 @@ void runAccountingModule(ItemList* rootList) {
                 "\n5. 지출 정정(수정 및 삭제)"
                 "\n6. 종료"
                 "\n===========================================\n");
-                setTextColor(7);
+            setTextColor(7);
             printf("선택: ");
             scanf("%d", &moduleChoice);
             dummy = getchar(); // 버퍼 비우기
@@ -530,14 +553,14 @@ void runAccountingModule(ItemList* rootList) {
                 setTextColor(2);
                 printf("\n========== 수익 내역 =========="
                     "\n총 %d개의 수익 내역이 있습니다.\n\n", incomeCount);
-                    setTextColor(10);
+                setTextColor(10);
                 for (int i = 0; i < incomeCount; i++) {
                     printf("%d. 금액: %d, 출처: %s, 날짜: %s\n", i + 1, incomeRecords[i].amount, incomeRecords[i].description, incomeRecords[i].date);
                 }
                 setTextColor(4);
                 printf("\n========== 지출 내역 =========="
                     "\n총 %d개의 지출 내역이 있습니다.\n\n", expenseCount);
-                    setTextColor(12);
+                setTextColor(12);
                 for (int i = 0; i < expenseCount; i++) {
                     printf("%d. 금액: %d, 출처: %s, 날짜: %s\n", i + 1, expenseRecords[i].amount, expenseRecords[i].description, expenseRecords[i].date);
                 }
@@ -556,7 +579,7 @@ void runAccountingModule(ItemList* rootList) {
                 setTextColor(2);
                 printf("\n========== 수익 내역 수정 =========="
                     "\n총 %d개의 수익 내역이 있습니다.\n\n", incomeCount);
-                    setTextColor(10);
+                setTextColor(10);
                 for (int i = 0; i < incomeCount; i++) {
                     printf("%d. 금액: %d, 출처: %s, 날짜: %s\n", i + 1, incomeRecords[i].amount, incomeRecords[i].description, incomeRecords[i].date);
                 }
@@ -625,7 +648,7 @@ void runAccountingModule(ItemList* rootList) {
                 setTextColor(4);
                 printf("\n========== 지출 내역 수정 =========="
                     "\n총 %d개의 지출 내역이 있습니다.\n\n", expenseCount);
-                    setTextColor(12);
+                setTextColor(12);
                 for (int i = 0; i < expenseCount; i++) {
                     printf("%d. 금액: %d, 출처: %s, 날짜: %s\n", i + 1, expenseRecords[i].amount, expenseRecords[i].description, expenseRecords[i].date);
                 }
@@ -681,7 +704,7 @@ void runAccountingModule(ItemList* rootList) {
                 }
                 break;
             default:
-            setTextColor(4);
+                setTextColor(4);
                 printf("잘못된 선택입니다. 다시 시도해주세요.\n");
                 printf("\n아무 키나 누르면 계속합니다...");
                 setTextColor(7);
@@ -734,7 +757,7 @@ void saveTodoListToFile(const char* filename, Todo todos[], int count) {
     }
 
     fclose(file);
-    setTextColor(4);
+    setTextColor(2);
     printf("ToDolist 파일 저장 완료.\n");
     setTextColor(7);
 }
@@ -850,7 +873,7 @@ void editTodo(Todo todos[], int* count) {
         return;
     }
     setTextColor(13);
-    printf("\n========== 할 일 목록 ==========\n\n");
+    printf("\n========== 할 일 목록 ==========\n");
     for (int i = 0; i < count; i++) {
         printf("%d. 날짜: %s, 타입: %s, 내용: %s, 상태: %s\n",
             i + 1, todos[i].date, todos[i].type, todos[i].task, STATUS_TEXT[todos[i].status]);
@@ -970,7 +993,7 @@ void runTodolistModule() {
             "4. 할 일 정정(수정 및 삭제)\n"
             "5. 종료\n"
             "========================================\n");
-            setTextColor(7);
+        setTextColor(7);
         printf("선택: ");
         scanf("%d", &choiceMenu);
         getchar(); // 버퍼 비우기
@@ -996,7 +1019,7 @@ void runTodolistModule() {
             printf("ToDolist 모듈을 종료합니다. 모든 변경 사항이 저장되었습니다.\n");
             exit(0);
         default:
-        setTextColor(12);
+            setTextColor(12);
             printf("잘못된 선택입니다. 다시 시도해주세요.\n");
             setTextColor(7);
         }
@@ -1117,7 +1140,9 @@ void handleModuleChoice(ItemList* rootList) {
         clearScreen();
         printBanner("사용 가능한 모듈");
         printAvailableModules();
-        printf("\n모듈을 선택하세요 (1, 2, q=종료): ");
+        setTextColor(13);
+        printf("\n모듈을 선택하세요 (1, 2, 3, q=종료): ");
+        setTextColor(7);
         char moduleChoice;
         scanf(" %c", &moduleChoice);
         clearInputBuffer();
@@ -1131,7 +1156,9 @@ void handleModuleChoice(ItemList* rootList) {
             break;
         }
         else if (moduleChoice == 'q' || moduleChoice == 'Q') {
+            setTextColor(13);
             printf("모듈 선택을 종료합니다.\n");
+            setTextColor(7);
             break;
         }
         else {
@@ -1145,4 +1172,212 @@ void handleModuleChoice(ItemList* rootList) {
 void clearInputBuffer() {
     int ch;
     while ((ch = getchar()) != '\n' && ch != EOF);
+}
+
+// 연결리스트에 저장된 데이터를 출력하는 함수
+void printKcalData() {
+    if (!head) {
+        printf("저장된 데이터가 없습니다.\n");
+        return;
+    }
+    setTextColor(4);
+    printf("\n==== 저장된 데이터 ====\n");
+    setTextColor(12);
+    KcalRecord* temp = head;
+    while (temp) {
+        printf("%s - %d kcal - %s\n", temp->foodName, temp->calories, temp->date);
+        temp = temp->next;
+    }
+    setTextColor(4);
+    printf("========================\n");
+    setTextColor(7);
+    printf("\n아무 키나 누르면 계속합니다...\n");
+    getchar(); // 대기
+}
+
+void handleInvalidInput() {
+    fprintf(stderr, "잘못된 입력입니다. 다시 시도해주세요.\n");
+    clearInputBuffer_();
+}
+
+void clearInputBuffer_() {
+    while (getchar() != '\n' && !feof(stdin));
+}
+
+// 유효한 날짜인지 확인하는 함수
+int isValidDate(const char* date) {
+    if (strlen(date) != 8) return 0;
+    for (int i = 0; i < 8; i++) {
+        if (!isdigit(date[i])) return 0;
+    }
+    return 1;
+}
+
+// 입력된 데이터를 연결리스트에 추가하는 함수
+void addKcalRecord(const char* foodName, int calories, const char* date) {
+    KcalRecord* newRecord = (KcalRecord*)malloc(sizeof(KcalRecord));
+    if (!newRecord) {
+        fprintf(stderr, "메모리 할당 실패\n");
+        return;
+    }
+
+    strcpy(newRecord->foodName, foodName);
+    newRecord->calories = calories;
+    strcpy(newRecord->date, date);
+    newRecord->next = NULL;
+
+    if (!head) {
+        head = newRecord;
+    }
+    else {
+        KcalRecord* temp = head;
+        while (temp->next) {
+            temp = temp->next;
+        }
+        temp->next = newRecord;
+    }
+}
+
+// 연결리스트의 데이터를 파일에 저장하는 함수
+void saveToFile() {
+    FILE* file = fopen("database.txt", "w");
+    if (!file) {
+        fprintf(stderr, "파일을 열 수 없습니다: database.txt\n");
+        return;
+    }
+
+    fprintf(file, "1\nman\n");
+
+    int recordCount = 0;
+    KcalRecord* temp = head;
+
+    // 데이터 개수를 계산하며 저장
+    while (temp) {
+        recordCount++;
+        temp = temp->next;
+    }
+
+    fprintf(file, "%d\n", recordCount);
+    temp = head;
+
+    while (temp) {
+        fprintf(file, "%s %d %s\n0\n", temp->foodName, temp->calories, temp->date);
+        temp = temp->next;
+    }
+
+    fclose(file);
+    printf("모든 데이터가 파일에 저장되었습니다.\n");
+}
+
+// 연결리스트 메모리를 해제하는 함수
+void freeMemory() {
+    KcalRecord* temp = head;
+    while (temp) {
+        KcalRecord* next = temp->next;
+        free(temp);
+        temp = next;
+    }
+    head = NULL;
+}
+
+// 칼로리 입력 모듈
+void runKcalInputModule() {
+    char resetChoice;
+
+    printf("칼로리 입력 모듈 실행 시 기존 데이터를 초기화할 수 있습니다. 초기화하시겠습니까? (Y/N): ");
+    scanf(" %c", &resetChoice);
+    while (getchar() != '\n'); // 입력 버퍼 비우기
+
+    if (resetChoice == 'Y' || resetChoice == 'y') {
+        printf("기존 데이터가 초기화되었습니다. 새로운 데이터를 입력하세요.\n");
+        freeMemory(); // 기존 연결리스트 초기화
+    }
+    else if (resetChoice == 'N' || resetChoice == 'n') {
+        printf("선택을 취소하고 초기 화면으로 돌아갑니다.\n");
+        return;
+    }
+    else {
+        fprintf(stderr, "잘못된 선택입니다. 다시 시도해주세요.\n");
+        return;
+    }
+
+    while (1) {
+        clearScreen();
+
+        printf("\n==== 칼로리 입력 모듈 ====\n");
+        printf("1. 데이터 입력\n");
+        printf("2. 입력 데이터 출력\n");
+        printf("3. 프로그램 종료\n");
+        printf("==========================\n");
+
+        int choice;
+        printf("\n선택: ");
+        if (scanf("%d", &choice) != 1) {
+            fprintf(stderr, "잘못된 입력입니다. 다시 시도해주세요.\n");
+            while (getchar() != '\n'); // 입력 버퍼 비우기
+            continue;
+        }
+        while (getchar() != '\n'); // 입력 버퍼 비우기
+
+        if (choice == 3) {
+            saveToFile(); // 종료 시 데이터 파일에 저장
+            freeMemory(); // 메모리 해제
+            printf("프로그램을 종료합니다.\n");
+            exit(0); // 프로그램 종료
+        }
+        else if (choice == 1) {
+            char foodName[MAX_NAME_LEN];
+            int calories;
+            char date[MAX_DATE_LEN];
+
+            printf("음식 이름: ");
+            fgets(foodName, MAX_NAME_LEN, stdin);
+            foodName[strcspn(foodName, "\n")] = '\0'; // 개행 문자 제거
+            if (strlen(foodName) == 0) {
+                fprintf(stderr, "음식 이름을 입력해주세요.\n");
+                continue;
+            }
+
+            printf("칼로리: ");
+            if (scanf("%d", &calories) != 1 || calories < 0) {
+                fprintf(stderr, "잘못된 입력입니다. 다시 시도해주세요.\n");
+                while (getchar() != '\n'); // 입력 버퍼 비우기
+                continue;
+            }
+            while (getchar() != '\n'); // 입력 버퍼 비우기
+
+            printf("날짜 (YYYYMMDD): ");
+            fgets(date, MAX_DATE_LEN, stdin);
+            date[strcspn(date, "\n")] = '\0'; // 개행 문자 제거
+            if (!isValidDate(date)) {
+                fprintf(stderr, "잘못된 날짜 형식입니다. 다시 입력해주세요.\n");
+                continue;
+            }
+
+            // 중복 확인
+            KcalRecord* temp = head;
+            int duplicate = 0;
+            while (temp) {
+                if (strcmp(temp->foodName, foodName) == 0 && strcmp(temp->date, date) == 0) {
+                    duplicate = 1;
+                    break;
+                }
+                temp = temp->next;
+            }
+
+            if (duplicate) {
+                fprintf(stderr, "중복된 데이터가 이미 존재합니다.\n");
+                continue;
+            }
+
+            addKcalRecord(foodName, calories, date); // 연결리스트에 추가
+            printf("입력된 데이터: %s - %d kcal - %s\n", foodName, calories, date);
+        }
+        else if (choice == 2) {
+            printKcalData(); // 저장된 데이터를 출력
+        }
+        else {
+            fprintf(stderr, "잘못된 선택입니다. 다시 입력해주세요.\n");
+        }
+    }
 }
