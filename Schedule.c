@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define ANSI_RESET "\033[0m"
+#define ANSI_BLUE "\033[34m"
+#define ANSI_RED "\033[31m"
 // 설정값
 #define MAX_DAYS 7
 #define MAX_PERIODS 10
@@ -142,10 +145,18 @@ void display_schedule(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH]) {
     }
     printf("\b┐\n"); // 마지막 "┬" 대신 "┐"
 
-    // 요일 출력
+    // 요일 출력 (토요일: 파랑색, 일요일: 빨강색)
     printf("│ %-*s ", first_col_width, " ");
     for (int i = 0; i < MAX_DAYS; i++) {
-        printf("│ %-*s ", col_width[i], days[i]);
+        if (i == 5) { // 토요일
+            printf("│ %s%-*s%s ", ANSI_BLUE, col_width[i], days[i], ANSI_RESET);
+        }
+        else if (i == 6) { // 일요일
+            printf("│ %s%-*s%s ", ANSI_RED, col_width[i], days[i], ANSI_RESET);
+        }
+        else {
+            printf("│ %-*s ", col_width[i], days[i]);
+        }
     }
     printf("│\n");
 
@@ -193,7 +204,6 @@ void display_schedule(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH]) {
     }
     printf("\b┘\n"); // 마지막 "┴" 대신 "┘"
 }
-
 
 
 
