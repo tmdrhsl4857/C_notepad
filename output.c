@@ -89,6 +89,7 @@ int main_budget();
 int main_todolist();
 int main_schedule();
 void setTextColor(int color);
+void clearInputBuffer();
 
 int main() {
     printf("이 프로그램은 input.c와 호환되는 전용 출력 프로그램입니다.\n\n");
@@ -110,27 +111,20 @@ int main() {
     printf("======================\n");
     setTextColor(7);
 
-
-    printf("\n사용할 기능 선택: ");
-
     int choice_main;
-    scanf("%d",&choice_main);
-    getchar();
-    clearScreen();
 
-    if (choice_main == 1) {
-        main_budget();
-    }
-    else if(choice_main == 2){
-        main_todolist();
-    }
+    printf("선택: ");
+    scanf("%d", &choice_main);
+    clearInputBuffer(); // 입력이 끝난 후에도 버퍼 비우기
 
-    else if (choice_main == 3) {
-        main_kcal();
-    }
+    //clearScreen();
+    //printf("Debug: User choice = %d\n", choice_main);
 
-    else if (choice_main == 4) {
-        main_schedule();
+    switch (choice_main) {
+    case 1:main_budget(); break;
+    case 2:main_todolist(); break;
+    case 3:main_kcal(); break;
+    case 4:main_schedule(); break;
     }
 
     return 0;
@@ -144,56 +138,54 @@ int main_kcal() {
 
     // 메뉴 출력
     while (1) {
-        printf("칼로리 메모장\n");
+        clearScreen();
         printf("\n==== 메뉴 ====\n");
         printf("1. 날짜별 음식 섭취 출력\n");
         printf("2. 음식별 섭취 출력\n");
         printf("3. 분석 결과 출력\n");
         printf("4. 종료\n");
         printf("선택: ");
+
         if (scanf("%d", &choice) != 1) {
-            printf("잘못된 입력입니다. 다시 시도하세요.\n");
-            while (getchar() != '\n'); // 잘못된 입력 처리
-            clearScreen(); // 잘못된 입력 후 화면 지우기
+            printf("잘못된 입력입니다. 숫자를 입력하세요.\n");
+            clearInputBuffer(); // 입력 버퍼 비우기
             continue;
         }
-
-        while (getchar() != '\n');  // 버퍼 비우기
+        clearInputBuffer(); // 정상 입력 후에도 버퍼 비우기
+        //printf("Debug: User choice = %d\n", choice); // 디버깅 출력
 
         switch (choice) {
         case 1:
             sortByDateAndCalories();
             displayByDate();
-            clearScreen();
             break;
         case 2:
             sortByFoodAndDate();
             displayByFood();
-            clearScreen();
             break;
         case 3:
-            displayAnalysis();  // 분석 결과 출력
-            clearScreen();
+            displayAnalysis();
             break;
         case 4:
             printf("프로그램을 종료합니다.\n");
             return 0;
         default:
-            printf("잘못된 입력입니다. 다시 선택하세요.\n");
-            clearScreen(); // 잘못된 입력 후 화면 지우기
+            printf("잘못된 선택입니다. 다시 시도하세요.\n");
         }
     }
+
 
     return 0;
 }
 
 // 파일에서 데이터 읽기
 void loadFromFile() {
-    FILE* file = fopen("database.txt", "r");  // 파일 이름 고정
+    FILE* file = fopen("database.txt", "r");
     if (!file) {
         printf("파일을 열 수 없습니다: database.txt\n");
         exit(1);
     }
+    printf("Debug: File opened successfully.\n");
 
     char line[256];
 
@@ -244,9 +236,11 @@ void loadFromFile() {
             printf("잘못된 데이터 형식: %s", line);
         }
     }
-
+    char line_[256];
+    while (fgets(line_, sizeof(line_), file)) {
+        printf("Debug: Line read: %s", line_); // 읽은 데이터 출력
+    }
     fclose(file);
-
 }
 
 // 날짜와 칼로리 기준으로 정렬
@@ -300,6 +294,8 @@ void displayByDate() {
         // 같은 날짜의 음식 섭취 출력
         printf("%s - %d kcal\n", foodRecords[i].foodName, foodRecords[i].calories);
     }
+    printf("\n\n출력을 확인하려면 아무 키나 누르세요...\n");
+    getchar();
 }
 
 // 음식별 섭취 출력
@@ -321,6 +317,8 @@ void displayByFood() {
         // 같은 음식의 날짜별 섭취만 출력
         printf("  Date : %s, Kcal : %d\n", foodRecords[i].date, foodRecords[i].calories);
     }
+    printf("\n\n출력을 확인하려면 아무 키나 누르세요...\n");
+    getchar();
 }
 
 // 분석 결과 출력
@@ -356,7 +354,7 @@ void displayAnalysis() {
 
     // 1. 가장 높은 칼로리를 섭취한 음식 찾기
     int maxCalories = 0;
-    printf("1. 가장 높은 칼로리를 섭취한 음식 : ");
+    printf("\n1. 가장 높은 칼로리를 섭취한 음식 : ");
     for (int i = 0; i < foodCount; i++) {
         if (foodRecords[i].calories > maxCalories) {
             maxCalories = foodRecords[i].calories;
@@ -426,8 +424,9 @@ void displayAnalysis() {
         printf("  날짜: %s, 권장 칼로리 이하 (%d kcal 섭취)\n", currentDate, dailyCalories);
     }
 
-    // 출력 유지 후 화면 지우기
-    getchar();  // 추가 입력 대기 (성별 입력 후 남아 있는 '\n' 제거)
+    getchar();
+    printf("\n\n출력을 확인하려면 아무 키나 누르세요...\n");
+    getchar();
 
 }
 
@@ -1239,8 +1238,12 @@ void sortTasks(Task tasks[], int taskCount, int sortBy) {
     }
 }
 
-
 void setTextColor(int color) {
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
     SetConsoleTextAttribute(hConsole, color);
+}
+
+void clearInputBuffer() {
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF);
 }
