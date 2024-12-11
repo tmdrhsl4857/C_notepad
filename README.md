@@ -1,4 +1,4 @@
-# c_notepad
+# C_notepad
 
 # output(budget).c  (가계부/jeontaewon)
 + add_input.c_module_support(budget)_20241127
