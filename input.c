@@ -1033,18 +1033,25 @@ void navigateItem(Item* item) {
 
     while (1) {
         clearScreen();
+        setTextColor(10);
         printf("\n현재 위치: %s\n", item->name);
+        setTextColor(11);
+        printf("==========================\n");
         printf("1. 새 하위 항목 추가\n");
         printf("2. 하위 항목 출력\n");
         printf("3. 하위 항목 삭제\n");
         printf("4. 상위 메뉴로 돌아가기\n");
+        printf("==========================\n");
+        setTextColor(7);
         printf("선택: ");
         scanf("%d", &choice);
         dummy = getchar(); // 버퍼 비우기
 
         switch (choice) {
         case 1:
+        setTextColor(10);
             printf("\n추가할 항목 이름을 입력하세요: ");
+            setTextColor(7);
             fgets(itemName, sizeof(itemName), stdin);
             itemName[strcspn(itemName, "\n")] = '\0';  // 개행 문자 제거
             addItem(item->children, itemName);
@@ -1056,17 +1063,23 @@ void navigateItem(Item* item) {
             break;
         case 3:
             if (item->children->size == 0) {
+                setTextColor(12);
                 printf("삭제할 항목이 없습니다. 아무 키나 누르면 메뉴로 돌아갑니다...");
+                setTextColor(7);
                 dummy = getchar();
                 break;
             }
             printItemList(item->children);
+            setTextColor(12);
             printf("\n삭제할 항목 번호를 입력하세요 (0을 입력하면 취소됩니다): ");
+            setTextColor(7);
             int deleteIndex;
             scanf("%d", &deleteIndex);
             dummy = getchar();  // 버퍼 비우기
             if (deleteIndex == 0) {
+                setTextColor(12);
                 printf("삭제를 취소했습니다.\n");
+                setTextColor(7);
                 dummy = getchar();
                 break;
             }
@@ -1074,14 +1087,18 @@ void navigateItem(Item* item) {
                 deleteItem(item->children, deleteIndex - 1);
             }
             else {
+                setTextColor(4);
                 printf("잘못된 선택입니다. 아무 키나 누르면 계속합니다...");
+                setTextColor(7);
                 dummy = getchar();
             }
             break;
         case 4:
             return;
         default:
+        setTextColor(4);
             printf("잘못된 선택입니다. 다시 시도해주세요.\n");
+            setTextColor(7);
             printf("\n아무 키나 누르면 계속합니다...");
             dummy = getchar();
         }
