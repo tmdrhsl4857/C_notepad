@@ -989,7 +989,7 @@ void modify_schedule(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH]) {
     }
 
     if (day_index == -1) {
-        printf("잘못된 요일입니다. (월~일 중 하나를 입력하세요)\n");
+        printf("잘못된 요청입니다. (월~일 중 하나를 입력하세요)\n");
         return;
     }
 
