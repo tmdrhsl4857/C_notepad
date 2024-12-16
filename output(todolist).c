@@ -159,7 +159,7 @@ void updateTaskStatus(Task tasks[], int taskCount) {
     }
 
     printf("상태 업데이트가 성공적으로 되었습니다.\n");
-    saveTasksToFile(tasks, taskCount, "database.txt");
+    saveTasksToFile(tasks, taskCount, "database_todolist.txt");
 }
 
 int compareByDate(const void* a, const void* b) {

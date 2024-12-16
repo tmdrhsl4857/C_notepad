@@ -1055,7 +1055,7 @@ int main_todolist() {
     int choice;
 
     // Load tasks from file
-    loadTasksFromFile(tasks, &taskCount, "database.txt");
+    loadTasksFromFile(tasks, &taskCount, "database_todolist.txt");
 
     while (1) {
         printf("\nTo-Do List\n");
