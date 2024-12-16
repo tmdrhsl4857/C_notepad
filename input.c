@@ -956,33 +956,6 @@ void runTodolistModule() {
     Todo todos[MAX_TODOS];
     int todoCount = 0;
 
-    // 데이터 삭제 알림 추가
-    char choice;
-    setTextColor(4);
-    printf("ToDolist 모듈 실행 시 현재 저장 파일이 초기화될 수 있습니다. 진행하시겠습니까? (Y/N): ");
-    setTextColor(7);
-    scanf(" %c", &choice);
-    getchar(); // 버퍼 비우기
-
-    if (choice == 'Y' || choice == 'y') {
-        // 파일 초기화
-        FILE* file = fopen("database.txt", "w");
-        if (file == NULL) {
-            fprintf(stderr, "파일 초기화 실패\n");
-            return;
-        }
-        fprintf(file, "0\n"); // 초기화된 파일은 데이터 개수 0으로 기록
-        fclose(file); // 초기화 후 파일 닫기
-        printf("데이터베이스가 초기화되었습니다.\n");
-    }
-    else {
-        printf("ToDolist 모듈 실행이 취소되었습니다.\n");
-        return;
-    }
-
-    // 초기화 후 데이터 로드
-    loadTodoListFromFile("database.txt", todos, &todoCount);
-
     int choiceMenu;
     while (1) {
         clearScreen();
@@ -1002,21 +975,21 @@ void runTodolistModule() {
         switch (choiceMenu) {
         case 1:
             addTodo(todos, &todoCount);
-            saveTodoListToFile("database.txt", todos, todoCount); // 변경 사항 저장
+            saveTodoListToFile("database_todolist.txt", todos, todoCount); // 변경 사항 저장
             break;
         case 2:
             printTodoList(todos, todoCount);
             break;
         case 3:
             updateTodoStatus(todos, todoCount);
-            saveTodoListToFile("database.txt", todos, todoCount); // 변경 사항 저장
+            saveTodoListToFile("database_todolist.txt", todos, todoCount); // 변경 사항 저장
             break;
         case 4:
             editTodo(todos, &todoCount);
-            saveTodoListToFile("database.txt", todos, todoCount); // 변경 사항 저장
+            saveTodoListToFile("database_todolist.txt", todos, todoCount); // 변경 사항 저장
             break;
         case 5:
-            saveTodoListToFile("database.txt", todos, todoCount); // 종료 전에 저장
+            saveTodoListToFile("database_todolist.txt", todos, todoCount); // 종료 전에 저장
             printf("ToDolist 모듈을 종료합니다. 모든 변경 사항이 저장되었습니다.\n");
             exit(0);
         default:
@@ -1049,7 +1022,7 @@ void navigateItem(Item* item) {
 
         switch (choice) {
         case 1:
-        setTextColor(10);
+            setTextColor(10);
             printf("\n추가할 항목 이름을 입력하세요: ");
             setTextColor(7);
             fgets(itemName, sizeof(itemName), stdin);
@@ -1096,7 +1069,7 @@ void navigateItem(Item* item) {
         case 4:
             return;
         default:
-        setTextColor(4);
+            setTextColor(4);
             printf("잘못된 선택입니다. 다시 시도해주세요.\n");
             setTextColor(7);
             printf("\n아무 키나 누르면 계속합니다...");
@@ -1398,8 +1371,9 @@ void runKcalInputModule() {
                 printf("삭제할 데이터를 찾을 수 없습니다.\n");
             }
         }
-        else {\
-        setTextColor(4);
+        else {
+            \
+                setTextColor(4);
             fprintf(stderr, "잘못된 선택입니다. 다시 입력해주세요.\n");
             setTextColor(7);
         }
