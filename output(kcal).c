@@ -43,7 +43,7 @@ int main() {
         printf("2. 음식별 섭취 출력\n");
         printf("3. 분석 결과 출력\n");
         printf("4. 종료\n");
-        printf("선택: ");
+        printf("선택 : ");
         if (scanf("%d", &choice) != 1) {
             printf("잘못된 입력입니다. 다시 시도하세요.\n");
             while (getchar() != '\n'); // 잘못된 입력 처리
@@ -69,7 +69,7 @@ int main() {
             clearScreen();
             break;
         case 4:
-            printf("프로그램을 종료합니다.\n");
+            printf("\n프로그램을 종료합니다.\n");
             return 0;
         default:
             printf("잘못된 입력입니다. 다시 선택하세요.\n");
@@ -223,15 +223,15 @@ void displayAnalysis() {
         return;
     }
 
-    // 날짜별로 섭취 음식 정렬
+    // 날짜별로 섭취 음3식 정렬
     sortByDateAndCalories();
 
     printf("\n==== 섭취 음식 분석 ====\n");
 
     // 성별 입력
     while (1) {
-        printf("성별을 입력해주세요 (남자/man 또는 여자/woman): ");
-        char se[10];  // 문자열 배열로 선언
+        printf("성별을 입력해주세요 (남자/man 또는 여자/woman) : ");
+        char se[6];  // 문자열 배열로 선언
         scanf("%s", se);  // 문자열 입력받기
 
         if (strcmp(se, "남자") == 0 || strcmp(se, "man") == 0) {
@@ -249,7 +249,7 @@ void displayAnalysis() {
 
     // 1. 가장 높은 칼로리를 섭취한 음식 찾기
     int maxCalories = 0;
-    printf("1. 가장 높은 칼로리를 섭취한 음식 : ");
+    printf("\n1. 가장 높은 칼로리를 섭취한 음식 : ");
     for (int i = 0; i < foodCount; i++) {
         if (foodRecords[i].calories > maxCalories) {
             maxCalories = foodRecords[i].calories;
@@ -267,7 +267,10 @@ void displayAnalysis() {
 
     // 2. 자주 먹은 음식 찾기
     int maxCount = 0;
-    char frequentFood[MAX_NAME_LEN] = "";
+    char frequentFoods[MAX_FOODS][MAX_NAME_LEN];  // 자주 먹은 음식을 저장할 배열
+    int foodCounts[MAX_FOODS] = { 0 };  // 각 음식의 등장 횟수를 저장할 배열
+    int frequentFoodCount = 0;  // 자주 먹은 음식 개수
+
     for (int i = 0; i < foodCount; i++) {
         int count = 0;
         for (int j = 0; j < foodCount; j++) {
@@ -275,12 +278,37 @@ void displayAnalysis() {
                 count++;
             }
         }
+        // 자주 먹은 음식 횟수 갱신
         if (count > maxCount) {
             maxCount = count;
-            strcpy(frequentFood, foodRecords[i].foodName);
+            frequentFoodCount = 0;  // 새로운 최대 횟수이면 기존 목록을 초기화
+            strcpy(frequentFoods[frequentFoodCount], foodRecords[i].foodName);  // 새로운 음식 추가
+            foodCounts[frequentFoodCount] = count;  // 그 음식의 횟수도 기록
+            frequentFoodCount++;
+        }
+        else if (count == maxCount) {
+            // 동일 횟수일 경우 그 음식도 추가
+            int alreadyExists = 0;
+            for (int k = 0; k < frequentFoodCount; k++) {
+                if (strcmp(frequentFoods[k], foodRecords[i].foodName) == 0) {
+                    alreadyExists = 1;
+                    break;
+                }
+            }
+            if (!alreadyExists) {
+                strcpy(frequentFoods[frequentFoodCount], foodRecords[i].foodName);
+                foodCounts[frequentFoodCount] = count;
+                frequentFoodCount++;
+            }
         }
     }
-    printf("2. 자주 먹은 음식: %s - %d번\n", frequentFood, maxCount);
+
+    printf("2. 자주 먹은 음식:\n");
+    for (int i = 0; i < frequentFoodCount; i++) {
+        printf("%s - %d번\n", frequentFoods[i], foodCounts[i]);
+    }
+
+
 
     // 3. 입력된 날짜에 대한 하루 권장 칼로리 초과 여부 확인
     printf("\n3. 하루 권장 칼로리 초과 여부 (%dkcal):\n", recommendedCalories);
