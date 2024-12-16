@@ -88,7 +88,11 @@ void saveTasksToFile(const Task tasks[], int taskCount, const char* filename) {
     fprintf(file, "%d\n", taskCount); // Write the total number of tasks
 
     for (int i = 0; i < taskCount; i++) {
+        if (strcmp(tasks[i].status, "0") == 0 || (strcmp(tasks[i].status, "준비") != 0 && strcmp(tasks[i].status, "진행") != 0 && strcmp(tasks[i].status, "완료") != 0 && strcmp(tasks[i].status, "보관") != 0)) {
+            strcpy(tasks[i].status, "준비");
+        }
         fprintf(file, "%s %s %s %s\n0\n", tasks[i].date, tasks[i].type, tasks[i].title, tasks[i].status);
+
     }
 
     fclose(file);

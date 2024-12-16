@@ -82,7 +82,6 @@ void display_schedule(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH]);
 void modify_schedule(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH]); void loadTasksFromFile(Task tasks[], int* taskCount, const char* filename);
 void saveTasksToFile(const Task tasks[], int taskCount, const char* filename);
 void printTasks(const Task tasks[], int taskCount);
-void updateTaskStatus(Task tasks[], int taskCount);
 void sortTasks(Task tasks[], int taskCount, int sortBy);
 int main_kcal();
 int main_budget();
@@ -1059,9 +1058,8 @@ int main_todolist() {
 
     while (1) {
         printf("\nTo-Do List\n");
-        printf("1. 목록 보여주기\n");
-        printf("2. 상태 업데이트\n");
-        printf("3. 나가기\n");
+        printf("1. todolist 출력\n");
+        printf("2. 나가기\n");
         printf("옵션을 선택해 주세요: ");
         scanf("%d", &choice);
         getchar(); // Consume the newline character
@@ -1077,9 +1075,6 @@ int main_todolist() {
             printTasks(tasks, taskCount);
             break;
         case 2:
-            updateTaskStatus(tasks, taskCount);
-            break;
-        case 3:
             saveTasksToFile(tasks, taskCount, "database.txt");
             return 0;
         default:
@@ -1138,57 +1133,34 @@ void printTasks(const Task tasks[], int taskCount) {
         return;
     }
 
-    printf("\n%-15s %-15s %-30s %-15s\n", "날짜", "유형", "내용", "상태");
+    printf("\n%-5s %-15s %-15s %-30s %-15s\n", "번호", "날짜", "유형", "내용", "상태");
     printf("-------------------------------------------------------------------------------------------\n");
 
     for (int i = 0; i < taskCount; i++) {
-        printf("%-15s %-15s %-30s %-15s\n", tasks[i].date, tasks[i].type, tasks[i].title, tasks[i].status);
+        char formattedDate[MAX_STRING_LENGTH];
+        formatDate(tasks[i].date, formattedDate); // Format the raw date
+        printf("%-5d %-15s %-15s %-30s %-15s\n", i + 1, formattedDate, tasks[i].type, tasks[i].title, tasks[i].status);
     }
 }
 
-void updateTaskStatus(Task tasks[], int taskCount) {
-    system("cls"); // Clear the screen (use "cls" for Windows)
-    if (taskCount == 0) {
-        printf("업데이트 할 목록이 없습니다..\n");
+// Helper function to format the date
+void formatDate(const char* rawDate, char* formattedDate) {
+    if (strlen(rawDate) != 8) { // Ensure the date is in the correct format (YYYYMMDD)
+        strcpy(formattedDate, rawDate);
         return;
     }
 
-    printTasks(tasks, taskCount);
-    printf("\n상태를 업데이트 하고 싶은 목록의 번호를 입력하세요. (1 to %d): ", taskCount);
-    int index;
-    scanf("%d", &index);
-    getchar(); // Consume the newline character
+    char year[5], month[3], day[3];
+    strncpy(year, rawDate, 4);
+    year[4] = '\0'; // Null-terminate the string
 
-    if (index < 1 || index > taskCount) {
-        printf("잘못된 번호 입니다.\n");
-        return;
-    }
+    strncpy(month, rawDate + 4, 2);
+    month[2] = '\0'; // Null-terminate the string
 
-    printf("\n새로운 상태를 입력하세요 (1: 준비, 2: 진행, 3: 완료, 4: 보관): ");
-    int statusChoice;
-    scanf("%d", &statusChoice);
-    getchar(); // Consume the newline character
+    strncpy(day, rawDate + 6, 2);
+    day[2] = '\0'; // Null-terminate the string
 
-    switch (statusChoice) {
-    case 1:
-        strcpy(tasks[index - 1].status, "준비");
-        break;
-    case 2:
-        strcpy(tasks[index - 1].status, "진행");
-        break;
-    case 3:
-        strcpy(tasks[index - 1].status, "완료");
-        break;
-    case 4:
-        strcpy(tasks[index - 1].status, "보관");
-        break;
-    default:
-        printf("잘못된 선택입니다.\n");
-        return;
-    }
-
-    printf("상태 업데이트가 성공적으로 되었습니다.\n");
-    saveTasksToFile(tasks, taskCount, "database.txt");
+    snprintf(formattedDate, MAX_STRING_LENGTH, "%s-%s-%s", year, month, day);
 }
 
 int compareByDate(const void* a, const void* b) {
