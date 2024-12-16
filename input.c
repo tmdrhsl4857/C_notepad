@@ -36,7 +36,7 @@ const char* STATUS_TEXT[] = { "준비", "진행", "완료", "보관" };
 // ToDolist 구조체 정의
 typedef struct Todo {
     char date[NAME_LENGTH];   // 날짜
-    char type[NAME_LENGTH];   // 타입
+    char type[NAME_LENGTH];   // 유형
     char task[NAME_LENGTH];   // 내용
     int status;               // 상태: 0: 준비, 1: 진행, 2: 완료, 3: 보관
 } Todo;
@@ -768,7 +768,7 @@ void printTodoList(Todo todos[], int count) {
     setTextColor(13);
     printf("\n========== 할 일 목록 ==========\n");
     for (int i = 0; i < count; i++) {
-        printf("%d. 날짜: %s, 타입: %s, 내용: %s, 상태: %s\n",
+        printf("%d. 날짜: %s, 유형: %s, 내용: %s, 상태: %s\n",
             i + 1, todos[i].date, todos[i].type, todos[i].task, STATUS_TEXT[todos[i].status]);
     }
     printf("\n================================\n");
@@ -791,7 +791,7 @@ void addTodo(Todo todos[], int* count) {
     fgets(newTodo.date, sizeof(newTodo.date), stdin);
     newTodo.date[strcspn(newTodo.date, "\n")] = '\0';
     setTextColor(13);
-    printf("타입을 입력해주세요 (해야할 것): ");
+    printf("유형을 입력해주세요 (해야할 것): ");
     fgets(newTodo.type, sizeof(newTodo.type), stdin);
     newTodo.type[strcspn(newTodo.type, "\n")] = '\0';
     setTextColor(15);
@@ -828,7 +828,7 @@ void updateTodoStatus(Todo todos[], int count) {
     setTextColor(13);
     printf("\n========== 할 일 목록 ==========\n");
     for (int i = 0; i < count; i++) {
-        printf("%d. 날짜: %s, 타입: %s, 내용: %s, 상태: %s\n",
+        printf("%d. 날짜: %s, 유형: %s, 내용: %s, 상태: %s\n",
             i + 1, todos[i].date, todos[i].type, todos[i].task, STATUS_TEXT[todos[i].status]);
     }
     printf("\n================================\n");
@@ -876,7 +876,7 @@ void editTodo(Todo todos[], int* count) {
     setTextColor(13);
     printf("\n========== 할 일 목록 ==========\n");
     for (int i = 0; i < count; i++) {
-        printf("%d. 날짜: %s, 타입: %s, 내용: %s, 상태: %s\n",
+        printf("%d. 날짜: %s, 유형: %s, 내용: %s, 상태: %s\n",
             i + 1, todos[i].date, todos[i].type, todos[i].task, STATUS_TEXT[todos[i].status]);
     }
     printf("\n================================\n");
@@ -909,7 +909,7 @@ void editTodo(Todo todos[], int* count) {
         fgets(todos[index].date, sizeof(todos[index].date), stdin);
         todos[index].date[strcspn(todos[index].date, "\n")] = '\0';
         setTextColor(13);
-        printf("새 타입을 입력해주세요: ");
+        printf("새 유형을 입력해주세요: ");
         fgets(todos[index].type, sizeof(todos[index].type), stdin);
         todos[index].type[strcspn(todos[index].type, "\n")] = '\0';
         setTextColor(15);
