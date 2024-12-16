@@ -781,7 +781,7 @@ void clear_screen() {
 
 // 메뉴 출력
 void display_menu() {
-    printf("\n--- 시간표 프로그램 ---\n");
+    printf("\n--- 시간표 모듈 ---\n");
     printf("1. 시간표 추가 및 수정\n");
     printf("2. 시간표 보기\n");
     printf("3. 시간표 초기화\n");
