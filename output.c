@@ -5,8 +5,6 @@
 
 #define MAX_RECORDS 100
 #define NAME_LENGTH 100
-#define MAX_TASKS 100
-#define MAX_STRING_LENGTH 100
 #define _CRT_NO_SECURE_WARNINGS_
 
 #define MAX_FOODS 100  // 최대 음식 수
@@ -35,7 +33,7 @@ typedef struct Record {
 } Record;
 
 #define ANSI_RESET "\033[0m"
-#define ANSI_BLUE "\033[1;36m"
+#define ANSI_BLUE "\033[34m"
 #define ANSI_RED "\033[31m"
 // 설정값
 #define MAX_DAYS 7
@@ -58,7 +56,6 @@ typedef struct {
 } Task;
 
 // 함수 선언
-void formatDate(const char* rawDate, char* formattedDate);
 void loadFromFile();
 void sortByDateAndCalories();
 void sortByFoodAndDate();
@@ -85,6 +82,7 @@ void display_schedule(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH]);
 void modify_schedule(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH]); void loadTasksFromFile(Task tasks[], int* taskCount, const char* filename);
 void saveTasksToFile(const Task tasks[], int taskCount, const char* filename);
 void printTasks(const Task tasks[], int taskCount);
+void updateTaskStatus(Task tasks[], int taskCount);
 void sortTasks(Task tasks[], int taskCount, int sortBy);
 int main_kcal();
 int main_budget();
@@ -94,10 +92,12 @@ void setTextColor(int color);
 void clearInputBuffer();
 
 int main() {
+    setTextColor(15);
     printf("이 프로그램은 input.c와 호환되는 전용 출력 프로그램입니다.\n\n");
     printf("아직 개발중인 버전으로 안정성이 낮으며 언제든지 변경될 수 있습니다.\n\n");
     printf("현재를 기준으로 지원되는 모듈은 4가지이며 그 외의 기능을 지원하지 않습니다.\n\n");
     printf("database.txt가 출력 모듈에 알맞지 않는 형태일 때 오류가 발생할 수 있으니 사전에 확인바랍니다.\n\n");
+    setTextColor(7);
     printf("\n아무 키나 누르면 시작합니다...\n");
 
     char dum = getchar();
@@ -141,15 +141,20 @@ int main_kcal() {
     // 메뉴 출력
     while (1) {
         clearScreen();
-        printf("\n==== 메뉴 ====\n");
+        setTextColor(11);
+        printf("\n======== 메뉴 ========\n");
         printf("1. 날짜별 음식 섭취 출력\n");
         printf("2. 음식별 섭취 출력\n");
         printf("3. 분석 결과 출력\n");
         printf("4. 종료\n");
+        printf("======================\n");
+        setTextColor(7);
         printf("선택: ");
 
         if (scanf("%d", &choice) != 1) {
+            setTextColor(12);
             printf("잘못된 입력입니다. 숫자를 입력하세요.\n");
+            setTextColor(7);
             clearInputBuffer(); // 입력 버퍼 비우기
             continue;
         }
@@ -172,7 +177,9 @@ int main_kcal() {
             printf("프로그램을 종료합니다.\n");
             return 0;
         default:
+            setTextColor(4);
             printf("잘못된 선택입니다. 다시 시도하세요.\n");
+            setTextColor(7);
         }
     }
 
@@ -184,7 +191,9 @@ int main_kcal() {
 void loadFromFile() {
     FILE* file = fopen("database.txt", "r");
     if (!file) {
+        setTextColor(4);
         printf("파일을 열 수 없습니다: database.txt\n");
+        setTextColor(7);
         exit(1);
     }
     printf("Debug: File opened successfully.\n");
@@ -194,7 +203,9 @@ void loadFromFile() {
     // 첫 번째 줄에 '1'이 있는지 확인
     if (fgets(line, sizeof(line), file)) {
         if (line[0] != '1') {  // 첫 번째 줄이 '1'이 아니면 잘못된 파일 형식
+            setTextColor(4);
             printf("잘못된 파일 형식: 첫 번째 줄이 '1'이어야 합니다.\n");
+            setTextColor(7);
             fclose(file);
             exit(1);
         }
@@ -204,7 +215,9 @@ void loadFromFile() {
     if (fgets(line, sizeof(line), file)) {
         // kcal가 아닌 경우 종료
         if (strncmp(line, "kcal", 2) != 0) {
+            setTextColor(4);
             printf("잘못된 파일 형식: 두 번째 줄은 'kcal'이어야 합니다.\n");
+            setTextColor(7);
             fclose(file);
             exit(1);
         }
@@ -783,7 +796,7 @@ void clear_screen() {
 
 // 메뉴 출력
 void display_menu() {
-    printf("\n--- 시간표 모듈 ---\n");
+    printf("\n--- 시간표 프로그램 ---\n");
     printf("1. 시간표 추가 및 수정\n");
     printf("2. 시간표 보기\n");
     printf("3. 시간표 초기화\n");
@@ -991,7 +1004,7 @@ void modify_schedule(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH]) {
     }
 
     if (day_index == -1) {
-        printf("잘못된 요청입니다. (월~일 중 하나를 입력하세요)\n");
+        printf("잘못된 요일입니다. (월~일 중 하나를 입력하세요)\n");
         return;
     }
 
@@ -1012,7 +1025,7 @@ int main_schedule() {
     int choice;
 
     // 초기화
-    load_from_file(schedule, "database_schedule.txt");
+    load_from_file(schedule, "database.txt");
 
     do {
         clear_screen(); // 이전 화면 지우기
@@ -1032,7 +1045,7 @@ int main_schedule() {
             reset_schedule(schedule);
             break;
         case 4: // 프로그램 종료
-            save_to_file(schedule, "database_schedule.txt");
+            save_to_file(schedule, "database.txt");
             printf("프로그램을 종료합니다.\n");
             break;
         default:
@@ -1057,12 +1070,13 @@ int main_todolist() {
     int choice;
 
     // Load tasks from file
-    loadTasksFromFile(tasks, &taskCount, "database_todolist.txt");
+    loadTasksFromFile(tasks, &taskCount, "database.txt");
 
     while (1) {
         printf("\nTo-Do List\n");
-        printf("1. todolist 출력\n");
-        printf("2. 나가기\n");
+        printf("1. 목록 보여주기\n");
+        printf("2. 상태 업데이트\n");
+        printf("3. 나가기\n");
         printf("옵션을 선택해 주세요: ");
         scanf("%d", &choice);
         getchar(); // Consume the newline character
@@ -1078,6 +1092,9 @@ int main_todolist() {
             printTasks(tasks, taskCount);
             break;
         case 2:
+            updateTaskStatus(tasks, taskCount);
+            break;
+        case 3:
             saveTasksToFile(tasks, taskCount, "database.txt");
             return 0;
         default:
@@ -1136,41 +1153,58 @@ void printTasks(const Task tasks[], int taskCount) {
         return;
     }
 
-    printf("\n%-5s %-15s %-15s %-30s %-15s\n", "번호", "날짜", "유형", "내용", "상태");
+    printf("\n%-15s %-15s %-30s %-15s\n", "날짜", "유형", "내용", "상태");
     printf("-------------------------------------------------------------------------------------------\n");
 
     for (int i = 0; i < taskCount; i++) {
-        char formattedDate[MAX_STRING_LENGTH];
-        formatDate(tasks[i].date, formattedDate); // Format the raw date
-        printf("%-5d %-15s %-15s %-30s %-15s\n", i + 1, formattedDate, tasks[i].type, tasks[i].title, tasks[i].status);
+        printf("%-15s %-15s %-30s %-15s\n", tasks[i].date, tasks[i].type, tasks[i].title, tasks[i].status);
     }
 }
 
-
-// Helper function to format the date
-void formatDate(const char* rawDate, char* formattedDate) {
-    // Check if rawDate is exactly 8 characters long and numeric
-    if (rawDate == NULL || strlen(rawDate) != 8 || strspn(rawDate, "0123456789") != 8) {
-        // If invalid format, set to "Invalid Format"
-        strcpy(formattedDate, "Invalid Format");
+void updateTaskStatus(Task tasks[], int taskCount) {
+    system("cls"); // Clear the screen (use "cls" for Windows)
+    if (taskCount == 0) {
+        printf("업데이트 할 목록이 없습니다..\n");
         return;
     }
 
-    // Extract year, month, and day
-    char year[5], month[3], day[3];
-    strncpy(year, rawDate, 4);
-    year[4] = '\0'; // Null-terminate the string
+    printTasks(tasks, taskCount);
+    printf("\n상태를 업데이트 하고 싶은 목록의 번호를 입력하세요. (1 to %d): ", taskCount);
+    int index;
+    scanf("%d", &index);
+    getchar(); // Consume the newline character
 
-    strncpy(month, rawDate + 4, 2);
-    month[2] = '\0'; // Null-terminate the string
+    if (index < 1 || index > taskCount) {
+        printf("잘못된 번호 입니다.\n");
+        return;
+    }
 
-    strncpy(day, rawDate + 6, 2);
-    day[2] = '\0'; // Null-terminate the string
+    printf("\n새로운 상태를 입력하세요 (1: 준비, 2: 진행, 3: 완료, 4: 보관): ");
+    int statusChoice;
+    scanf("%d", &statusChoice);
+    getchar(); // Consume the newline character
 
-    // Format the date as YYYY-MM-DD
-    snprintf(formattedDate, MAX_STRING_LENGTH, "%s-%s-%s", year, month, day);
+    switch (statusChoice) {
+    case 1:
+        strcpy(tasks[index - 1].status, "준비");
+        break;
+    case 2:
+        strcpy(tasks[index - 1].status, "진행");
+        break;
+    case 3:
+        strcpy(tasks[index - 1].status, "완료");
+        break;
+    case 4:
+        strcpy(tasks[index - 1].status, "보관");
+        break;
+    default:
+        printf("잘못된 선택입니다.\n");
+        return;
+    }
+
+    printf("상태 업데이트가 성공적으로 되었습니다.\n");
+    saveTasksToFile(tasks, taskCount, "database.txt");
 }
-
 
 int compareByDate(const void* a, const void* b) {
     return strcmp(((Task*)a)->date, ((Task*)b)->date);
