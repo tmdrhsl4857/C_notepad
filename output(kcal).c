@@ -174,7 +174,6 @@ void sortByFoodAndDate() {
     }
 }
 
-// 날짜별 음식 섭취 출력
 void displayByDate() {
     printf("\n==== 날짜별 음식 섭취 ====\n");
     if (foodCount == 0) {
@@ -183,19 +182,35 @@ void displayByDate() {
     }
 
     char currentDate[MAX_DATE_LEN] = "";
+    int firstDateFlag = 1; // 날짜 구분을 위해 플래그 사용
+
+    // 테두리 출력
+    printf("+------------+------------------+--------------+\n");
+    printf("|    날짜    |     음식 이름    |    칼로리    |\n");
+    printf("+------------+------------------+--------------+\n");
 
     for (int i = 0; i < foodCount; i++) {
         // 새로운 날짜가 나오면 날짜를 출력
         if (strcmp(currentDate, foodRecords[i].date) != 0) {
             strcpy(currentDate, foodRecords[i].date);
-            printf("\n%s\n", currentDate);
+            if (!firstDateFlag) {
+                printf("+------------+------------------+--------------+\n");
+            }
+            firstDateFlag = 0;
+            printf("| %-10s | %-16s | %-12d |\n", currentDate, foodRecords[i].foodName, foodRecords[i].calories);
         }
-        // 같은 날짜의 음식 섭취 출력
-        printf("%s - %d kcal\n", foodRecords[i].foodName, foodRecords[i].calories);
+        else {
+            // 같은 날짜의 음식 섭취 출력
+            printf("| %-10s | %-16s | %-12d |\n", "", foodRecords[i].foodName, foodRecords[i].calories);
+        }
     }
+
+    // 테두리 끝
+    printf("+------------+------------------+--------------+\n");
 }
 
-// 음식별 섭취 출력
+
+
 void displayByFood() {
     printf("\n==== 음식별 섭취 ====\n");
     if (foodCount == 0) {
@@ -204,17 +219,33 @@ void displayByFood() {
     }
 
     char currentFood[MAX_NAME_LEN] = "";
+    int firstFoodFlag = 1; // 음식 구분을 위해 플래그 사용
+
+    // 테두리 출력
+    printf("+------------------+------------+--------------+\n");
+    printf("|    음식 이름     |    날짜    |    칼로리    |\n");
+    printf("+------------------+------------+--------------+\n");
 
     for (int i = 0; i < foodCount; i++) {
         // 새로운 음식이 나오면 음식 이름을 출력
         if (strcmp(currentFood, foodRecords[i].foodName) != 0) {
             strcpy(currentFood, foodRecords[i].foodName);
-            printf("\n%s\n", currentFood);  // 음식 이름 출력
+            if (!firstFoodFlag) {
+                printf("+------------------+------------+--------------+\n");
+            }
+            firstFoodFlag = 0;
+            printf("| %-16s | %-10s | %-12d |\n", currentFood, foodRecords[i].date, foodRecords[i].calories);
         }
-        // 같은 음식의 날짜별 섭취만 출력
-        printf("  Date : %s, Kcal : %d\n", foodRecords[i].date, foodRecords[i].calories);
+        else {
+            // 같은 음식의 날짜별 섭취만 출력
+            printf("| %-16s | %-10s | %-12d |\n", "", foodRecords[i].date, foodRecords[i].calories);
+        }
     }
+
+    // 테두리 끝
+    printf("+------------------+------------+--------------+\n");
 }
+
 
 // 분석 결과 출력
 void displayAnalysis() {
