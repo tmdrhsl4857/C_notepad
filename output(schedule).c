@@ -254,7 +254,7 @@ int main() {
     int choice;
 
     // 초기화
-    load_from_file(schedule, "database.txt");
+    load_from_file(schedule, "database_schedule.txt");
 
     do {
         clear_screen(); // 이전 화면 지우기
@@ -274,7 +274,7 @@ int main() {
             reset_schedule(schedule);
             break;
         case 4: // 프로그램 종료
-            save_to_file(schedule, "database.txt");
+            save_to_file(schedule, "database_schedule.txt");
             printf("프로그램을 종료합니다.\n");
             break;
         default:
