@@ -33,7 +33,7 @@ typedef struct Record {
 } Record;
 
 #define ANSI_RESET "\033[0m"
-#define ANSI_BLUE "\033[34m"
+#define ANSI_BLUE "\033[1;36m"
 #define ANSI_RED "\033[31m"
 // 설정값
 #define MAX_DAYS 7
