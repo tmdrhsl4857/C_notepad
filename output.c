@@ -5,6 +5,8 @@
 
 #define MAX_RECORDS 100
 #define NAME_LENGTH 100
+#define MAX_TASKS 100
+#define MAX_STRING_LENGTH 100
 #define _CRT_NO_SECURE_WARNINGS_
 
 #define MAX_FOODS 100  // 최대 음식 수
@@ -56,6 +58,7 @@ typedef struct {
 } Task;
 
 // 함수 선언
+void formatDate(const char* rawDate, char* formattedDate);
 void loadFromFile();
 void sortByDateAndCalories();
 void sortByFoodAndDate();
@@ -1143,13 +1146,17 @@ void printTasks(const Task tasks[], int taskCount) {
     }
 }
 
+
 // Helper function to format the date
 void formatDate(const char* rawDate, char* formattedDate) {
-    if (strlen(rawDate) != 8) { // Ensure the date is in the correct format (YYYYMMDD)
-        strcpy(formattedDate, rawDate);
+    // Check if rawDate is exactly 8 characters long and numeric
+    if (rawDate == NULL || strlen(rawDate) != 8 || strspn(rawDate, "0123456789") != 8) {
+        // If invalid format, set to "Invalid Format"
+        strcpy(formattedDate, "Invalid Format");
         return;
     }
 
+    // Extract year, month, and day
     char year[5], month[3], day[3];
     strncpy(year, rawDate, 4);
     year[4] = '\0'; // Null-terminate the string
@@ -1160,8 +1167,10 @@ void formatDate(const char* rawDate, char* formattedDate) {
     strncpy(day, rawDate + 6, 2);
     day[2] = '\0'; // Null-terminate the string
 
+    // Format the date as YYYY-MM-DD
     snprintf(formattedDate, MAX_STRING_LENGTH, "%s-%s-%s", year, month, day);
 }
+
 
 int compareByDate(const void* a, const void* b) {
     return strcmp(((Task*)a)->date, ((Task*)b)->date);
