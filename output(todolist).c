@@ -18,6 +18,7 @@ void loadTasksFromFile(Task tasks[], int* taskCount, const char* filename);
 void saveTasksToFile(const Task tasks[], int taskCount, const char* filename);
 void printTasks(const Task tasks[], int taskCount);
 void sortTasks(Task tasks[], int taskCount, int sortBy);
+void formatDate(const char* rawDate, char* formattedDate);
 
 int main() {
     Task tasks[MAX_TASKS];
@@ -87,9 +88,6 @@ void saveTasksToFile(const Task tasks[], int taskCount, const char* filename) {
     fprintf(file, "%d\n", taskCount); // Write the total number of tasks
 
     for (int i = 0; i < taskCount; i++) {
-        if (strcmp(tasks[i].status, "0") == 0 || (strcmp(tasks[i].status, "준비") != 0 && strcmp(tasks[i].status, "진행") != 0 && strcmp(tasks[i].status, "완료") != 0 && strcmp(tasks[i].status, "보관") != 0)) {
-            strcpy(tasks[i].status, "준비");
-        }
         fprintf(file, "%s %s %s %s\n0\n", tasks[i].date, tasks[i].type, tasks[i].title, tasks[i].status);
     }
 
@@ -107,8 +105,30 @@ void printTasks(const Task tasks[], int taskCount) {
     printf("-------------------------------------------------------------------------------------------\n");
 
     for (int i = 0; i < taskCount; i++) {
-        printf("%-5d %-15s %-15s %-30s %-15s\n", i + 1, tasks[i].date, tasks[i].type, tasks[i].title, tasks[i].status);
+        char formattedDate[MAX_STRING_LENGTH];
+        formatDate(tasks[i].date, formattedDate); // Format the raw date
+        printf("%-5d %-15s %-15s %-30s %-15s\n", i + 1, formattedDate, tasks[i].type, tasks[i].title, tasks[i].status);
     }
+}
+
+// Helper function to format the date
+void formatDate(const char* rawDate, char* formattedDate) {
+    if (strlen(rawDate) != 8) { // Ensure the date is in the correct format (YYYYMMDD)
+        strcpy(formattedDate, rawDate);
+        return;
+    }
+
+    char year[5], month[3], day[3];
+    strncpy(year, rawDate, 4);
+    year[4] = '\0'; // Null-terminate the string
+
+    strncpy(month, rawDate + 4, 2);
+    month[2] = '\0'; // Null-terminate the string
+
+    strncpy(day, rawDate + 6, 2);
+    day[2] = '\0'; // Null-terminate the string
+
+    snprintf(formattedDate, MAX_STRING_LENGTH, "%s-%s-%s", year, month, day);
 }
 
 int compareByDate(const void* a, const void* b) {
