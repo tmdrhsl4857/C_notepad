@@ -1010,7 +1010,7 @@ int main_schedule() {
     int choice;
 
     // 초기화
-    load_from_file(schedule, "database.txt");
+    load_from_file(schedule, "database_schedule.txt");
 
     do {
         clear_screen(); // 이전 화면 지우기
