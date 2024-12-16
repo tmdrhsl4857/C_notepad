@@ -1030,7 +1030,7 @@ int main_schedule() {
             reset_schedule(schedule);
             break;
         case 4: // 프로그램 종료
-            save_to_file(schedule, "database.txt");
+            save_to_file(schedule, "database_schedule.txt");
             printf("프로그램을 종료합니다.\n");
             break;
         default:
