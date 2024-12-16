@@ -35,6 +35,26 @@ int main() {
     // 데이터 로드
     loadFromFile();
 
+    while (1) {
+        printf("성별을 입력해주세요 (남자/man 또는 여자/woman) : ");
+        char se[6];
+        scanf("%s", se);
+
+        if (strcmp(se, "남자") == 0 || strcmp(se, "man") == 0) {
+            recommendedCalories = 2500;
+            break;
+        }
+        else if (strcmp(se, "여자") == 0 || strcmp(se, "woman") == 0) {
+            recommendedCalories = 2000;
+            break;
+        }
+        else {
+            printf("잘못된 입력입니다. 다시 입력해주세요.\n");
+        }
+    }
+
+    clearScreen(); // 잘못된 입력 후 화면 지우기
+
     // 메뉴 출력
     while (1) {
         printf("칼로리 메모장\n");
@@ -65,10 +85,6 @@ int main() {
             clearScreen();
             break;
         case 3:
-            displayAnalysis();  // 분석 결과 출력
-            clearScreen();
-            break;
-        case 4:
             printf("\n프로그램을 종료합니다.\n");
             return 0;
         default:
@@ -102,12 +118,12 @@ void loadFromFile() {
     // 두 번째 줄에 '남자', 'man', '여자', 'woman'이 있는지 확인
     if (fgets(line, sizeof(line), file)) {
         // kcal가 아닌 경우 종료
-        if (strncmp(line, "kcal", 2) != 0  ) {
+        if (strncmp(line, "kcal", 2) != 0) {
             printf("잘못된 파일 형식: 두 번째 줄은 'kcal'이어야 합니다.\n");
             fclose(file);
             exit(1);
         }
-        
+
     }
 
     // PBU 뒤에 올 숫자 (읽어들일 데이터의 개수) 읽기
@@ -139,7 +155,7 @@ void loadFromFile() {
     }
 
     fclose(file);
-    
+
 }
 
 // 날짜와 칼로리 기준으로 정렬
@@ -207,9 +223,36 @@ void displayByDate() {
 
     // 테두리 끝
     printf("+------------+------------------+--------------+\n");
+
+    // 하루 권장 칼로리 초과 여부 확인
+    char currentDate2[MAX_DATE_LEN] = "";
+    int dailyCalories = 0;
+
+    for (int i = 0; i < foodCount; i++) {
+        if (strcmp(currentDate2, foodRecords[i].date) != 0) {
+            if (strlen(currentDate2) > 0) {
+                if (dailyCalories > recommendedCalories) {
+                    printf("  날짜: %s, 권장 칼로리 초과 (%d kcal 섭취)\n", currentDate2, dailyCalories);
+                }
+                else {
+                    printf("  날짜: %s, 권장 칼로리 이하 (%d kcal 섭취)\n", currentDate2, dailyCalories);
+                }
+            }
+            strcpy(currentDate2, foodRecords[i].date);
+            dailyCalories = foodRecords[i].calories;
+        }
+        else {
+            dailyCalories += foodRecords[i].calories;
+        }
+    }
+
+    if (dailyCalories > recommendedCalories) {
+        printf("  날짜: %s, 권장 칼로리 초과 (%d kcal 섭취)\n", currentDate2, dailyCalories);
+    }
+    else {
+        printf("  날짜: %s, 권장 칼로리 이하 (%d kcal 섭취)\n", currentDate2, dailyCalories);
+    }
 }
-
-
 
 void displayByFood() {
     printf("\n==== 음식별 섭취 ====\n");
@@ -244,41 +287,8 @@ void displayByFood() {
 
     // 테두리 끝
     printf("+------------------+------------+--------------+\n");
-}
 
-
-// 분석 결과 출력
-void displayAnalysis() {
-    if (foodCount == 0) {
-        printf("분석할 데이터가 없습니다.\n");
-        return;
-    }
-
-    // 날짜별로 섭취 음3식 정렬
-    sortByDateAndCalories();
-
-    printf("\n==== 섭취 음식 분석 ====\n");
-
-    // 성별 입력
-    while (1) {
-        printf("성별을 입력해주세요 (남자/man 또는 여자/woman) : ");
-        char se[6];  // 문자열 배열로 선언
-        scanf("%s", se);  // 문자열 입력받기
-
-        if (strcmp(se, "남자") == 0 || strcmp(se, "man") == 0) {
-            recommendedCalories = 2500;
-            break;
-        }
-        else if (strcmp(se, "여자") == 0 || strcmp(se, "woman") == 0) {
-            recommendedCalories = 2000;
-            break;
-        }
-        else {
-            printf("잘못된 입력입니다. 다시 입력해주세요.\n");
-        }
-    }
-
-    // 1. 가장 높은 칼로리를 섭취한 음식 찾기
+    // 1. 가장 높은 칼로리 음식 찾기
     int maxCalories = 0;
     printf("\n1. 가장 높은 칼로리를 섭취한 음식 : ");
     for (int i = 0; i < foodCount; i++) {
@@ -298,9 +308,9 @@ void displayAnalysis() {
 
     // 2. 자주 먹은 음식 찾기
     int maxCount = 0;
-    char frequentFoods[MAX_FOODS][MAX_NAME_LEN];  // 자주 먹은 음식을 저장할 배열
-    int foodCounts[MAX_FOODS] = { 0 };  // 각 음식의 등장 횟수를 저장할 배열
-    int frequentFoodCount = 0;  // 자주 먹은 음식 개수
+    char frequentFoods[MAX_FOODS][MAX_NAME_LEN];
+    int foodCounts[MAX_FOODS] = { 0 };
+    int frequentFoodCount = 0;
 
     for (int i = 0; i < foodCount; i++) {
         int count = 0;
@@ -309,16 +319,14 @@ void displayAnalysis() {
                 count++;
             }
         }
-        // 자주 먹은 음식 횟수 갱신
         if (count > maxCount) {
             maxCount = count;
-            frequentFoodCount = 0;  // 새로운 최대 횟수이면 기존 목록을 초기화
-            strcpy(frequentFoods[frequentFoodCount], foodRecords[i].foodName);  // 새로운 음식 추가
-            foodCounts[frequentFoodCount] = count;  // 그 음식의 횟수도 기록
+            frequentFoodCount = 0;
+            strcpy(frequentFoods[frequentFoodCount], foodRecords[i].foodName);
+            foodCounts[frequentFoodCount] = count;
             frequentFoodCount++;
         }
         else if (count == maxCount) {
-            // 동일 횟수일 경우 그 음식도 추가
             int alreadyExists = 0;
             for (int k = 0; k < frequentFoodCount; k++) {
                 if (strcmp(frequentFoods[k], foodRecords[i].foodName) == 0) {
@@ -338,54 +346,8 @@ void displayAnalysis() {
     for (int i = 0; i < frequentFoodCount; i++) {
         printf("%s - %d번\n", frequentFoods[i], foodCounts[i]);
     }
-
-
-
-    // 3. 입력된 날짜에 대한 하루 권장 칼로리 초과 여부 확인
-    printf("\n3. 하루 권장 칼로리 초과 여부 (%dkcal):\n", recommendedCalories);
-
-    // 날짜별로 칼로리 합산 후 초과 여부 출력
-    char currentDate[MAX_DATE_LEN] = ""; // 날짜 초기화
-    int dailyCalories = 0;  // 날짜별 칼로리 합산 초기화
-
-    // 칼로리 초과 여부를 날짜별로 처리
-    for (int i = 0; i < foodCount; i++) {
-        // 날짜가 변경되었을 때 (새로운 날짜가 오면)
-        if (strcmp(currentDate, foodRecords[i].date) != 0) {
-            // 이전 날짜의 칼로리 합산 후 결과 출력
-            if (strlen(currentDate) > 0) {  // 날짜가 초기값이 아니면 출력
-                if (dailyCalories > recommendedCalories) {
-                    printf("  날짜: %s, 권장 칼로리 초과 (%d kcal 섭취)\n", currentDate, dailyCalories);
-                }
-                else {
-                    printf("  날짜: %s, 권장 칼로리 이하 (%d kcal 섭취)\n", currentDate, dailyCalories);
-                }
-            }
-            // 날짜 갱신
-            strcpy(currentDate, foodRecords[i].date);
-            dailyCalories = foodRecords[i].calories;  // 새로운 날짜에서 칼로리 초기화
-        }
-        else {
-            dailyCalories += foodRecords[i].calories;  // 같은 날짜일 경우 칼로리 더하기
-        }
-    }
-
-    // 마지막 날짜에 대한 결과 출력
-    if (dailyCalories > recommendedCalories) {
-        printf("  날짜: %s, 권장 칼로리 초과 (%d kcal 섭취)\n", currentDate, dailyCalories);
-    }
-    else {
-        printf("  날짜: %s, 권장 칼로리 이하 (%d kcal 섭취)\n", currentDate, dailyCalories);
-    }
-
-    // 출력 유지 후 화면 지우기
-    getchar();  // 추가 입력 대기 (성별 입력 후 남아 있는 '\n' 제거)
-    
 }
 
-
-
-// 화면 지우기
 void clearScreen() {
     printf("\n출력을 확인하려면 아무 키나 누르세요...\n");
     getchar();  // 입력 대기
