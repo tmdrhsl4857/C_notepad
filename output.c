@@ -33,7 +33,7 @@ typedef struct Record {
 } Record;
 
 #define ANSI_RESET "\033[0m"
-#define ANSI_BLUE "\033[34m"
+#define ANSI_BLUE "\033[1;36m"
 #define ANSI_RED "\033[31m"
 // 설정값
 #define MAX_DAYS 7
@@ -781,7 +781,7 @@ void clear_screen() {
 
 // 메뉴 출력
 void display_menu() {
-    printf("\n--- 시간표 프로그램 ---\n");
+    printf("\n--- 시간표 모듈 ---\n");
     printf("1. 시간표 추가 및 수정\n");
     printf("2. 시간표 보기\n");
     printf("3. 시간표 초기화\n");
@@ -989,7 +989,7 @@ void modify_schedule(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH]) {
     }
 
     if (day_index == -1) {
-        printf("잘못된 요일입니다. (월~일 중 하나를 입력하세요)\n");
+        printf("잘못된 요청입니다. (월~일 중 하나를 입력하세요)\n");
         return;
     }
 
@@ -1010,7 +1010,7 @@ int main_schedule() {
     int choice;
 
     // 초기화
-    load_from_file(schedule, "database.txt");
+    load_from_file(schedule, "database_schedule.txt");
 
     do {
         clear_screen(); // 이전 화면 지우기
