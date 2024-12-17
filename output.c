@@ -321,10 +321,12 @@ void sortByFoodAndDate() {
 //
 void displayByDate() {
 
-
-    printf("\n==== 날짜별 음식 섭취 ====\n");
+    setTextColor(13);
+    printf("\n =============  날짜별 음식 섭취  =============\n");
     if (foodCount == 0) {
+        setTextColor(12);
         printf("기록이 없습니다.\n");
+        setTextColor(7);
         return;
     }
 
@@ -336,6 +338,7 @@ void displayByDate() {
     printf("+------------+------------------+--------------+\n");
     printf("|    날짜    |     음식 이름    |    칼로리    |\n");
     printf("+------------+------------------+--------------+\n");
+    setTextColor(7);
 
     // 날짜별 음식 섭취 출력
     for (int i = 0; i < foodCount; i++) {
@@ -352,7 +355,9 @@ void displayByDate() {
         }
 
         // 같은 날짜에 여러 음식이 있으면 각각 출력
-        printf("| %-10s | %-16s | %-12d |\n", foodRecords[i].date, foodRecords[i].foodName, foodRecords[i].calories);
+        setTextColor(13);
+        printf("| %-10s | %-17s | %-12d |\n", foodRecords[i].date, foodRecords[i].foodName, foodRecords[i].calories);
+        
 
         // 해당 날짜의 칼로리 합산
         dailyCalories += foodRecords[i].calories;
@@ -360,11 +365,13 @@ void displayByDate() {
 
     // 테두리 끝 - 음식 정보 테이블
     printf("+------------+------------------+--------------+\n");
+    setTextColor(7);
 
     // 종합 정보 테이블 출력
-    printf("\n==== 종합 정보 ====\n");
+    setTextColor(14);
+    printf("\n ================= 종합  정보 =================\n");
     printf("+------------+------------------+--------------+\n");
-    printf("|    날짜    |    칼로리        | 권장 칼로리  |\n");
+    printf("|    날짜    |      칼로리      | 권장 칼로리  |\n");
     printf("+------------+------------------+--------------+\n");
 
     // 날짜별 총합 정보를 출력하고 중복을 방지
@@ -402,6 +409,7 @@ void displayByDate() {
 
     // 테두리 끝 - 종합 정보 테이블
     printf("+------------+------------------+--------------+\n");
+    setTextColor(7);
 
     // 가장 많이 섭취한 날과 가장 적게 섭취한 날 출력
     int maxCalories = 0, minCalories = INT_MAX;
@@ -448,9 +456,13 @@ void displayByDate() {
     }
 
     // 가장 많이 섭취한 날과 가장 적게 섭취한 날 출력
+    setTextColor(14);
     printf("\n==== 분석 결과 ====\n");
+    setTextColor(12);
     printf("가장 많이 섭취한 날: %s - %d kcal\n", maxDate, maxCalories);
+    setTextColor(10);
     printf("가장 적게 섭취한 날: %s - %d kcal\n", minDate, minCalories);
+    setTextColor(7);
 
     printf("\n출력을 확인하려면 아무 키나 누르세요...\n");
     getchar();
@@ -458,6 +470,7 @@ void displayByDate() {
 
 
 void displayByFood() {
+    setTextColor(14);
     printf("\n==== 음식별 섭취 ====\n");
     if (foodCount == 0) {
         printf("기록이 없습니다.\n");
@@ -492,8 +505,10 @@ void displayByFood() {
     printf("+------------------+------------+--------------+\n");
 
     printf("\n==== 분석 결과 ====\n");
+    setTextColor(7);
     // 1. 가장 높은 칼로리 음식 찾기
     int maxCaloriesFood = 0;
+    setTextColor(12);
     printf("\n가장 높은 칼로리를 섭취한 음식 : ");
     for (int i = 0; i < foodCount; i++) {
         if (foodRecords[i].calories > maxCaloriesFood) {
@@ -505,6 +520,7 @@ void displayByFood() {
     for (int i = 0; i < foodCount; i++) {
         if (foodRecords[i].calories == maxCaloriesFood) {
             printf("%s - %d kcal\n", foodRecords[i].foodName, foodRecords[i].calories);
+            setTextColor(7);
         }
     }
 
@@ -546,10 +562,12 @@ void displayByFood() {
         }
     }
 
-    printf("자주 먹은 음식:\n");
+    setTextColor(10);
+    printf("자주 먹은 음식\n");
     for (int i = 0; i < frequentFoodCount; i++) {
         printf("%s - %d번\n", frequentFoods[i], foodCounts[i]);
     }
+    setTextColor(7);
     printf("\n출력을 확인하려면 아무 키나 누르세요...\n");
     getchar();
 }
@@ -579,7 +597,9 @@ int main_budget() {
             freeRecords(records);
             exit(0);
         default:
+            setTextColor(4);
             printf("\n잘못된 선택입니다. 다시 시도해주세요.\n");
+            setTextColor(7);
             printf("\n아무 키나 누르면 계속합니다...");
             getchar(); // 키 입력 대기
         }
@@ -607,13 +627,17 @@ void freeRecords(Record* head) {
 Record* loadRecordsFromFile(const char* filename) {
     FILE* file = fopen(filename, "r");
     if (file == NULL) {
+        setTextColor(4);
         fprintf(stderr, "파일을 열 수 없습니다.\n");
+        setTextColor(7);
         exit(1);
     }
 
     int numCategories;
     if (fscanf(file, "%d\n", &numCategories) != 1) {
+        setTextColor(4);
         fprintf(stderr, "파일에서 카테고리 수를 읽을 수 없습니다.\n");
+        setTextColor(7);
         exit(1);
     }
 
@@ -623,25 +647,33 @@ Record* loadRecordsFromFile(const char* filename) {
     for (int i = 0; i < numCategories; i++) {
         char categoryType;
         if (fscanf(file, " %c\n", &categoryType) != 1) {
+            setTextColor(4);
             fprintf(stderr, "파일에서 카테고리 타입을 읽는 중 오류가 발생했습니다.\n");
+            setTextColor(7);
             exit(1);
         }
 
         int numRecords;
         if (fscanf(file, "%d\n", &numRecords) != 1) {
+            setTextColor(4);
             fprintf(stderr, "파일에서 레코드 수를 읽는 중 오류가 발생했습니다.\n");
+            setTextColor(7);
             exit(1);
         }
 
         for (int j = 0; j < numRecords; j++) {
             Record* newRecord = (Record*)malloc(sizeof(Record));
             if (newRecord == NULL) {
+                setTextColor(4);
                 fprintf(stderr, "메모리 할당에 실패했습니다.\n");
+                setTextColor(7);
                 exit(1);
             }
 
             if (fscanf(file, "%d %99s %99s\n", &newRecord->amount, newRecord->description, newRecord->date) != 3) {
+                setTextColor(4);
                 fprintf(stderr, "파일에서 데이터를 읽는 중 오류가 발생했습니다.\n");
+                setTextColor(7);
                 free(newRecord);
                 continue;
             }
@@ -659,7 +691,9 @@ Record* loadRecordsFromFile(const char* filename) {
 
             int endMarker;
             if (fscanf(file, "%d\n", &endMarker) != 1 || endMarker != 0) {
+                setTextColor(4);
                 fprintf(stderr, "요소의 끝 표시를 읽는 중 오류가 발생했습니다.\n");
+                setTextColor(7);
                 exit(1);
             }
         }
