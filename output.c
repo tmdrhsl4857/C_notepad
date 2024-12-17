@@ -803,7 +803,7 @@ void printMonthlyDetails(Record* head, int month) {
         printf("%d월의 지출 내역이 없습니다.\n", month);
     }
     setTextColor(4);
-    printf("\n===========================\n");
+    printf("\n============================\n");
     setTextColor(7);
 
     // 상위 메뉴로 복귀
@@ -883,7 +883,8 @@ void printAllIncomes(Record* head) {
         }
         printf(" (%d원)\n", monthlyIncomes[i]);
     }
-    printf("\n======================\n");
+    setTextColor(2);
+    printf("\n========================\n");
     setTextColor(13);
     printf("\n전체 수익 내역\n");
     current = head;
@@ -936,8 +937,8 @@ void printMonthlyIncomes(Record* head, int month) {
             int recordMonth;
             setTextColor(7);
             sscanf(current->date, "%*4d%2d", &recordMonth);
-            setTextColor(10);
             if (recordMonth == month) {
+                setTextColor(10);
                 hasIncome = 1;
                 printf("날짜: %s, 금액: %d원, 이유: %s\n", current->date, current->amount, current->description);
             }
@@ -946,6 +947,7 @@ void printMonthlyIncomes(Record* head, int month) {
     }
 
     if (!hasIncome) {
+        setTextColor(10);
         printf("%d월의 수익 내역이 없습니다.\n", month);
     }
     setTextColor(2);
@@ -969,11 +971,14 @@ void clear_screen() {
 
 // 메뉴 출력
 void display_menu() {
-    printf("\n--- 시간표 프로그램 ---\n");
+    setTextColor(11);
+    printf("\n=== 시간표 프로그램 ===\n");
     printf("1. 시간표 추가 및 수정\n");
     printf("2. 시간표 보기\n");
     printf("3. 시간표 초기화\n");
     printf("4. 프로그램 종료\n");
+    printf("=======================\n");
+    setTextColor(7);
     printf("선택: ");
 }
 
@@ -981,7 +986,9 @@ void display_menu() {
 void save_to_file(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH], const char* filename) {
     FILE* file = fopen(filename, "w");
     if (file == NULL) {
+        setTextColor(4);
         perror("파일 저장 오류");
+        setTextColor(7);
         exit(1);
     }
 
@@ -1050,7 +1057,9 @@ void reset_schedule(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH]) {
             schedule[i][j][0] = '\0'; // 배열 초기화
         }
     }
+    setTextColor(12);
     printf("시간표가 초기화되었습니다.\n");
+    setTextColor(7);
 }
 
 // 시간표 표시
@@ -1079,7 +1088,7 @@ void display_schedule(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH]) {
     int first_col_width = 8; // "1교시" 같은 교시 번호 열의 고정 너비
 
     // 전체 표 출력 시작
-    printf("\n시간표:\n");
+    printf("\n시간표\n");
 
     // 상단 구분선
     printf("┌───────────");
@@ -1157,13 +1166,16 @@ void modify_schedule(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH]) {
     char day[MAX_LENGTH];
     int period;
     char subject[MAX_LENGTH];
-
+    setTextColor(14);
     printf("수정할 시간표를 입력하세요 (예: 월 1 수학): ");
+    setTextColor(7);
     scanf(" %[^\n]", input);
 
     // 입력 파싱
     if (sscanf(input, "%s %d %[^\n]", day, &period, subject) != 3) {
+        setTextColor(12);
         printf("입력 형식이 잘못되었습니다. (예: 월 1 수학)\n");
+        setTextColor(7);
         return;
     }
 
@@ -1177,19 +1189,25 @@ void modify_schedule(char schedule[MAX_DAYS][MAX_PERIODS][MAX_LENGTH]) {
     }
 
     if (day_index == -1) {
+        setTextColor(12);
         printf("잘못된 요일입니다. (월~일 중 하나를 입력하세요)\n");
+        setTextColor(7);
         return;
     }
 
     // 교시 유효성 검사
     if (period < 1 || period > MAX_PERIODS) {
+        setTextColor(12);
         printf("잘못된 교시입니다. (1~%d교시만 입력 가능)\n", MAX_PERIODS);
+        setTextColor(7);
         return;
     }
 
     // 시간표 수정
     strcpy(schedule[day_index][period - 1], subject);
+    setTextColor(14);
     printf("%s %d교시가 %s로 수정되었습니다.\n", days[day_index], period, subject);
+    setTextColor(7);
 }
 
 // 메인 함수
@@ -1222,7 +1240,9 @@ int main_schedule() {
             printf("프로그램을 종료합니다.\n");
             break;
         default:
+            setTextColor(12);
             printf("잘못된 선택입니다. 다시 입력하세요.\n");
+
         }
 
         // 결과를 확인할 시간 제공
@@ -1247,11 +1267,14 @@ int main_todolist() {
 
     clearScreen();
     while (1) {
-        printf("\nTo-Do List\n");
+        setTextColor(11);
+        printf("\n=====To-Do List=====\n");
         printf("1. 목록 보여주기\n");
         printf("2. 상태 업데이트\n");
         printf("3. 나가기\n");
-        printf("옵션을 선택해 주세요: ");
+        printf("====================\n");
+        setTextColor(7);
+        printf("선택: ");
         scanf("%d", &choice);
         getchar(); // Consume the newline character
 
