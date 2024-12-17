@@ -115,7 +115,7 @@ void displayTimetable();
 void runTimetableInputModule();
 void copyDatabaseFile(const char* sourceFile, const char* destFile);
 void loadAccountingData(const char* filename, Record* incomeRecords, int* incomeCount, Record* expenseRecords, int* expenseCount);
-
+void deleteRecord(Record records[], int* count, char* recordType);
 
 int main() {
     ItemList rootList;
@@ -476,7 +476,8 @@ void runAccountingModule(ItemList* rootList) {
             "1. 수익 입력\n"
             "2. 지출 입력\n"
             "3. 수익/지출 내역 보기\n"
-            "4. 종료\n"
+            "4. 수익/지출 삭제\n"
+            "5. 종료\n"
             "===========================================\n");
         printf("선택: ");
         int moduleChoice;
@@ -536,26 +537,44 @@ void runAccountingModule(ItemList* rootList) {
             printf("\n아무 키나 누르면 계속합니다...");
             getchar();
             break;
-
         case 4: {
-            // 코드 블록 추가
+            printf("\n1. 수익 삭제\n2. 지출 삭제\n선택: ");
+            int deleteChoice;
+            scanf("%d", &deleteChoice);
+            getchar();
+
+            if (deleteChoice == 1) {
+                deleteRecord(incomeRecords, &incomeCount, "수익");
+            }
+            else if (deleteChoice == 2) {
+                deleteRecord(expenseRecords, &expenseCount, "지출");
+            }
+            else {
+                printf("잘못된 선택입니다.\n");
+            }
+            break;
+        }
+        case 5: {
             FILE* file = fopen("database.txt", "w");
             if (file) {
-                fprintf(file, "2\n+%d\n", incomeCount);
+                fprintf(file, "2\n+\n%d\n", incomeCount); // 수익 정보 저장
                 for (int i = 0; i < incomeCount; i++) {
                     fprintf(file, "%d %s %s\n0\n", incomeRecords[i].amount, incomeRecords[i].description, incomeRecords[i].date);
                 }
-                fprintf(file, "-%d\n", expenseCount);
+                fprintf(file, "-\n%d\n", expenseCount); // 지출 정보 저장
                 for (int i = 0; i < expenseCount; i++) {
                     fprintf(file, "%d %s %s\n0\n", expenseRecords[i].amount, expenseRecords[i].description, expenseRecords[i].date);
                 }
                 fclose(file);
+                copyDatabaseFile("database.txt", "database_budget.txt");
                 printf("모든 데이터가 저장되었습니다.\n");
+                
+                exit(0);
             }
             else {
                 printf("파일 저장 중 오류가 발생했습니다.\n");
             }
-            return;
+            
         }
         default:
             printf("잘못된 선택입니다. 다시 입력해주세요.\n");
@@ -738,9 +757,10 @@ void runTodolistModule() {
             deleteTodo();
             break;
         case 4:
-            saveTodoListToFile("database_todolist.txt", todos, todoCount);
+            saveTodoListToFile("database.txt", todos, todoCount);
+            copyDatabaseFile("database.txt", "database_todolist.txt");
             printf("ToDoList 데이터를 저장하고 종료합니다.\n");
-            return;
+            exit(0);
             break;
         default:
             printf("잘못된 선택입니다. 다시 입력하세요.\n");
@@ -864,34 +884,8 @@ void handleModuleChoice(ItemList* rootList) {
             // 모듈 데이터베이스 파일 선택
             snprintf(moduleFilename, sizeof(moduleFilename), "%s", moduleNames[moduleChoice - '1']);
 
-            // 사용자 선택
-            int loadChoice;
-            printf("\n1. database.txt 초기화 및 실행\n");
-            printf("2. %s 불러와 실행\n", moduleFilename);
-            printf("선택: ");
-            scanf("%d", &loadChoice);
-            clearInputBuffer();
-
-            if (loadChoice == 1) {
-                printf("database.txt 초기화 후 모듈을 실행합니다...\n");
-                FILE* file = fopen("database.txt", "w");
-                if (file) {
-                    fclose(file);
-                    printf("database.txt 초기화 완료.\n");
-                }
-                else {
-                    fprintf(stderr, "파일 초기화 실패!\n");
-                    return;
-                }
-            }
-            else if (loadChoice == 2) {
-                printf("%s에서 정보를 불러옵니다...\n", moduleFilename);
-                copyDatabaseFile(moduleFilename, "database.txt");
-            }
-            else {
-                fprintf(stderr, "잘못된 선택입니다.\n");
-                continue;
-            }
+            printf("%s에서 정보를 불러옵니다...\n", moduleFilename);
+            copyDatabaseFile(moduleFilename, "database.txt");
 
             // 모듈 실행
             switch (moduleChoice) {
@@ -1343,15 +1337,48 @@ void loadAccountingData(const char* filename, Record* incomeRecords, int* income
     }
 
     // 지출 데이터 읽기
+   // 지출 데이터 읽기
     if (fscanf(file, " %c", &type) == 1 && type == '-') {
-        fscanf(file, "%d", expenseCount);
-        for (int i = 0; i < *expenseCount; i++) {
-            fscanf(file, "%d %s %s", &expenseRecords[i].amount, expenseRecords[i].description, expenseRecords[i].date);
-            expenseRecords[i].type = '-'; // type 필드 설정
-            fscanf(file, "%*d"); // '0' 읽기 (구분자)
+        if (fscanf(file, "%d", expenseCount) == 1) {
+            for (int i = 0; i < *expenseCount; i++) {
+                if (fscanf(file, "%d %s %s", &expenseRecords[i].amount, expenseRecords[i].description, expenseRecords[i].date) == 3) {
+                    expenseRecords[i].type = '-';
+                    fscanf(file, "%*d"); // '0' 구분자 처리
+                }
+            }
         }
     }
 
     fclose(file);
     printf("데이터를 성공적으로 불러왔습니다: %s\n", filename);
 }
+
+void deleteRecord(Record records[], int* count, char* recordType) {
+    if (*count == 0) {
+        printf("삭제할 %s 항목이 없습니다.\n", recordType);
+        return;
+    }
+
+    printf("\n========== %s 내역 ==========\n", recordType);
+    for (int i = 0; i < *count; i++) {
+        printf("%d. 금액: %d, 출처: %s, 날짜: %s\n", i + 1, records[i].amount, records[i].description, records[i].date);
+    }
+
+    printf("\n삭제할 항목 번호를 입력하세요 (0 입력 시 취소): ");
+    int deleteIndex;
+    scanf("%d", &deleteIndex);
+    getchar();
+
+    if (deleteIndex <= 0 || deleteIndex > *count) {
+        printf("잘못된 선택입니다. 삭제를 취소합니다.\n");
+        return;
+    }
+
+    // 삭제 처리: 선택한 항목 뒤의 데이터를 앞으로 옮김
+    for (int i = deleteIndex - 1; i < *count - 1; i++) {
+        records[i] = records[i + 1];
+    }
+    (*count)--;
+    printf("%s 항목이 삭제되었습니다.\n", recordType);
+}
+
