@@ -69,10 +69,10 @@ int main() {
             clearScreen(); // 잘못된 입력 후 화면 지우기
             continue;
         }
+        
+        system("clear || cls");
 
         while (getchar() != '\n');  // 버퍼 비우기
-
-        
 
         switch (choice) {
         case 1:
