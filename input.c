@@ -907,7 +907,7 @@ void cleanup(ItemList* list) {
 void printBanner(const char* title) {
     setTextColor(14); // 노란색
     printf("\n=================================\n");
-    printf("||%-33s||\n", title);
+    printf("||%-29s||\n", title);
     printf("=================================\n\n");
     setTextColor(7); // 기본 색상
 }
