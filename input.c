@@ -907,7 +907,7 @@ void cleanup(ItemList* list) {
 void printBanner(const char* title) {
     setTextColor(14); // 노란색
     printf("\n=================================\n");
-    printf("||%-29s||\n", title);
+    printf("||%-33s||\n", title);
     printf("=================================\n\n");
     setTextColor(7); // 기본 색상
 }
@@ -927,8 +927,9 @@ void printMenu() {
     printf("4. 항목 선택\n");
     printf("5. 종료\n");
     printf("n. 사용 가능한 모듈\n");
-    setTextColor(7); // 기본 색상
-    printf("==========================\n");
+    setTextColor(14); // 기본 색상
+    printf("=================================\n");
+    setTextColor(7);
 }
 
 
@@ -937,6 +938,7 @@ void handleModuleChoice(ItemList* rootList) {
         clearScreen();
         printBanner("사용 가능한 모듈");
         printAvailableModules();
+        setTextColor(15);
         printf("\n모듈을 선택하세요 (1, 2, 3, 4, q=종료): ");
 
         char moduleChoice;
@@ -958,8 +960,9 @@ void handleModuleChoice(ItemList* rootList) {
 
             // 모듈 데이터베이스 파일 선택
             snprintf(moduleFilename, sizeof(moduleFilename), "%s", moduleNames[moduleChoice - '1']);
-
+            setTextColor(14);
             printf("%s에서 정보를 불러옵니다...\n", moduleFilename);
+            setTextColor(7);
             copyDatabaseFile(moduleFilename, "database.txt");
 
             // 모듈 실행
@@ -971,13 +974,15 @@ void handleModuleChoice(ItemList* rootList) {
             }
         }
         else if (moduleChoice == 'q' || moduleChoice == 'Q') {
-            printf("모듈 선택을 종료합니다.\n");
+            printf("모듈 선택을 종료합니다.");
             printf("\n아무 키나 누르면 계속합니다...");
             dummy = getchar();
             break;
         }
         else {
+            setTextColor(12);
             fprintf(stderr, "잘못된 선택입니다. 다시 시도해주세요.\n");
+
             printf("\n아무 키나 누르면 계속합니다...");
             dummy = getchar();
         }
@@ -987,7 +992,9 @@ void handleModuleChoice(ItemList* rootList) {
 void loadFromFile() {
     FILE* file = fopen("database_kcal.txt", "r");
     if (!file) {
+        setTextColor(4);
         printf("파일을 불러올 수 없습니다: database_kcal.txt\n");
+        setTextColor(7);
         printf("\n아무 키나 누르면 계속합니다...");
         dummy = getchar();
         return;
@@ -1004,7 +1011,9 @@ void loadFromFile() {
 
     // 파일 검증
     if (fgets(line, sizeof(line), file) == NULL || line[0] != '1') {
+        setTextColor(4);
         printf("잘못된 파일 형식입니다.\n");
+        setTextColor(7);
         fclose(file);
         printf("\n아무 키나 누르면 계속합니다...");
         dummy = getchar();
@@ -1012,7 +1021,9 @@ void loadFromFile() {
     }
 
     if (fgets(line, sizeof(line), file) == NULL || strncmp(line, "kcal", 4) != 0) {
+        setTextColor(4);
         printf("kcal 데이터 형식이 아닙니다.\n");
+        setTextColor(7);
         fclose(file);
         printf("\n아무 키나 누르면 계속합니다...");
         dummy = getchar();
@@ -1021,7 +1032,9 @@ void loadFromFile() {
 
     // 데이터 개수 읽기
     if (fscanf(file, "%d", &recordCount) != 1 || recordCount <= 0) {
+        setTextColor(4);
         printf("잘못된 데이터 개수입니다.\n");
+        setTextColor(7);
         fclose(file);
         printf("\n아무 키나 누르면 계속합니다...");
         dummy = getchar();
@@ -1038,7 +1051,9 @@ void loadFromFile() {
     }
 
     fclose(file);
+    setTextColor(10);
     printf("데이터가 성공적으로 불러와졌습니다.\n");
+    setTextColor(7);
     printf("\n아무 키나 누르면 계속합니다...");
     dummy = getchar();
 }
@@ -1052,10 +1067,12 @@ void clearInputBuffer() {
 // 연결리스트에 저장된 데이터를 출력하는 함수
 void printKcalData() {
     if (!head) {
+        setTextColor(12);
         printf("저장된 데이터가 없습니다.\n");
+        setTextColor(7);
         return;
     }
-
+    setTextColor(6);
     printf("\n==== 저장된 데이터 ====\n");
     KcalRecord* temp = head;
     while (temp) {
@@ -1063,13 +1080,15 @@ void printKcalData() {
         temp = temp->next;
     }
     printf("========================\n");
-
+    setTextColor(7);
     printf("\n출력이 완료되었습니다.\n");
     getchar(); // 대기
 }
 
 void handleInvalidInput() {
+    setTextColor(12);
     fprintf(stderr, "잘못된 입력입니다. 다시 시도해주세요.\n");
+    setTextColor(7);
     clearInputBuffer_();
 }
 
@@ -1161,13 +1180,14 @@ void runKcalInputModule() {
 
     while (1) {
         clearScreen();
-
+        setTextColor(11);
         printf("\n==== 칼로리 입력 모듈 ====\n");
         printf("1. 데이터 입력\n");
         printf("2. 입력 데이터 출력\n");
         printf("3. 데이터 삭제\n");
         printf("4. 프로그램 종료\n");
         printf("==========================\n");
+        setTextColor(7);
 
         int choice;
         printf("\n선택: ");
@@ -1181,24 +1201,33 @@ void runKcalInputModule() {
             char foodName[MAX_NAME_LEN];
             int calories;
             char date[MAX_DATE_LEN];
-
+            setTextColor(6);
             printf("음식 이름: ");
+            setTextColor(7);
             scanf(" %[^\n]", foodName);
+            setTextColor(12);
             printf("칼로리: ");
+            setTextColor(7);
             if (scanf("%d", &calories) != 1 || calories < 0) {
                 handleInvalidInput();
                 continue;
             }
+            setTextColor(13);
             printf("날짜 (YYYYMMDD): ");
+            setTextColor(7);
             scanf(" %[^\n]", date);
 
             if (!isValidDate(date)) {
+                setTextColor(12);
                 printf("유효하지 않은 날짜 형식입니다.\n");
+                setTextColor(7);
                 continue;
             }
 
             addKcalRecord(foodName, calories, date);
+            setTextColor(10);
             printf("데이터가 추가되었습니다.\n");
+            setTextColor(7);
             getchar();
             break;
         }
@@ -1207,21 +1236,31 @@ void runKcalInputModule() {
             break;
         case 3: { // 데이터 삭제
             if (!head) {
+                setTextColor(12);
                 printf("삭제할 데이터가 없습니다.\n");
+                setTextColor(7);
                 break;
             }
             char foodName[MAX_NAME_LEN];
             char date[MAX_DATE_LEN];
+            setTextColor(4);
             printf("삭제할 음식 이름: ");
+            setTextColor(7);
             scanf(" %[^\n]", foodName);
+            setTextColor(12);
             printf("삭제할 날짜 (YYYYMMDD): ");
+            setTextColor(7);
             scanf(" %[^\n]", date);
 
             if (deleteKcalRecord(foodName, date)) {
+                setTextColor(12);
                 printf("데이터가 성공적으로 삭제되었습니다.\n");
+                setTextColor(7);
             }
             else {
+                setTextColor(12);
                 printf("삭제할 데이터를 찾을 수 없습니다.\n");
+                setTextColor(7);
             }
             break;
         }
@@ -1232,7 +1271,9 @@ void runKcalInputModule() {
             printf("프로그램을 종료합니다.\n");
             exit(0);
         default:
+            setTextColor(12);
             printf("잘못된 선택입니다. 다시 입력해주세요.\n");
+            setTextColor(7);
 
         }
         printf("\n아무 키나 누르면 계속합니다...\n");
