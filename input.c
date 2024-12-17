@@ -98,10 +98,7 @@ void printBanner(const char* title);
 void setTextColor(int color);
 void printMenu();
 void handleModuleChoice(ItemList* rootList);
-
 void loadFromFile();
-
-
 void clearInputBuffer();
 void handleInvalidInput();
 void clearInputBuffer_();
@@ -112,12 +109,11 @@ void saveToFile();
 void freeMemory();
 void runKcalInputModule();
 int deleteKcalRecord(const char* foodName, const char* date);
-
-
 void resetTimetable();
 void saveTimetableToFile();
 void inputTimetable();
 void displayTimetable();
+void loadTimetableFromFile(const char* filename);
 void runTimetableInputModule();
 void copyDatabaseFile(const char* sourceFile, const char* destFile);
 void loadAccountingData(const char* filename, Record* incomeRecords, int* incomeCount, Record* expenseRecords, int* expenseCount);
@@ -1264,7 +1260,8 @@ void inputTimetable() {
     }
 
     strcpy(schedule[dayIndex][period - 1], subject);
-    printf("%s %d교시가 %s로 저장되었습니다.\n", days[dayIndex], period, subject);
+    printf("\n%s %d교시가 %s로 저장되었습니다.\n", days[dayIndex], period, subject);
+    getchar();
 }
 
 // 시간표 출력
@@ -1280,29 +1277,46 @@ void displayTimetable() {
     printf("=====================\n");
 }
 
-// 시간표 입력 모듈 실행
+void loadTimetableFromFile(const char* filename) {
+    FILE* file = fopen(filename, "r");
+    if (!file) {
+        fprintf(stderr, "파일을 열 수 없습니다: %s\n", filename);
+        return;
+    }
+
+    resetTimetable(); // 기존 데이터 초기화
+    int count;
+    fscanf(file, "%d\n", &count); // 총 데이터 개수 읽기
+
+    char day[MAX_LENGTH];
+    int period;
+    char subject[MAX_LENGTH];
+
+    for (int i = 0; i < count; i++) {
+        if (fscanf(file, "%s %d교시: %[^\n]\n", day, &period, subject) == 3) {
+            // 요일 매칭
+            int dayIndex = -1;
+            for (int j = 0; j < MAX_DAYS; j++) {
+                if (strcmp(day, days[j]) == 0) {
+                    dayIndex = j;
+                    break;
+                }
+            }
+            if (dayIndex != -1 && period >= 1 && period <= MAX_PERIODS) {
+                strcpy(schedule[dayIndex][period - 1], subject);
+            }
+        }
+        fscanf(file, "%*d"); // '0' 처리
+    }
+
+    fclose(file);
+    printf("데이터를 불러왔습니다: %s\n", filename);
+}
+
 void runTimetableInputModule() {
-    char resetChoice;
-
-    // 경고 문구 추가
-    printf("시간표 입력 모듈 실행 시 기존 데이터를 초기화할 수 있습니다. 초기화하시겠습니까? (Y/N): ");
-    scanf(" %c", &resetChoice);
-    clearInputBuffer_();
-
-    if (resetChoice == 'Y' || resetChoice == 'y') {
-        resetTimetable(); // 시간표 초기화
-    }
-    else if (resetChoice == 'N' || resetChoice == 'n') {
-        printf("선택을 취소하고 초기 화면으로 돌아갑니다.\n");
-        return; // 초기 화면으로 돌아가기
-    }
-    else {
-        fprintf(stderr, "잘못된 선택입니다. 다시 시도해주세요.\n");
-        return; // 초기 화면으로 돌아가기
-    }
-
     int choice;
-
+    loadTimetableFromFile("database_schedule.txt");
+    
     while (1) {
         clearScreen();
         printf("\n==== 시간표 입력 모듈 ====\n");
@@ -1313,7 +1327,7 @@ void runTimetableInputModule() {
         printf("==========================\n");
         printf("선택: ");
         scanf("%d", &choice);
-        clearInputBuffer_(); // 입력 버퍼 비우기
+        clearInputBuffer_();
 
         switch (choice) {
         case 1:
@@ -1328,13 +1342,16 @@ void runTimetableInputModule() {
         case 4:
             saveTimetableToFile();
             copyDatabaseFile("database.txt", "database_schedule.txt");
-            printf("프로그램을 종료합니다.\n");
-            exit(0); // 프로그램 종료
+            printf("시간표를 저장하고 종료합니다.\n");
+            exit(0);
         default:
             fprintf(stderr, "잘못된 선택입니다. 다시 시도해주세요.\n");
         }
+        printf("\nEnter 키를 누르면 계속...");
+        getchar();
     }
 }
+
 
 void copyDatabaseFile(const char* sourceFile, const char* destFile) {
     FILE* source, * dest;
