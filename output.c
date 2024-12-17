@@ -1242,7 +1242,7 @@ int main_schedule() {
         default:
             setTextColor(12);
             printf("잘못된 선택입니다. 다시 입력하세요.\n");
-
+            setTextColor(7);
         }
 
         // 결과를 확인할 시간 제공
@@ -1281,7 +1281,9 @@ int main_todolist() {
         switch (choice) {
         case 1:
             system("cls"); // Clear the screen (use "cls" for Windows)
+            setTextColor(14);
             printf("\n정렬 방식:\n1. 날짜\n2. 유형\n3. 내용\n4. 상태\n옵션을 선택해 주세요: ");
+            setTextColor(7);
             int sortBy;
             scanf("%d", &sortBy);
             getchar(); // Consume the newline character
@@ -1295,7 +1297,9 @@ int main_todolist() {
             saveTasksToFile(tasks, taskCount, "database.txt");
             return 0;
         default:
+            setTextColor(12);
             printf("잘못된 입력입니다. 다시 시도해주세요.\n");
+            setTextColor(7);
         }
     }
 }
@@ -1303,7 +1307,9 @@ int main_todolist() {
 void loadTasksFromFile(Task tasks[], int* taskCount, const char* filename) {
     FILE* file = fopen(filename, "r");
     if (file == NULL) {
+        setTextColor(4);
         printf("%s 파일을 읽기 형태로 열 수 없습니다.\n", filename);
+        setTextColor(7);
         return;
     }
 
@@ -1314,7 +1320,9 @@ void loadTasksFromFile(Task tasks[], int* taskCount, const char* filename) {
         int endMarker;
         fscanf(file, "%d\n", &endMarker); // Read the end marker (0)
         if (endMarker != 0) {
+            setTextColor(4);
             printf("파일 형식이 잘못되었습니다. 마무리 문자 '0'이 없습니다.\n");
+            setTextColor(7);
             fclose(file);
             return;
         }
@@ -1326,7 +1334,9 @@ void loadTasksFromFile(Task tasks[], int* taskCount, const char* filename) {
 void saveTasksToFile(const Task tasks[], int taskCount, const char* filename) {
     FILE* file = fopen(filename, "w");
     if (file == NULL) {
+        setTextColor(4);
         printf("%s 파일을 쓰기 형태로 열 수 없습니다.\n", filename);
+        setTextColor(7);
         return;
     }
 
@@ -1346,7 +1356,9 @@ void saveTasksToFile(const Task tasks[], int taskCount, const char* filename) {
 void printTasks(const Task tasks[], int taskCount) {
     system("cls"); // Clear the screen (use "cls" for Windows)
     if (taskCount == 0) {
+        setTextColor(12);
         printf("목록이 존재하지 않습니다.\n");
+        setTextColor(7);
         return;
     }
 
@@ -1361,22 +1373,29 @@ void printTasks(const Task tasks[], int taskCount) {
 void updateTaskStatus(Task tasks[], int taskCount) {
     system("cls"); // Clear the screen (use "cls" for Windows)
     if (taskCount == 0) {
+        setTextColor(12);
         printf("업데이트 할 목록이 없습니다..\n");
+        setTextColor(7);
         return;
     }
 
     printTasks(tasks, taskCount);
+    setTextColor(14);
     printf("\n상태를 업데이트 하고 싶은 목록의 번호를 입력하세요. (1 to %d): ", taskCount);
+    setTextColor(7);
     int index;
     scanf("%d", &index);
     getchar(); // Consume the newline character
 
     if (index < 1 || index > taskCount) {
+        setTextColor(12);
         printf("잘못된 번호 입니다.\n");
+        setTextColor(7);
         return;
     }
-
+    setTextColor(10);
     printf("\n새로운 상태를 입력하세요 (1: 준비, 2: 진행, 3: 완료, 4: 보관): ");
+    setTextColor(7);
     int statusChoice;
     scanf("%d", &statusChoice);
     getchar(); // Consume the newline character
@@ -1395,7 +1414,9 @@ void updateTaskStatus(Task tasks[], int taskCount) {
         strcpy(tasks[index - 1].status, "보관");
         break;
     default:
+        setTextColor(12);
         printf("잘못된 선택입니다.\n");
+        setTextColor(7);
         return;
     }
 
@@ -1446,7 +1467,9 @@ void sortTasks(Task tasks[], int taskCount, int sortBy) {
         qsort(tasks, taskCount, sizeof(Task), compareByStatus);
         break;
     default:
+        setTextColor(12);
         printf("잘못된 선택입니다.\n");
+        setTextColor(7);
     }
 }
 
