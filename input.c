@@ -98,6 +98,10 @@ void printBanner(const char* title);
 void setTextColor(int color);
 void printMenu();
 void handleModuleChoice(ItemList* rootList);
+
+void loadFromFile();
+
+
 void clearInputBuffer();
 void handleInvalidInput();
 void clearInputBuffer_();
@@ -108,6 +112,8 @@ void saveToFile();
 void freeMemory();
 void runKcalInputModule();
 int deleteKcalRecord(const char* foodName, const char* date);
+
+
 void resetTimetable();
 void saveTimetableToFile();
 void inputTimetable();
@@ -903,12 +909,75 @@ void handleModuleChoice(ItemList* rootList) {
         }
         else if (moduleChoice == 'q' || moduleChoice == 'Q') {
             printf("모듈 선택을 종료합니다.\n");
+            printf("\n아무 키나 누르면 계속합니다...");
+            dummy = getchar();
             break;
         }
         else {
             fprintf(stderr, "잘못된 선택입니다. 다시 시도해주세요.\n");
+            printf("\n아무 키나 누르면 계속합니다...");
+            dummy = getchar();
         }
     }
+}
+
+void loadFromFile() {
+    FILE* file = fopen("database_kcal.txt", "r");
+    if (!file) {
+        printf("파일을 불러올 수 없습니다: database_kcal.txt\n");
+        printf("\n아무 키나 누르면 계속합니다...");
+        dummy = getchar();
+        return;
+    }
+
+    freeMemory(); // 기존 연결리스트 초기화
+    head = NULL;
+
+    int recordCount;
+    char line[256];
+    char foodName[MAX_NAME_LEN];
+    int calories;
+    char date[MAX_DATE_LEN];
+
+    // 파일 검증
+    if (fgets(line, sizeof(line), file) == NULL || line[0] != '1') {
+        printf("잘못된 파일 형식입니다.\n");
+        fclose(file);
+        printf("\n아무 키나 누르면 계속합니다...");
+        dummy = getchar();
+        return;
+    }
+
+    if (fgets(line, sizeof(line), file) == NULL || strncmp(line, "kcal", 4) != 0) {
+        printf("kcal 데이터 형식이 아닙니다.\n");
+        fclose(file);
+        printf("\n아무 키나 누르면 계속합니다...");
+        dummy = getchar();
+        return;
+    }
+
+    // 데이터 개수 읽기
+    if (fscanf(file, "%d", &recordCount) != 1 || recordCount <= 0) {
+        printf("잘못된 데이터 개수입니다.\n");
+        fclose(file);
+        printf("\n아무 키나 누르면 계속합니다...");
+        dummy = getchar();
+        return;
+    }
+    fgetc(file); // 개행 문자 처리
+
+    // 데이터 읽어서 연결리스트에 저장
+    for (int i = 0; i < recordCount; i++) {
+        if (fgets(line, sizeof(line), file) && sscanf(line, "%s %d %s", foodName, &calories, date) == 3) {
+            addKcalRecord(foodName, calories, date);
+        }
+        fgets(line, sizeof(line), file); // '0' 읽기
+    }
+
+    fclose(file);
+    printf("데이터가 성공적으로 불러와졌습니다.\n");
+    printf("\n아무 키나 누르면 계속합니다...");
+    dummy = getchar();
 }
 
 
@@ -931,7 +1000,8 @@ void printKcalData() {
         temp = temp->next;
     }
     printf("========================\n");
-    printf("\n출력이 완료되었습니다. 아무 키나 누르면 계속합니다...\n");
+
+    printf("\n출력이 완료되었습니다.\n");
     getchar(); // 대기
 }
 
@@ -1024,22 +1094,7 @@ void freeMemory() {
 void runKcalInputModule() {
     char resetChoice;
 
-    printf("칼로리 입력 모듈 실행 시 기존 데이터를 초기화할 수 있습니다. 초기화하시겠습니까? (Y/N): ");
-    scanf(" %c", &resetChoice);
-    while (getchar() != '\n'); // 입력 버퍼 비우기
-
-    if (resetChoice == 'Y' || resetChoice == 'y') {
-        printf("기존 데이터가 초기화되었습니다. 새로운 데이터를 입력하세요.\n");
-        freeMemory(); // 기존 연결리스트 초기화
-    }
-    else if (resetChoice == 'N' || resetChoice == 'n') {
-        printf("선택을 취소하고 초기 화면으로 돌아갑니다.\n");
-        return;
-    }
-    else {
-        fprintf(stderr, "잘못된 선택입니다. 다시 시도해주세요.\n");
-        return;
-    }
+    loadFromFile();
 
     while (1) {
         clearScreen();
@@ -1054,62 +1109,50 @@ void runKcalInputModule() {
         int choice;
         printf("\n선택: ");
         if (scanf("%d", &choice) != 1) {
-            fprintf(stderr, "잘못된 입력입니다. 다시 시도해주세요.\n");
-            while (getchar() != '\n'); // 입력 버퍼 비우기
+            handleInvalidInput();
             continue;
         }
-        while (getchar() != '\n'); // 입력 버퍼 비우기
 
-        if (choice == 4) {
-            saveToFile(); // 종료 시 데이터 파일에 저장
-            copyDatabaseFile("database.txt", "database_kcal.txt");
-            freeMemory(); // 메모리 해제
-            printf("프로그램을 종료합니다.\n");
-            exit(0); // 프로그램 종료
-        }
-        else if (choice == 1) {
+        switch (choice) {
+        case 1: { // 데이터 입력
             char foodName[MAX_NAME_LEN];
             int calories;
             char date[MAX_DATE_LEN];
 
             printf("음식 이름: ");
-            fgets(foodName, MAX_NAME_LEN, stdin);
-            foodName[strcspn(foodName, "\n")] = '\0'; // 개행 문자 제거
-
+            scanf(" %[^\n]", foodName);
             printf("칼로리: ");
             if (scanf("%d", &calories) != 1 || calories < 0) {
-                fprintf(stderr, "잘못된 입력입니다. 다시 시도해주세요.\n");
-                while (getchar() != '\n'); // 입력 버퍼 비우기
+                handleInvalidInput();
                 continue;
             }
-            while (getchar() != '\n'); // 입력 버퍼 비우기
-
             printf("날짜 (YYYYMMDD): ");
-            fgets(date, MAX_DATE_LEN, stdin);
-            date[strcspn(date, "\n")] = '\0'; // 개행 문자 제거
+            scanf(" %[^\n]", date);
+
             if (!isValidDate(date)) {
-                fprintf(stderr, "잘못된 날짜 형식입니다. 다시 입력해주세요.\n");
+                printf("유효하지 않은 날짜 형식입니다.\n");
                 continue;
             }
 
-            addKcalRecord(foodName, calories, date); // 연결리스트에 추가
-            printf("입력된 데이터: %s - %d kcal - %s\n", foodName, calories, date);
+            addKcalRecord(foodName, calories, date);
+            printf("데이터가 추가되었습니다.\n");
+            getchar();
+            break;
         }
-        else if (choice == 2) {
-            printKcalData(); // 저장된 데이터를 출력
-        }
-        else if (choice == 3) {
+        case 2: // 데이터 출력
+            printKcalData();
+            break;
+        case 3: { // 데이터 삭제
+            if (!head) {
+                printf("삭제할 데이터가 없습니다.\n");
+                break;
+            }
             char foodName[MAX_NAME_LEN];
             char date[MAX_DATE_LEN];
-
-            printf("(주의: 같은 이름과 날짜를 지닌 음식이 있다면 먼저 작성된 요소가 삭제됩니다.)\n\n");
-
-            printf("삭제할 데이터의 음식 이름: ");
-            fgets(foodName, MAX_NAME_LEN, stdin);
-            foodName[strcspn(foodName, "\n")] = '\0'; // 개행 문자 제거
-            printf("삭제할 데이터의 날짜 (YYYYMMDD): ");
-            fgets(date, MAX_DATE_LEN, stdin);
-            date[strcspn(date, "\n")] = '\0'; // 개행 문자 제거
+            printf("삭제할 음식 이름: ");
+            scanf(" %[^\n]", foodName);
+            printf("삭제할 날짜 (YYYYMMDD): ");
+            scanf(" %[^\n]", date);
 
             if (deleteKcalRecord(foodName, date)) {
                 printf("데이터가 성공적으로 삭제되었습니다.\n");
@@ -1117,12 +1160,23 @@ void runKcalInputModule() {
             else {
                 printf("삭제할 데이터를 찾을 수 없습니다.\n");
             }
+            break;
         }
-        else {
-            fprintf(stderr, "잘못된 선택입니다. 다시 입력해주세요.\n");
+        case 4: // 종료
+            saveToFile();
+            copyDatabaseFile("database.txt", "database_kcal.txt");
+            freeMemory();
+            printf("프로그램을 종료합니다.\n");
+            exit(0);
+        default:
+            printf("잘못된 선택입니다. 다시 입력해주세요.\n");
+            
         }
+        printf("\n아무 키나 누르면 계속합니다...\n");
+        getchar();
     }
 }
+
 
 int deleteKcalRecord(const char* foodName, const char* date) {
     if (!head) return 0; // 데이터가 비어있으면 삭제 불가
@@ -1145,7 +1199,6 @@ int deleteKcalRecord(const char* foodName, const char* date) {
     }
     return 0; // 삭제 실패
 }
-
 
 // 시간표 초기화
 void resetTimetable() {
