@@ -41,6 +41,10 @@ typedef struct Todo {
     int status;               // 상태: 0: 준비, 1: 진행, 2: 완료, 3: 보관
 } Todo;
 
+// 전역 변수
+Todo todos[MAX_TODOS];
+int todoCount = 0;
+
 #define MAX_NAME_LEN 50
 #define MAX_DATE_LEN 10
 #define MAX_RECORDS 100
@@ -82,12 +86,11 @@ void loadItemListFromFile(ItemList* list, FILE* file);
 void loadDatabaseFromFile(const char* filename, ItemList* rootList);
 void printAvailableModules();
 void runAccountingModule(ItemList* rootList);
-void loadTodoListFromFile(const char* filename, Todo todos[], int* count);
-void saveTodoListToFile(const char* filename, Todo todos[], int count);
-void printTodoList(Todo todos[], int count);
-void addTodo(Todo todos[], int* count);
-void updateTodoStatus(Todo todos[], int count);
-void editTodo(Todo todos[], int* count);
+void loadTodoListFromFile();
+void saveTodoListToFile();
+void addTodo();
+void displayTodos();
+void deleteTodo();
 void runTodolistModule();
 void navigateItem(Item* item);
 void cleanup(ItemList* list);
@@ -560,307 +563,187 @@ void runAccountingModule(ItemList* rootList) {
     }
 }
 
-// ToDolist 데이터 로드 함수
+// 데이터 불러오기 함수
+// 파일에서 Todo 데이터를 불러오는 함수
 void loadTodoListFromFile(const char* filename, Todo todos[], int* count) {
     FILE* file = fopen(filename, "r");
     if (file == NULL) {
-        setTextColor(4);
-        printf("저장된 ToDolist 파일이 없거나 파일을 열 수 없습니다.\n");
-        setTextColor(7);
+        printf("저장된 파일이 없거나 열 수 없습니다: %s\n", filename);
         return;
     }
-    *count = 0;
-    while (fscanf(file, "%s %s %[^\n] %d", todos[*count].date, todos[*count].type, todos[*count].task, &todos[*count].status) == 4) {
-        (*count)++;
+
+    // 데이터 개수 읽기
+    if (fscanf(file, "%d\n", count) != 1 || *count < 0) {
+        printf("잘못된 파일 형식입니다.\n");
+        fclose(file);
+        return;
+    }
+
+    // Todo 데이터를 구조체 배열에 읽어오기
+    for (int i = 0; i < *count; i++) {
+        if (fscanf(file, "%s %s %[^\n] %d",
+            todos[i].date,
+            todos[i].type,
+            todos[i].task,
+            &todos[i].status) != 4) {
+            printf("데이터를 읽는 중 오류 발생 (항목 %d)\n", i + 1);
+            fclose(file);
+            return;
+        }
+        fscanf(file, "%*d\n"); // 요소 끝의 '0' 무시
     }
     fclose(file);
+    printf("파일에서 %d개의 항목을 불러왔습니다.\n", *count);
+
+    printf("\n\n아무 키나 입력해주세요...");
+    getchar();
 }
 
-// Todolist 데이터 저장 함수
+// Todo 데이터를 파일에 저장하는 함수
 void saveTodoListToFile(const char* filename, Todo todos[], int count) {
     FILE* file = fopen(filename, "w");
     if (file == NULL) {
-        setTextColor(4);
-        fprintf(stderr, "ToDolist 파일 저장 실패\n");
-        setTextColor(7);
+        printf("파일을 열 수 없습니다: %s\n", filename);
         return;
     }
 
-    // 파일의 첫 줄에 데이터 개수를 기록
+    // 파일 맨 앞에 항목 개수 기록
     fprintf(file, "%d\n", count);
 
-    // 데이터 저장
+    // Todo 항목 저장
     for (int i = 0; i < count; i++) {
-        fprintf(file, "%s %s %s\n0\n", todos[i].date, todos[i].type, todos[i].task);
+        fprintf(file, "%s %s %s %d\n",
+            todos[i].date,
+            todos[i].type,
+            todos[i].task,
+            todos[i].status);
+        fprintf(file, "0\n"); // 각 항목의 끝에 '0' 추가
     }
-
     fclose(file);
-    setTextColor(4);
-    printf("ToDolist 파일 저장 완료.\n");
-    setTextColor(7);
+    printf("Todo 항목이 파일에 저장되었습니다: %s\n", filename);
 }
 
-// ToDolist 출력 함수
-void printTodoList(Todo todos[], int count) {
-    setTextColor(13);
-    printf("\n========== 할 일 목록 ==========\n");
-    for (int i = 0; i < count; i++) {
-        printf("%d. 날짜: %s, 타입: %s, 내용: %s, 상태: %s\n",
-            i + 1, todos[i].date, todos[i].type, todos[i].task, STATUS_TEXT[todos[i].status]);
-    }
-    printf("\n================================\n");
-    setTextColor(7);
-    printf("\n아무 키나 누르면 계속합니다...");
-    dummy = getchar();
-}
-
-// ToDolist 항목 추가 함수
-void addTodo(Todo todos[], int* count) {
-    if (*count >= MAX_TODOS) {
-        setTextColor(12);
+// 작업 추가 함수
+void addTodo() {
+    if (todoCount >= MAX_TODOS) {
         printf("할 일 목록이 가득 찼습니다!\n");
-        setTextColor(7);
         return;
     }
-    Todo newTodo;
-    setTextColor(1);
-    printf("날짜를 입력해주세요 (예시: 20250101): ");
-    fgets(newTodo.date, sizeof(newTodo.date), stdin);
-    newTodo.date[strcspn(newTodo.date, "\n")] = '\0';
-    setTextColor(13);
-    printf("타입을 입력해주세요 (해야할 것): ");
-    fgets(newTodo.type, sizeof(newTodo.type), stdin);
-    newTodo.type[strcspn(newTodo.type, "\n")] = '\0';
-    setTextColor(15);
+
+    printf("날짜를 입력해주세요 (예: 20240101): ");
+    scanf("%s", todos[todoCount].date);
+    getchar(); // 버퍼 비우기
+
+    printf("타입을 입력해주세요: ");
+    fgets(todos[todoCount].type, NAME_LENGTH, stdin);
+    todos[todoCount].type[strcspn(todos[todoCount].type, "\n")] = '\0';
+
     printf("내용을 입력해주세요: ");
-    fgets(newTodo.task, sizeof(newTodo.task), stdin);
-    newTodo.task[strcspn(newTodo.task, "\n")] = '\0';
-    setTextColor(6);
+    fgets(todos[todoCount].task, NAME_LENGTH, stdin);
+    todos[todoCount].task[strcspn(todos[todoCount].task, "\n")] = '\0';
+
     printf("상태를 선택해주세요 (0: 준비, 1: 진행, 2: 완료, 3: 보관): ");
-    scanf("%d", &newTodo.status);
-    getchar(); // 버퍼 비우기
+    scanf("%d", &todos[todoCount].status);
 
-    if (newTodo.status < 0 || newTodo.status > 3) {
-        setTextColor(4);
-        printf("잘못된 상태 선택입니다. 기본값(준비)으로 설정합니다.\n");
-        newTodo.status = 0; // 기본값: 준비
-    }
+    printf("새로운 작업이 추가되었습니다!\n");
+    todoCount++;
 
-    todos[(*count)++] = newTodo;
-    setTextColor(10);
-    printf("새로운 할 일이 추가되었습니다!\n");
-    setTextColor(7);
-}
-
-// ToDolist 상태 수정 함수
-void updateTodoStatus(Todo todos[], int count) {
-    if (count == 0) {
-        setTextColor(12);
-        printf("수정할 할 일이 없습니다.");
-        setTextColor(7);
-        printf("\n아무 키나 누르면 계속합니다...");
-        dummy = getchar();
-        return;
-    }
-    setTextColor(13);
-    printf("\n========== 할 일 목록 ==========\n");
-    for (int i = 0; i < count; i++) {
-        printf("%d. 날짜: %s, 타입: %s, 내용: %s, 상태: %s\n",
-            i + 1, todos[i].date, todos[i].type, todos[i].task, STATUS_TEXT[todos[i].status]);
-    }
-    printf("\n================================\n");
-    setTextColor(14);
-    printf("상태를 수정할 할 일 번호를 입력하세요 (0을 입력하면 취소됩니다): ");
-    setTextColor(7);
-    int index;
-    scanf("%d", &index);
-    getchar(); // 버퍼 비우기
-    if (index <= 0 || index > count) {
-        setTextColor(12);
-        printf("잘못된 선택이거나 취소를 선택하셨습니다.\n");
-        setTextColor(7);
-        return;
-    }
-    index--; // 배열 인덱스 보정
-    setTextColor(10);
-    printf("새로운 상태를 입력해주세요 (0: 준비, 1: 진행, 2: 완료, 3: 보관): ");
-    setTextColor(7);
-    int newStatus;
-    scanf("%d", &newStatus);
-    getchar(); // 버퍼 비우기
-    if (newStatus < 0 || newStatus > 3) {
-        setTextColor(4);
-        printf("잘못된 상태 선택입니다.\n");
-        setTextColor(7);
-        return;
-    }
-    todos[index].status = newStatus;
-    setTextColor(14);
-    printf("상태가 '%s'로 수정되었습니다.\n", STATUS_TEXT[newStatus]);
-    setTextColor(7);
-}
-
-// ToDolist 항목 수정/삭제 함수
-void editTodo(Todo todos[], int* count) {
-    if (*count == 0) {
-        setTextColor(12);
-        printf("수정할 할 일이 없습니다.");
-        setTextColor(7);
-        printf("\n아무 키나 누르면 계속합니다...");
-        dummy = getchar();
-        return;
-    }
-    setTextColor(13);
-    printf("\n========== 할 일 목록 ==========\n");
-    for (int i = 0; i < count; i++) {
-        printf("%d. 날짜: %s, 타입: %s, 내용: %s, 상태: %s\n",
-            i + 1, todos[i].date, todos[i].type, todos[i].task, STATUS_TEXT[todos[i].status]);
-    }
-    printf("\n================================\n");
-    setTextColor(14);
-    printf("수정 또는 삭제할 할 일 번호를 입력하세요 (0을 입력하면 취소됩니다): ");
-    setTextColor(7);
-    int index;
-    scanf("%d", &index);
-    getchar(); // 버퍼 비우기
-    if (index <= 0 || index > *count) {
-        setTextColor(4);
-        printf("잘못된 선택이거나 취소를 선택하셨습니다.\n");
-        setTextColor(7);
-        return;
-    }
-    index--; // 배열 인덱스 보정
-    setTextColor(14);
-    printf("\n1. 수정");
-    setTextColor(12);
-    printf("\n2. 삭제");
-    setTextColor(7);
-    printf("선택: ");
-    int action;
-    scanf("%d", &action);
+    printf("\n\n아무 키나 입력해주세요...");
     getchar();
-    if (action == 1) {
-        // 수정 기능
-        setTextColor(1);
-        printf("새 날짜를 입력해주세요 (예시: 20250101): ");
-        fgets(todos[index].date, sizeof(todos[index].date), stdin);
-        todos[index].date[strcspn(todos[index].date, "\n")] = '\0';
-        setTextColor(13);
-        printf("새 타입을 입력해주세요: ");
-        fgets(todos[index].type, sizeof(todos[index].type), stdin);
-        todos[index].type[strcspn(todos[index].type, "\n")] = '\0';
-        setTextColor(15);
-        printf("새 내용을 입력해주세요: ");
-        fgets(todos[index].task, sizeof(todos[index].task), stdin);
-        todos[index].task[strcspn(todos[index].task, "\n")] = '\0';
-        setTextColor(6);
-        printf("새 상태를 입력해주세요 (0: 준비, 1: 진행, 2: 완료, 3: 보관): ");
-        setTextColor(7);
-        int newStatus;
-        scanf("%d", &newStatus);
-        getchar();
-        if (newStatus < 0 || newStatus > 3) {
-            setTextColor(4);
-            printf("잘못된 상태 선택입니다.\n");
-            setTextColor(7);
-        }
-        else {
-            todos[index].status = newStatus;
-        }
-        setTextColor(14);
-        printf("할 일이 수정되었습니다.\n");
-        setTextColor(7);
-    }
-    else if (action == 2) {
-        // 삭제 기능
-        for (int i = index; i < *count - 1; i++) {
-            todos[i] = todos[i + 1];
-        }
-        (*count)--;
-        setTextColor(12);
-        printf("할 일이 삭제되었습니다.\n");
-        setTextColor(7);
-    }
-    else {
-        setTextColor(4);
-        printf("잘못된 선택입니다.\n");
-        setTextColor(7);
-    }
+    getchar();
 }
 
-// ToDolist 모듈 실행 함수
-void runTodolistModule() {
-    Todo todos[MAX_TODOS];
-    int todoCount = 0;
-
-    // 데이터 삭제 알림 추가
-    char choice;
-    setTextColor(4);
-    printf("ToDolist 모듈 실행 시 현재 저장 파일이 초기화될 수 있습니다. 진행하시겠습니까? (Y/N): ");
-    setTextColor(7);
-    scanf(" %c", &choice);
-    getchar(); // 버퍼 비우기
-
-    if (choice == 'Y' || choice == 'y') {
-        // 파일 초기화
-        FILE* file = fopen("database.txt", "w");
-        if (file == NULL) {
-            fprintf(stderr, "파일 초기화 실패\n");
-            return;
-        }
-        fprintf(file, "0\n"); // 초기화된 파일은 데이터 개수 0으로 기록
-        fclose(file); // 초기화 후 파일 닫기
-        printf("데이터베이스가 초기화되었습니다.\n");
-    }
-    else {
-        printf("ToDolist 모듈 실행이 취소되었습니다.\n");
+// 작업 보기 함수
+void displayTodos() {
+    if (todoCount == 0) {
+        printf("등록된 작업이 없습니다.\n");
+        printf("\n\n아무 키나 입력해주세요...");
+        getchar();
         return;
     }
 
-    // 초기화 후 데이터 로드
-    loadTodoListFromFile("database.txt", todos, &todoCount);
+    printf("\n==== Todo List ====\n");
+    for (int i = 0; i < todoCount; i++) {
+        printf("%d. 날짜: %s, 타입: %s, 내용: %s, 상태: %s\n",
+            i + 1,
+            todos[i].date,
+            todos[i].type,
+            todos[i].task,
+            STATUS_TEXT[todos[i].status]);
+    }
+    printf("====================\n");
 
-    int choiceMenu;
+    printf("\n\n아무 키나 입력해주세요...");
+    getchar();
+}
+
+// 작업 삭제 함수
+void deleteTodo() {
+    if (todoCount == 0) {
+        printf("삭제할 작업이 없습니다.\n");
+
+        printf("\n\n아무 키나 입력해주세요...");
+        getchar();
+        return;
+    }
+
+    int index;
+    displayTodos();
+    printf("삭제할 작업 번호를 입력하세요: ");
+    scanf("%d", &index);
+
+    if (index < 1 || index > todoCount) {
+        printf("잘못된 작업 번호입니다.\n");
+        return;
+    }
+
+    for (int i = index - 1; i < todoCount - 1; i++) {
+        todos[i] = todos[i + 1];
+    }
+    todoCount--;
+    printf("작업이 삭제되었습니다.\n");
+
+    printf("\n\n아무 키나 입력해주세요...");
+    getchar();
+}
+
+// TodoList 메인 함수
+void runTodolistModule() {
+
+    printf("ToDoList 모듈을 시작합니다.\n");
+
+    // 파일에서 데이터 불러오기
+    loadTodoListFromFile("database_todolist.txt", todos, &todoCount);
+
+    int choice;
     while (1) {
         clearScreen();
-        setTextColor(11);
-        printf("\n========== ToDolist 입력 모듈 ==========\n"
-            "1. 할 일 입력\n"
-            "2. 할 일 목록\n"
-            "3. 상태 수정\n"
-            "4. 할 일 정정(수정 및 삭제)\n"
-            "5. 종료\n"
-            "========================================\n");
-        setTextColor(7);
-        printf("선택: ");
-        scanf("%d", &choiceMenu);
+        printf("\n==== TodoList ====\n");
+        printf("1. 작업 추가\n");
+        printf("2. 작업 보기\n");
+        printf("3. 작업 삭제\n");
+        printf("4. 종료\n");
+        printf("==================\n선택: ");
+        scanf("%d", &choice);
         getchar(); // 버퍼 비우기
 
-        switch (choiceMenu) {
-        case 1:
-            addTodo(todos, &todoCount);
-            saveTodoListToFile("database.txt", todos, todoCount); // 변경 사항 저장
+        switch (choice) {
+        case 1:  // 할 일 추가
+            addTodo();
             break;
         case 2:
-            printTodoList(todos, todoCount);
+            displayTodos();
             break;
         case 3:
-            updateTodoStatus(todos, todoCount);
-            saveTodoListToFile("database.txt", todos, todoCount); // 변경 사항 저장
+            deleteTodo();
             break;
         case 4:
-            editTodo(todos, &todoCount);
-            saveTodoListToFile("database.txt", todos, todoCount); // 변경 사항 저장
+            saveTodoListToFile("database_todolist.txt", todos, todoCount);
+            printf("ToDoList 데이터를 저장하고 종료합니다.\n");
+            return;
             break;
-        case 5:
-            saveTodoListToFile("database.txt", todos, todoCount); // 종료 전에 저장
-            copyDatabaseFile("database.txt", "database_todolist.txt");
-            printf("ToDolist 모듈을 종료합니다. 모든 변경 사항이 저장되었습니다.\n");
-            exit(0);
         default:
-            setTextColor(12);
-            printf("잘못된 선택입니다. 다시 시도해주세요.\n");
-            setTextColor(7);
+            printf("잘못된 선택입니다. 다시 입력하세요.\n");
         }
     }
 }
@@ -1472,4 +1355,3 @@ void loadAccountingData(const char* filename, Record* incomeRecords, int* income
     fclose(file);
     printf("데이터를 성공적으로 불러왔습니다: %s\n", filename);
 }
-
