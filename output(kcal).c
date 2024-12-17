@@ -99,7 +99,7 @@ int main() {
 
 // 파일에서 데이터 읽기
 void loadFromFile() {
-    FILE* file = fopen("database.txt", "r");  // 파일 이름 고정
+    FILE* file = fopen("database_kcal.txt", "r");  // 파일 이름 고정
     if (!file) {
         printf("파일을 열 수 없습니다: database.txt\n");
         exit(1);
