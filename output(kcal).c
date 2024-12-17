@@ -72,6 +72,8 @@ int main() {
 
         while (getchar() != '\n');  // 버퍼 비우기
 
+        
+
         switch (choice) {
         case 1:
             sortByDateAndCalories();
