@@ -907,7 +907,7 @@ void cleanup(ItemList* list) {
 void printBanner(const char* title) {
     setTextColor(14); // 노란색
     printf("\n=================================\n");
-    printf("||%-29s||\n", title);
+    printf("||%-33s||\n", title);
     printf("=================================\n\n");
     setTextColor(7); // 기본 색상
 }
@@ -1311,7 +1311,9 @@ void resetTimetable() {
             schedule[i][j][0] = '\0';
         }
     }
+    setTextColor(12);
     printf("시간표가 초기화되었습니다.\n");
+    setTextColor(7);
 }
 
 // 시간표 데이터 저장
@@ -1341,7 +1343,9 @@ void saveTimetableToFile() {
     }
 
     fclose(file);
+    setTextColor(14);
     printf("시간표가 저장되었습니다.\n");
+    setTextColor(7);
 }
 
 // 시간표 입력
@@ -1349,8 +1353,9 @@ void inputTimetable() {
     char day[MAX_LENGTH];
     int period;
     char subject[MAX_LENGTH];
-
+    setTextColor(14);
     printf("시간표를 입력하세요 (예: 월 1 수학): ");
+    setTextColor(7);
     scanf(" %s %d %[^\n]", day, &period, subject);
 
     // 요일 인덱스 찾기
@@ -1363,18 +1368,24 @@ void inputTimetable() {
     }
 
     if (dayIndex == -1 || period < 1 || period > MAX_PERIODS) {
+        setTextColor(12);
         fprintf(stderr, "잘못된 입력입니다. 다시 시도해주세요.\n");
+        setTextColor(7);
         return;
     }
 
     strcpy(schedule[dayIndex][period - 1], subject);
+    setTextColor(14);
     printf("\n%s %d교시가 %s로 저장되었습니다.\n", days[dayIndex], period, subject);
+    setTextColor(7);
     getchar();
 }
 
 // 시간표 출력
 void displayTimetable() {
+    setTextColor(2);
     printf("\n==== 현재 시간표 ====\n");
+    setTextColor(10);
     for (int i = 0; i < MAX_DAYS; i++) {
         for (int j = 0; j < MAX_PERIODS; j++) {
             if (strlen(schedule[i][j]) > 0) {
@@ -1382,7 +1393,9 @@ void displayTimetable() {
             }
         }
     }
+    setTextColor(2);
     printf("=====================\n");
+    setTextColor(7);
 }
 
 void loadTimetableFromFile(const char* filename) {
@@ -1418,7 +1431,9 @@ void loadTimetableFromFile(const char* filename) {
     }
 
     fclose(file);
+    setTextColor(12);
     printf("데이터를 불러왔습니다: %s\n", filename);
+    setTextColor(7);
 }
 
 void runTimetableInputModule() {
@@ -1427,12 +1442,14 @@ void runTimetableInputModule() {
 
     while (1) {
         clearScreen();
+        setTextColor(11);
         printf("\n==== 시간표 입력 모듈 ====\n");
         printf("1. 시간표 입력\n");
         printf("2. 시간표 보기\n");
         printf("3. 시간표 초기화\n");
         printf("4. 시간표 저장 및 종료\n");
         printf("==========================\n");
+        setTextColor(7);
         printf("선택: ");
         scanf("%d", &choice);
         clearInputBuffer_();
@@ -1453,7 +1470,9 @@ void runTimetableInputModule() {
             printf("시간표를 저장하고 종료합니다.\n");
             exit(0);
         default:
+            setTextColor(12);
             fprintf(stderr, "잘못된 선택입니다. 다시 시도해주세요.\n");
+            setTextColor(7);
         }
         printf("\nEnter 키를 누르면 계속...");
         getchar();
@@ -1469,14 +1488,18 @@ void copyDatabaseFile(const char* sourceFile, const char* destFile) {
     // 원본 파일 열기
     source = fopen(sourceFile, "rb");
     if (!source) {
+        setTextColor(4);
         fprintf(stderr, "원본 파일을 열 수 없습니다: %s\n", sourceFile);
+        setTextColor(7);
         return;
     }
 
     // 대상 파일 열기
     dest = fopen(destFile, "wb");
     if (!dest) {
+        setTextColor(4);
         fprintf(stderr, "대상 파일을 열 수 없습니다: %s\n", destFile);
+        setTextColor(7);
         fclose(source);
         return;
     }
@@ -1489,14 +1512,17 @@ void copyDatabaseFile(const char* sourceFile, const char* destFile) {
     // 파일 닫기
     fclose(source);
     fclose(dest);
-
+    setTextColor(10);
     printf("파일이 성공적으로 복사되었습니다: %s -> %s\n", sourceFile, destFile);
+    setTextColor(7);
 }
 
 void loadAccountingData(const char* filename, Record* incomeRecords, int* incomeCount, Record* expenseRecords, int* expenseCount) {
     FILE* file = fopen(filename, "r");
     if (file == NULL) {
+        setTextColor(4);
         printf("파일을 열 수 없습니다: %s\n", filename);
+        setTextColor(7);
         return;
     }
 
@@ -1505,7 +1531,9 @@ void loadAccountingData(const char* filename, Record* incomeRecords, int* income
 
     // 첫 번째 줄 확인 (2로 고정)
     if (fscanf(file, "%d", &count) != 1 || count != 2) {
+        setTextColor(4);
         printf("잘못된 파일 형식입니다.\n");
+        setTextColor(7);
         fclose(file);
         return;
     }
@@ -1533,27 +1561,36 @@ void loadAccountingData(const char* filename, Record* incomeRecords, int* income
     }
 
     fclose(file);
+    setTextColor(10);
     printf("데이터를 성공적으로 불러왔습니다: %s\n", filename);
+    setTextColor(7);
 }
 
 void deleteRecord(Record records[], int* count, char* recordType) {
     if (*count == 0) {
+        setTextColor(12);
         printf("삭제할 %s 항목이 없습니다.\n", recordType);
+        setTextColor(7);
         return;
     }
-
+    setTextColor(6);
     printf("\n========== %s 내역 ==========\n", recordType);
+    setTextColor(14);
     for (int i = 0; i < *count; i++) {
         printf("%d. 금액: %d, 출처: %s, 날짜: %s\n", i + 1, records[i].amount, records[i].description, records[i].date);
     }
+    setTextColor(12);
 
     printf("\n삭제할 항목 번호를 입력하세요 (0 입력 시 취소): ");
+    setTextColor(7);
     int deleteIndex;
     scanf("%d", &deleteIndex);
     getchar();
 
     if (deleteIndex <= 0 || deleteIndex > *count) {
+        setTextColor(12);
         printf("잘못된 선택입니다. 삭제를 취소합니다.\n");
+        setTextColor(7);
         return;
     }
 
@@ -1562,5 +1599,7 @@ void deleteRecord(Record records[], int* count, char* recordType) {
         records[i] = records[i + 1];
     }
     (*count)--;
+    setTextColor(12);
     printf("%s 항목이 삭제되었습니다.\n", recordType);
+    setTextColor(7);
 }
