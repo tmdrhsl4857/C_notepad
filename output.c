@@ -92,12 +92,10 @@ void setTextColor(int color);
 void clearInputBuffer();
 
 int main() {
-    setTextColor(15);
     printf("이 프로그램은 input.c와 호환되는 전용 출력 프로그램입니다.\n\n");
     printf("아직 개발중인 버전으로 안정성이 낮으며 언제든지 변경될 수 있습니다.\n\n");
     printf("현재를 기준으로 지원되는 모듈은 4가지이며 그 외의 기능을 지원하지 않습니다.\n\n");
     printf("database.txt가 출력 모듈에 알맞지 않는 형태일 때 오류가 발생할 수 있으니 사전에 확인바랍니다.\n\n");
-    setTextColor(7);
     printf("\n아무 키나 누르면 시작합니다...\n");
 
     char dum = getchar();
@@ -141,20 +139,15 @@ int main_kcal() {
     // 메뉴 출력
     while (1) {
         clearScreen();
-        setTextColor(11);
-        printf("\n======== 메뉴 ========\n");
+        printf("\n==== 메뉴 ====\n");
         printf("1. 날짜별 음식 섭취 출력\n");
         printf("2. 음식별 섭취 출력\n");
         printf("3. 분석 결과 출력\n");
         printf("4. 종료\n");
-        printf("======================\n");
-        setTextColor(7);
         printf("선택: ");
 
         if (scanf("%d", &choice) != 1) {
-            setTextColor(12);
             printf("잘못된 입력입니다. 숫자를 입력하세요.\n");
-            setTextColor(7);
             clearInputBuffer(); // 입력 버퍼 비우기
             continue;
         }
@@ -177,9 +170,7 @@ int main_kcal() {
             printf("프로그램을 종료합니다.\n");
             return 0;
         default:
-            setTextColor(4);
             printf("잘못된 선택입니다. 다시 시도하세요.\n");
-            setTextColor(7);
         }
     }
 
@@ -189,11 +180,9 @@ int main_kcal() {
 
 // 파일에서 데이터 읽기
 void loadFromFile() {
-    FILE* file = fopen("database.txt", "r");
+    FILE* file = fopen("database_kcal.txt", "r");
     if (!file) {
-        setTextColor(4);
-        printf("파일을 열 수 없습니다: database.txt\n");
-        setTextColor(7);
+        printf("파일을 열 수 없습니다: database_kcal.txt\n");
         exit(1);
     }
     printf("Debug: File opened successfully.\n");
@@ -203,9 +192,7 @@ void loadFromFile() {
     // 첫 번째 줄에 '1'이 있는지 확인
     if (fgets(line, sizeof(line), file)) {
         if (line[0] != '1') {  // 첫 번째 줄이 '1'이 아니면 잘못된 파일 형식
-            setTextColor(4);
             printf("잘못된 파일 형식: 첫 번째 줄이 '1'이어야 합니다.\n");
-            setTextColor(7);
             fclose(file);
             exit(1);
         }
@@ -215,9 +202,7 @@ void loadFromFile() {
     if (fgets(line, sizeof(line), file)) {
         // kcal가 아닌 경우 종료
         if (strncmp(line, "kcal", 2) != 0) {
-            setTextColor(4);
             printf("잘못된 파일 형식: 두 번째 줄은 'kcal'이어야 합니다.\n");
-            setTextColor(7);
             fclose(file);
             exit(1);
         }
@@ -448,7 +433,7 @@ void displayAnalysis() {
 
 
 int main_budget() {
-    const char* filename = "database.txt";
+    const char* filename = "database_budget.txt";
     Record* records = loadRecordsFromFile(filename);
 
     while (1) {
@@ -1025,7 +1010,7 @@ int main_schedule() {
     int choice;
 
     // 초기화
-    load_from_file(schedule, "database.txt");
+    load_from_file(schedule, "database_schedule.txt");
 
     do {
         clear_screen(); // 이전 화면 지우기
@@ -1045,7 +1030,7 @@ int main_schedule() {
             reset_schedule(schedule);
             break;
         case 4: // 프로그램 종료
-            save_to_file(schedule, "database.txt");
+            save_to_file(schedule, "database_schedule.txt");
             printf("프로그램을 종료합니다.\n");
             break;
         default:
@@ -1070,8 +1055,9 @@ int main_todolist() {
     int choice;
 
     // Load tasks from file
-    loadTasksFromFile(tasks, &taskCount, "database.txt");
+    loadTasksFromFile(tasks, &taskCount, "database_todolist.txt");
 
+    clearScreen();
     while (1) {
         printf("\nTo-Do List\n");
         printf("1. 목록 보여주기\n");
@@ -1203,7 +1189,7 @@ void updateTaskStatus(Task tasks[], int taskCount) {
     }
 
     printf("상태 업데이트가 성공적으로 되었습니다.\n");
-    saveTasksToFile(tasks, taskCount, "database.txt");
+    saveTasksToFile(tasks, taskCount, "database_todolist.txt");
 }
 
 int compareByDate(const void* a, const void* b) {
