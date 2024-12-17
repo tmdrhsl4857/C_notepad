@@ -218,7 +218,7 @@ void loadFromFile() {
     FILE* file = fopen("database_kcal.txt", "r");  // 파일 이름 고정
     if (!file) {
         setTextColor(4);
-        printf("파일을 열 수 없습니다: database.txt\n");
+        printf("파일을 열 수 없습니다: database_kcal.txt\n");
         setTextColor(7);
         exit(1);
     }
@@ -357,7 +357,7 @@ void displayByDate() {
         // 같은 날짜에 여러 음식이 있으면 각각 출력
         setTextColor(13);
         printf("| %-10s | %-17s | %-12d |\n", foodRecords[i].date, foodRecords[i].foodName, foodRecords[i].calories);
-        
+
 
         // 해당 날짜의 칼로리 합산
         dailyCalories += foodRecords[i].calories;
