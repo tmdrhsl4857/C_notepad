@@ -743,8 +743,8 @@ void printAllExpenses(Record* head) {
 
     // 텍스트 기반 그래프 출력
     printBarGraph(monthlyExpenses, 12);
-
-    printf("\n전체 지출 내역:\n");
+    setTextColor(13);
+    printf("\n전체 지출 내역\n");
     current = head;
     while (current != NULL) {
         if (current->type == '-') {
@@ -753,12 +753,17 @@ void printAllExpenses(Record* head) {
         }
         current = current->next;
     }
+    setTextColor(7);
     if (!hasExpenses) {
+        setTextColor(12);
         printf("지출 내역이 없습니다.\n");
+        setTextColor(7);
     }
     else {
         int month;
+        setTextColor(14);
         printf("\n특정 월의 지출 내역을 보시겠습니까? (1-12, 0: 취소): ");
+        setTextColor(7);
         scanf("%d", &month);
         getchar(); // 버퍼 비우기
         if (month >= 1 && month <= 12) {
@@ -779,9 +784,10 @@ void printMonthlyDetails(Record* head, int month) {
     clearScreen();
     Record* current = head;
     int hasExpenses = 0;
-
-    printf("\n%d월의 지출 내역:\n", month);
+    setTextColor(4);
+    printf("\n======%d월의 지출 내역======\n\n", month);
     while (current != NULL) {
+        setTextColor(12);
         if (current->type == '-') {
             int recordMonth;
             sscanf(current->date, "%*4d%2d", &recordMonth);
@@ -796,8 +802,12 @@ void printMonthlyDetails(Record* head, int month) {
     if (!hasExpenses) {
         printf("%d월의 지출 내역이 없습니다.\n", month);
     }
+    setTextColor(4);
+    printf("\n===========================\n");
+    setTextColor(7);
 
     // 상위 메뉴로 복귀
+    setTextColor(7);
     printf("\n아무 키나 누르면 전체 지출 내역 화면으로 돌아갑니다...");
     getchar(); // 키 입력 대기
     clearScreen(); // 화면 초기화
@@ -807,11 +817,15 @@ void printMonthlyDetails(Record* head, int month) {
 
 void printMainMenu(int balance) {
     clearScreen();
-    printf("===== 메뉴 =====\n");
+    setTextColor(15);
     printf("현재 잔액: %d원\n\n", balance);
+    setTextColor(11);
+    printf("====== 메뉴 ======\n");
     printf("1. 지출 내역 확인\n");
     printf("2. 수익 내역 확인\n");
     printf("3. 프로그램 종료\n");
+    printf("==================\n");
+    setTextColor(7);
     printf("선택: ");
 }
 
@@ -821,8 +835,10 @@ void printIncomeDetails(Record* head) {
 }
 
 void printBarGraph(int data[], int size) {
+    setTextColor(4);
     printf("\n=== 월별 지출 그래프 ===\n");
     printf("그래프 단위: 10000원\n\n");
+    setTextColor(12);
     for (int i = 0; i < size; i++) {
         printf("%2d월: ", i + 1);
         for (int j = 0; j < data[i] / 10000; j++) { // 만원 단위로 스케일링
@@ -830,6 +846,9 @@ void printBarGraph(int data[], int size) {
         }
         printf(" (%d원)\n", data[i]);
     }
+    setTextColor(4);
+    printf("\n=======================\n");
+    setTextColor(7);
 }
 
 void printAllIncomes(Record* head) {
@@ -853,8 +872,10 @@ void printAllIncomes(Record* head) {
     }
 
     // 텍스트 기반 그래프 출력
+    setTextColor(2);
     printf("\n=== 월별 수익 그래프 ===\n");
     printf("그래프 단위: 10000원\n\n");
+    setTextColor(10);
     for (int i = 0; i < 12; i++) {
         printf("%2d월: ", i + 1);
         for (int j = 0; j < monthlyIncomes[i] / 10000; j++) { // 만원 단위로 스케일링
@@ -862,8 +883,9 @@ void printAllIncomes(Record* head) {
         }
         printf(" (%d원)\n", monthlyIncomes[i]);
     }
-
-    printf("\n전체 수익 내역:\n");
+    printf("\n======================\n");
+    setTextColor(13);
+    printf("\n전체 수익 내역\n");
     current = head;
     while (current != NULL) {
         if (current->type == '+') {
@@ -872,12 +894,17 @@ void printAllIncomes(Record* head) {
         }
         current = current->next;
     }
+    setTextColor(7);
     if (!hasIncome) {
+        setTextColor(12);
         printf("수익 내역이 없습니다.\n");
+        setTextColor(7);
     }
     else {
         int month;
+        setTextColor(14);
         printf("\n특정 월의 수익 내역을 보시겠습니까? (1-12, 0: 취소): ");
+        setTextColor(7);
         scanf("%d", &month);
         getchar(); // 버퍼 비우기
         if (month == 0) {
@@ -902,12 +929,14 @@ void printMonthlyIncomes(Record* head, int month) {
     clearScreen();
     Record* current = head;
     int hasIncome = 0;
-
-    printf("\n%d월의 수익 내역:\n", month);
+    setTextColor(2);
+    printf("\n======%d월의 수익 내역======\n\n", month);
     while (current != NULL) {
         if (current->type == '+') {
             int recordMonth;
+            setTextColor(7);
             sscanf(current->date, "%*4d%2d", &recordMonth);
+            setTextColor(10);
             if (recordMonth == month) {
                 hasIncome = 1;
                 printf("날짜: %s, 금액: %d원, 이유: %s\n", current->date, current->amount, current->description);
@@ -919,7 +948,9 @@ void printMonthlyIncomes(Record* head, int month) {
     if (!hasIncome) {
         printf("%d월의 수익 내역이 없습니다.\n", month);
     }
-
+    setTextColor(2);
+    printf("\n===========================\n");
+    setTextColor(7);
     // 상위 메뉴 복귀
     printf("\n아무 키나 누르면 전체 수익 내역 화면으로 돌아갑니다...");
     getchar(); // 키 입력 대기
