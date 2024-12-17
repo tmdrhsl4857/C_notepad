@@ -111,6 +111,8 @@ void inputTimetable();
 void displayTimetable();
 void runTimetableInputModule();
 void copyDatabaseFile(const char* sourceFile, const char* destFile);
+void loadAccountingData(const char* filename, Record* incomeRecords, int* incomeCount, Record* expenseRecords, int* expenseCount);
+
 
 int main() {
     ItemList rootList;
@@ -458,286 +460,103 @@ void printAvailableModules() {
 
 // 가계부 모듈 실행 함수
 void runAccountingModule(ItemList* rootList) {
-    // 가계부 모듈 시작 시 기존 정보 초기화
-    freeItemList(rootList);
-    initItemList(rootList);
+    int incomeCount = 0, expenseCount = 0;
+    Record incomeRecords[100]; // 수익 구조체 배열
+    Record expenseRecords[100]; // 지출 구조체 배열
 
-    char choice;
-    setTextColor(4);
-    printf("가계부 모듈 실행 시 현재 저장 파일이 훼손될 가능성이 있습니다. 진행하시겠습니까? (Y/N): ");
-    setTextColor(7);
-    scanf(" %c", &choice);
-    dummy = getchar(); // 버퍼 비우기
-    if (choice == 'Y' || choice == 'y') {
-        FILE* file = fopen("database.txt", "w");
-        if (file == NULL) {
-            setTextColor(4);
-            fprintf(stderr, "파일 저장 실패\n");
-            setTextColor(7);
-            return;
-        }
+    // 데이터 불러오기
+    loadAccountingData("database.txt", incomeRecords, &incomeCount, expenseRecords, &expenseCount);
 
+    while (1) {
+        clearScreen();
+        printf("\n========== 가계부 전용 입력 모듈 ==========\n"
+            "1. 수익 입력\n"
+            "2. 지출 입력\n"
+            "3. 수익/지출 내역 보기\n"
+            "4. 종료\n"
+            "===========================================\n");
+        printf("선택: ");
         int moduleChoice;
-        int incomeCount = 0, expenseCount = 0;
+        scanf("%d", &moduleChoice);
+        getchar(); // 버퍼 비우기
 
-        Record incomeRecords[100];  // 수익 저장 공간
-        Record expenseRecords[100]; // 지출 저장 공간
+        switch (moduleChoice) {
+        case 1: {
+            // 수익 입력
+            Record newRecord;
+            newRecord.type = '+';
+            printf("수익 금액: ");
+            scanf("%d", &newRecord.amount);
+            getchar();
 
-        while (1) {
-            clearScreen();
-            setTextColor(11);
-            printf("\n========== 가계부 전용 입력 모듈 =========="
-                "\n1. 수익 입력"
-                "\n2. 지출 입력"
-                "\n3. 수익/지출 내역 보기"
-                "\n4. 수익 정정(수정 및 삭제)"
-                "\n5. 지출 정정(수정 및 삭제)"
-                "\n6. 종료"
-                "\n===========================================\n");
-            setTextColor(7);
-            printf("선택: ");
-            scanf("%d", &moduleChoice);
-            dummy = getchar(); // 버퍼 비우기
+            printf("출처: ");
+            fgets(newRecord.description, sizeof(newRecord.description), stdin);
+            newRecord.description[strcspn(newRecord.description, "\n")] = '\0';
 
-            if (moduleChoice == 6) {
-                // 종료 시 현재 입력된 정보를 파일에 기록
-                fprintf(file, "2\n+");
-                fprintf(file, "\n%d\n", incomeCount);
+            printf("날짜 (예: 20240101): ");
+            fgets(newRecord.date, sizeof(newRecord.date), stdin);
+            newRecord.date[strcspn(newRecord.date, "\n")] = '\0';
+
+            incomeRecords[incomeCount++] = newRecord;
+            break;
+        }
+        case 2: {
+            // 지출 입력
+            Record newRecord;
+            newRecord.type = '-';
+            printf("지출 금액: ");
+            scanf("%d", &newRecord.amount);
+            getchar();
+
+            printf("출처: ");
+            fgets(newRecord.description, sizeof(newRecord.description), stdin);
+            newRecord.description[strcspn(newRecord.description, "\n")] = '\0';
+
+            printf("날짜 (예: 20240101): ");
+            fgets(newRecord.date, sizeof(newRecord.date), stdin);
+            newRecord.date[strcspn(newRecord.date, "\n")] = '\0';
+
+            expenseRecords[expenseCount++] = newRecord;
+            break;
+        }
+        case 3:
+            // 수익 및 지출 내역 보기
+            printf("\n========== 수익 내역 ==========\n");
+            for (int i = 0; i < incomeCount; i++) {
+                printf("%d. 금액: %d, 출처: %s, 날짜: %s\n", i + 1, incomeRecords[i].amount, incomeRecords[i].description, incomeRecords[i].date);
+            }
+
+            printf("\n========== 지출 내역 ==========\n");
+            for (int i = 0; i < expenseCount; i++) {
+                printf("%d. 금액: %d, 출처: %s, 날짜: %s\n", i + 1, expenseRecords[i].amount, expenseRecords[i].description, expenseRecords[i].date);
+            }
+            printf("\n아무 키나 누르면 계속합니다...");
+            getchar();
+            break;
+
+        case 4: {
+            // 코드 블록 추가
+            FILE* file = fopen("database.txt", "w");
+            if (file) {
+                fprintf(file, "2\n+%d\n", incomeCount);
                 for (int i = 0; i < incomeCount; i++) {
                     fprintf(file, "%d %s %s\n0\n", incomeRecords[i].amount, incomeRecords[i].description, incomeRecords[i].date);
                 }
-                fprintf(file, "-\n%d\n", expenseCount);
+                fprintf(file, "-%d\n", expenseCount);
                 for (int i = 0; i < expenseCount; i++) {
                     fprintf(file, "%d %s %s\n0\n", expenseRecords[i].amount, expenseRecords[i].description, expenseRecords[i].date);
                 }
                 fclose(file);
-                copyDatabaseFile("database.txt", "database_budget.txt");
-                printf("가계부 모듈을 종료합니다. 모든 입력된 정보가 저장되었습니다.\n");
-                printf("\n아무 키나 누르면 계속합니다...");
-                dummy = getchar();
-                exit(0); // 프로그램 종료
+                printf("모든 데이터가 저장되었습니다.\n");
             }
-
-            Record newRecord;
-
-            switch (moduleChoice) {
-            case 1:
-                newRecord.type = '+';
-                // 금액 입력
-                setTextColor(2);
-                printf("수익 금액을 입력해주세요: ");
-                scanf("%d", &newRecord.amount);
-                dummy = getchar(); // 버퍼 비우기
-
-                // 출처 입력
-                setTextColor(6);
-                printf("출처를 입력해주세요: ");
-                fgets(newRecord.description, sizeof(newRecord.description), stdin);
-                newRecord.description[strcspn(newRecord.description, "\n")] = '\0';  // 개행 문자 제거
-
-                // 날짜 입력
-                setTextColor(7);
-                printf("날짜를 입력해주세요 (예시: 20250101): ");
-                fgets(newRecord.date, sizeof(newRecord.date), stdin);
-                newRecord.date[strcspn(newRecord.date, "\n")] = '\0';  // 개행 문자 제거
-
-                // 입력된 정보를 저장
-                incomeRecords[incomeCount++] = newRecord;
-                break;
-            case 2:
-                newRecord.type = '-';
-                // 금액 입력
-                setTextColor(2);
-                printf("지출 금액을 입력해주세요: ");
-                scanf("%d", &newRecord.amount);
-                dummy = getchar(); // 버퍼 비우기
-
-                // 출처 입력
-                setTextColor(6);
-                printf("출처를 입력해주세요: ");
-                fgets(newRecord.description, sizeof(newRecord.description), stdin);
-                newRecord.description[strcspn(newRecord.description, "\n")] = '\0';  // 개행 문자 제거
-
-                // 날짜 입력
-                setTextColor(7);
-                printf("날짜를 입력해주세요 (예시: 20250101): ");
-                fgets(newRecord.date, sizeof(newRecord.date), stdin);
-                newRecord.date[strcspn(newRecord.date, "\n")] = '\0';  // 개행 문자 제거
-
-                // 입력된 정보를 저장
-                expenseRecords[expenseCount++] = newRecord;
-                break;
-            case 3:
-                // 수익/지출 내역 보기
-                setTextColor(2);
-                printf("\n========== 수익 내역 =========="
-                    "\n총 %d개의 수익 내역이 있습니다.\n\n", incomeCount);
-                setTextColor(10);
-                for (int i = 0; i < incomeCount; i++) {
-                    printf("%d. 금액: %d, 출처: %s, 날짜: %s\n", i + 1, incomeRecords[i].amount, incomeRecords[i].description, incomeRecords[i].date);
-                }
-                setTextColor(4);
-                printf("\n========== 지출 내역 =========="
-                    "\n총 %d개의 지출 내역이 있습니다.\n\n", expenseCount);
-                setTextColor(12);
-                for (int i = 0; i < expenseCount; i++) {
-                    printf("%d. 금액: %d, 출처: %s, 날짜: %s\n", i + 1, expenseRecords[i].amount, expenseRecords[i].description, expenseRecords[i].date);
-                }
-                setTextColor(7);
-                printf("\n아무 키나 누르면 계속합니다...");
-                dummy = getchar();
-                break;
-            case 4:
-                // 수익 정정(수정 및 삭제)
-                if (incomeCount == 0) {
-                    setTextColor(12);
-                    printf("수정할 수익 항목이 없습니다.\n아무 키나 누르면 계속합니다...");
-                    dummy = getchar();
-                    break;
-                }
-                setTextColor(2);
-                printf("\n========== 수익 내역 수정 =========="
-                    "\n총 %d개의 수익 내역이 있습니다.\n\n", incomeCount);
-                setTextColor(10);
-                for (int i = 0; i < incomeCount; i++) {
-                    printf("%d. 금액: %d, 출처: %s, 날짜: %s\n", i + 1, incomeRecords[i].amount, incomeRecords[i].description, incomeRecords[i].date);
-                }
-                int incomeIndex;
-                setTextColor(14);
-                printf("\n수정 또는 삭제할 항목 번호를 입력하세요 (0을 입력하면 취소됩니다): ");
-                setTextColor(7);
-                scanf("%d", &incomeIndex);
-                dummy = getchar();
-                if (incomeIndex == 0 || incomeIndex > incomeCount) {
-                    setTextColor(12);
-                    printf("잘못된 선택이거나 취소를 선택하셨습니다. 아무 키나 누르면 계속합니다...");
-                    setTextColor(7);
-                    dummy = getchar();
-                    break;
-                }
-                setTextColor(14);
-                printf("\n1. 수정");
-                setTextColor(12);
-                printf("\n2. 삭제");
-                setTextColor(7);
-                printf("\n선택: ");
-                int action;
-                scanf("%d", &action);
-                dummy = getchar();
-                if (action == 1) {
-                    // 수정 기능
-                    setTextColor(2);
-                    printf("\n새 수익 금액을 입력해주세요: ");
-                    scanf("%d", &incomeRecords[incomeIndex - 1].amount);
-                    dummy = getchar();
-
-                    setTextColor(6);
-                    printf("새 출처를 입력해주세요: ");
-                    fgets(incomeRecords[incomeIndex - 1].description, sizeof(incomeRecords[incomeIndex - 1].description), stdin);
-                    incomeRecords[incomeIndex - 1].description[strcspn(incomeRecords[incomeIndex - 1].description, "\n")] = '\0';
-
-                    setTextColor(7);
-                    printf("새 날짜를 입력해주세요 (예시: 20250101): ");
-                    fgets(incomeRecords[incomeIndex - 1].date, sizeof(incomeRecords[incomeIndex - 1].date), stdin);
-                    incomeRecords[incomeIndex - 1].date[strcspn(incomeRecords[incomeIndex - 1].date, "\n")] = '\0';
-                }
-                else if (action == 2) {
-                    // 삭제 기능
-                    for (int i = incomeIndex - 1; i < incomeCount - 1; i++) {
-                        incomeRecords[i] = incomeRecords[i + 1];
-                    }
-                    incomeCount--;
-                }
-                else {
-                    setTextColor(4);
-                    printf("잘못된 선택입니다. 아무 키나 누르면 계속합니다...");
-                    setTextColor(7);
-                    dummy = getchar();
-                }
-                break;
-            case 5:
-                // 지출 정정(수정 및 삭제)
-                if (expenseCount == 0) {
-                    setTextColor(12);
-                    printf("수정할 지출 항목이 없습니다.\n아무 키나 누르면 계속합니다...");
-                    setTextColor(7);
-                    dummy = getchar();
-                    break;
-                }
-                setTextColor(4);
-                printf("\n========== 지출 내역 수정 =========="
-                    "\n총 %d개의 지출 내역이 있습니다.\n\n", expenseCount);
-                setTextColor(12);
-                for (int i = 0; i < expenseCount; i++) {
-                    printf("%d. 금액: %d, 출처: %s, 날짜: %s\n", i + 1, expenseRecords[i].amount, expenseRecords[i].description, expenseRecords[i].date);
-                }
-                setTextColor(7);
-                int expenseIndex;
-                setTextColor(14);
-                printf("\n수정 또는 삭제할 항목 번호를 입력하세요 (0을 입력하면 취소됩니다): ");
-                setTextColor(7);
-                scanf("%d", &expenseIndex);
-                dummy = getchar();
-                if (expenseIndex == 0 || expenseIndex > expenseCount) {
-                    setTextColor(12);
-                    printf("잘못된 선택이거나 취소를 선택하셨습니다. 아무 키나 누르면 계속합니다...");
-                    setTextColor(7);
-                    dummy = getchar();
-                    break;
-                }
-                setTextColor(14);
-                printf("\n1. 수정");
-                setTextColor(12);
-                printf("\n2. 삭제");
-                setTextColor(7);
-                printf("\n선택: ");
-                scanf("%d", &action);
-                dummy = getchar();
-                if (action == 1) {
-                    // 수정 기능
-                    setTextColor(2);
-                    printf("\n새 금액을 입력해주세요: ");
-                    scanf("%d", &expenseRecords[expenseIndex - 1].amount);
-                    dummy = getchar();
-                    setTextColor(6);
-                    printf("새 출처를 입력해주세요: ");
-                    fgets(expenseRecords[expenseIndex - 1].description, sizeof(expenseRecords[expenseIndex - 1].description), stdin);
-                    expenseRecords[expenseIndex - 1].description[strcspn(expenseRecords[expenseIndex - 1].description, "\n")] = '\0';
-                    setTextColor(7);
-                    printf("새 날짜를 입력해주세요 (예시: 20250101): ");
-                    fgets(expenseRecords[expenseIndex - 1].date, sizeof(expenseRecords[expenseIndex - 1].date), stdin);
-                    expenseRecords[expenseIndex - 1].date[strcspn(expenseRecords[expenseIndex - 1].date, "\n")] = '\0';
-                }
-                else if (action == 2) {
-                    // 삭제 기능
-                    for (int i = expenseIndex - 1; i < expenseCount - 1; i++) {
-                        expenseRecords[i] = expenseRecords[i + 1];
-                    }
-                    expenseCount--;
-                }
-                else {
-                    setTextColor(4);
-                    printf("잘못된 선택입니다. 아무 키나 누르면 계속합니다...");
-                    setTextColor(7);
-                    dummy = getchar();
-                }
-                break;
-            default:
-                setTextColor(4);
-                printf("잘못된 선택입니다. 다시 시도해주세요.\n");
-                printf("\n아무 키나 누르면 계속합니다...");
-                setTextColor(7);
-                dummy = getchar();
-                break;
+            else {
+                printf("파일 저장 중 오류가 발생했습니다.\n");
             }
+            return;
         }
-    }
-    else {
-        setTextColor(12);
-        printf("가계부 모듈 실행이 취소되었습니다.\n");
-        setTextColor(7);
-        printf("\n아무 키나 누르면 계속합니다...");
-        dummy = getchar();
+        default:
+            printf("잘못된 선택입니다. 다시 입력해주세요.\n");
+        }
     }
 }
 
@@ -1150,17 +969,54 @@ void handleModuleChoice(ItemList* rootList) {
         scanf(" %c", &moduleChoice);
         clearInputBuffer();
 
-        if (moduleChoice == '1') {
-            runAccountingModule(rootList);
-        }
-        else if (moduleChoice == '2') {
-            runTodolistModule();
-        }
-        else if (moduleChoice == '3') {
-            runKcalInputModule();
-        }
-        else if (moduleChoice == '4') {
-            runTimetableInputModule(); // 시간표 입력 모듈 실행
+        if (moduleChoice >= '1' && moduleChoice <= '4') {
+            char moduleFilename[50];
+            const char* moduleNames[] = {
+                "database_budget.txt",
+                "database_todolist.txt",
+                "database_kcal.txt",
+                "database_schedule.txt"
+            };
+
+            // 모듈 데이터베이스 파일 선택
+            snprintf(moduleFilename, sizeof(moduleFilename), "%s", moduleNames[moduleChoice - '1']);
+
+            // 사용자 선택
+            int loadChoice;
+            printf("\n1. database.txt 초기화 및 실행\n");
+            printf("2. %s 불러와 실행\n", moduleFilename);
+            printf("선택: ");
+            scanf("%d", &loadChoice);
+            clearInputBuffer();
+
+            if (loadChoice == 1) {
+                printf("database.txt 초기화 후 모듈을 실행합니다...\n");
+                FILE* file = fopen("database.txt", "w");
+                if (file) {
+                    fclose(file);
+                    printf("database.txt 초기화 완료.\n");
+                }
+                else {
+                    fprintf(stderr, "파일 초기화 실패!\n");
+                    return;
+                }
+            }
+            else if (loadChoice == 2) {
+                printf("%s에서 정보를 불러옵니다...\n", moduleFilename);
+                copyDatabaseFile(moduleFilename, "database.txt");
+            }
+            else {
+                fprintf(stderr, "잘못된 선택입니다.\n");
+                continue;
+            }
+
+            // 모듈 실행
+            switch (moduleChoice) {
+            case '1': runAccountingModule(rootList); break;
+            case '2': runTodolistModule(); break;
+            case '3': runKcalInputModule(); break;
+            case '4': runTimetableInputModule(); break;
+            }
         }
         else if (moduleChoice == 'q' || moduleChoice == 'Q') {
             printf("모듈 선택을 종료합니다.\n");
@@ -1171,6 +1027,7 @@ void handleModuleChoice(ItemList* rootList) {
         }
     }
 }
+
 
 void clearInputBuffer() {
     int ch;
@@ -1574,3 +1431,45 @@ void copyDatabaseFile(const char* sourceFile, const char* destFile) {
 
     printf("파일이 성공적으로 복사되었습니다: %s -> %s\n", sourceFile, destFile);
 }
+
+void loadAccountingData(const char* filename, Record* incomeRecords, int* incomeCount, Record* expenseRecords, int* expenseCount) {
+    FILE* file = fopen(filename, "r");
+    if (file == NULL) {
+        printf("파일을 열 수 없습니다: %s\n", filename);
+        return;
+    }
+
+    int count = 0;
+    char type;
+
+    // 첫 번째 줄 확인 (2로 고정)
+    if (fscanf(file, "%d", &count) != 1 || count != 2) {
+        printf("잘못된 파일 형식입니다.\n");
+        fclose(file);
+        return;
+    }
+
+    // 수익 데이터 읽기
+    if (fscanf(file, " %c", &type) == 1 && type == '+') {
+        fscanf(file, "%d", incomeCount);
+        for (int i = 0; i < *incomeCount; i++) {
+            fscanf(file, "%d %s %s", &incomeRecords[i].amount, incomeRecords[i].description, incomeRecords[i].date);
+            incomeRecords[i].type = '+'; // type 필드 설정
+            fscanf(file, "%*d"); // '0' 읽기 (구분자)
+        }
+    }
+
+    // 지출 데이터 읽기
+    if (fscanf(file, " %c", &type) == 1 && type == '-') {
+        fscanf(file, "%d", expenseCount);
+        for (int i = 0; i < *expenseCount; i++) {
+            fscanf(file, "%d %s %s", &expenseRecords[i].amount, expenseRecords[i].description, expenseRecords[i].date);
+            expenseRecords[i].type = '-'; // type 필드 설정
+            fscanf(file, "%*d"); // '0' 읽기 (구분자)
+        }
+    }
+
+    fclose(file);
+    printf("데이터를 성공적으로 불러왔습니다: %s\n", filename);
+}
+
