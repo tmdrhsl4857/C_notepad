@@ -135,7 +135,7 @@ int main() {
         printHelp();
     }
 
-    // 데이터 로드
+    copyDatabaseFile("database_main.txt", "database.txt");
     loadDatabaseFromFile("database.txt", &rootList);
 
     char choice; // char로 변경하여 숫자와 문자를 모두 처리
@@ -260,7 +260,11 @@ int main() {
         case '5':
             clearScreen();
             printBanner("프로그램 종료");
+
             saveDatabaseToFile("database.txt", &rootList);
+            // database.txt 내용을 database_main.txt에 백업
+            copyDatabaseFile("database.txt", "database_main.txt");
+
             printf("데이터를 저장하고 프로그램을 종료합니다.\n");
             freeItemList(&rootList);
             return 0;
@@ -881,6 +885,10 @@ void handleModuleChoice(ItemList* rootList) {
         clearInputBuffer();
 
         if (moduleChoice >= '1' && moduleChoice <= '4') {
+            saveDatabaseToFile("database.txt", rootList);
+            copyDatabaseFile("database.txt", "database_main.txt");
+            getchar();
+
             char moduleFilename[50];
             const char* moduleNames[] = {
                 "database_budget.txt",
