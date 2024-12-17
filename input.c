@@ -149,7 +149,6 @@ int main() {
         switch (choice) {
         case '1': {
             clearScreen();
-            setTextColor(11);
             printBanner("새 항목 추가");
             char itemName[NAME_LENGTH];
             setTextColor(10);
@@ -186,7 +185,7 @@ int main() {
                 deleteItem(&rootList, deleteIndex - 1);
             }
             else {
-                setTextColor(4);
+                setTextColor(12);
                 printf("잘못된 선택입니다.\n");
                 setTextColor(7);
             }
@@ -224,7 +223,7 @@ int main() {
                 editItemName(rootList.items[editIndex - 1], itemName);
             }
             else {
-                setTextColor(4);
+                setTextColor(12);
                 printf("잘못된 선택입니다.\n");
                 setTextColor(7);
             }
@@ -251,7 +250,7 @@ int main() {
                 navigateItem(rootList.items[index - 1]);
             }
             else {
-                setTextColor(4);
+                setTextColor(12);
                 printf("잘못된 선택입니다.\n");
                 setTextColor(7);
             }
@@ -273,7 +272,7 @@ int main() {
             handleModuleChoice(&rootList);
             break;
         default:
-            setTextColor(4); // 빨간색
+            setTextColor(12); // 빨간색
             printf("잘못된 선택입니다. 다시 시도해주세요.\n");
             setTextColor(7); // 기본 색상
             printf("\n아무 키나 누르면 계속합니다...");
@@ -458,7 +457,6 @@ void loadDatabaseFromFile(const char* filename, ItemList* rootList) {
 void printAvailableModules() {
     setTextColor(11);
     printf("======================");
-    printf("\n현재 지원 가능한 모듈:\n");
     printf("1. 가계부 모듈\n");
     printf("2. ToDolist 모듈\n");
     printf("3. Kcal 모듈\n");
@@ -478,6 +476,7 @@ void runAccountingModule(ItemList* rootList) {
 
     while (1) {
         clearScreen();
+        setTextColor(11);
         printf("\n========== 가계부 전용 입력 모듈 ==========\n"
             "1. 수익 입력\n"
             "2. 지출 입력\n"
@@ -485,6 +484,7 @@ void runAccountingModule(ItemList* rootList) {
             "4. 수익/지출 삭제\n"
             "5. 종료\n"
             "===========================================\n");
+        setTextColor(7);
         printf("선택: ");
         int moduleChoice;
         scanf("%d", &moduleChoice);
@@ -495,15 +495,19 @@ void runAccountingModule(ItemList* rootList) {
             // 수익 입력
             Record newRecord;
             newRecord.type = '+';
+            setTextColor(10);
             printf("수익 금액: ");
+            setTextColor(7);
             scanf("%d", &newRecord.amount);
             getchar();
-
+            setTextColor(6);
             printf("출처: ");
+            setTextColor(7);
             fgets(newRecord.description, sizeof(newRecord.description), stdin);
             newRecord.description[strcspn(newRecord.description, "\n")] = '\0';
-
+            setTextColor(13);
             printf("날짜 (예: 20240101): ");
+            setTextColor(7);
             fgets(newRecord.date, sizeof(newRecord.date), stdin);
             newRecord.date[strcspn(newRecord.date, "\n")] = '\0';
 
@@ -514,15 +518,19 @@ void runAccountingModule(ItemList* rootList) {
             // 지출 입력
             Record newRecord;
             newRecord.type = '-';
+            setTextColor(12);
             printf("지출 금액: ");
+            setTextColor(7);
             scanf("%d", &newRecord.amount);
             getchar();
-
+            setTextColor(6);
             printf("출처: ");
+            setTextColor(7);
             fgets(newRecord.description, sizeof(newRecord.description), stdin);
             newRecord.description[strcspn(newRecord.description, "\n")] = '\0';
-
+            setTextColor(13);
             printf("날짜 (예: 20240101): ");
+            setTextColor(7);
             fgets(newRecord.date, sizeof(newRecord.date), stdin);
             newRecord.date[strcspn(newRecord.date, "\n")] = '\0';
 
@@ -531,15 +539,20 @@ void runAccountingModule(ItemList* rootList) {
         }
         case 3:
             // 수익 및 지출 내역 보기
+            setTextColor(2);
             printf("\n========== 수익 내역 ==========\n");
+            setTextColor(10);
             for (int i = 0; i < incomeCount; i++) {
                 printf("%d. 금액: %d, 출처: %s, 날짜: %s\n", i + 1, incomeRecords[i].amount, incomeRecords[i].description, incomeRecords[i].date);
             }
-
+            setTextColor(7);
+            setTextColor(4);
             printf("\n========== 지출 내역 ==========\n");
+            setTextColor(12);
             for (int i = 0; i < expenseCount; i++) {
                 printf("%d. 금액: %d, 출처: %s, 날짜: %s\n", i + 1, expenseRecords[i].amount, expenseRecords[i].description, expenseRecords[i].date);
             }
+            setTextColor(7);
             printf("\n아무 키나 누르면 계속합니다...");
             getchar();
             break;
@@ -574,13 +587,13 @@ void runAccountingModule(ItemList* rootList) {
                 fclose(file);
                 copyDatabaseFile("database.txt", "database_budget.txt");
                 printf("모든 데이터가 저장되었습니다.\n");
-                
+
                 exit(0);
             }
             else {
                 printf("파일 저장 중 오류가 발생했습니다.\n");
             }
-            
+
         }
         default:
             printf("잘못된 선택입니다. 다시 입력해주세요.\n");
@@ -1174,7 +1187,7 @@ void runKcalInputModule() {
             exit(0);
         default:
             printf("잘못된 선택입니다. 다시 입력해주세요.\n");
-            
+
         }
         printf("\n아무 키나 누르면 계속합니다...\n");
         getchar();
@@ -1324,7 +1337,7 @@ void loadTimetableFromFile(const char* filename) {
 void runTimetableInputModule() {
     int choice;
     loadTimetableFromFile("database_schedule.txt");
-    
+
     while (1) {
         clearScreen();
         printf("\n==== 시간표 입력 모듈 ====\n");
@@ -1420,7 +1433,7 @@ void loadAccountingData(const char* filename, Record* incomeRecords, int* income
         }
     }
 
-   // 지출 데이터 읽기
+    // 지출 데이터 읽기
     if (fscanf(file, " %c", &type) == 1 && type == '-') {
         if (fscanf(file, "%d", expenseCount) == 1) {
             for (int i = 0; i < *expenseCount; i++) {
