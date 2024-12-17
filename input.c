@@ -86,8 +86,8 @@ void loadItemListFromFile(ItemList* list, FILE* file);
 void loadDatabaseFromFile(const char* filename, ItemList* rootList);
 void printAvailableModules();
 void runAccountingModule(ItemList* rootList);
-void loadTodoListFromFile();
-void saveTodoListToFile();
+void loadTodoListFromFile(const char* filename, Todo todos[], int* count);
+void saveTodoListToFile(const char* filename, Todo todos[], int count);
 void addTodo();
 void displayTodos();
 void deleteTodo();
@@ -582,7 +582,6 @@ void runAccountingModule(ItemList* rootList) {
     }
 }
 
-// 데이터 불러오기 함수
 // 파일에서 Todo 데이터를 불러오는 함수
 void loadTodoListFromFile(const char* filename, Todo todos[], int* count) {
     FILE* file = fopen(filename, "r");
@@ -600,23 +599,32 @@ void loadTodoListFromFile(const char* filename, Todo todos[], int* count) {
 
     // Todo 데이터를 구조체 배열에 읽어오기
     for (int i = 0; i < *count; i++) {
-        if (fscanf(file, "%s %s %[^\n] %d",
-            todos[i].date,
-            todos[i].type,
-            todos[i].task,
-            &todos[i].status) != 4) {
-            printf("데이터를 읽는 중 오류 발생 (항목 %d)\n", i + 1);
+        todos[i].date[0] = '\0';
+        todos[i].type[0] = '\0';
+        todos[i].task[0] = '\0';
+        todos[i].status = 0;
+
+        if (fscanf(file, "%s %s %s %d",
+            todos[i].date, todos[i].type, todos[i].task, &todos[i].status) != 4) {
+            printf("데이터 읽기 오류: 항목 %d가 잘못되었습니다.\n", i + 1);
             fclose(file);
             return;
         }
-        fscanf(file, "%*d\n"); // 요소 끝의 '0' 무시
+
+        int endMarker;
+        if (fscanf(file, "%d", &endMarker) != 1 || endMarker != 0) { // '0' 확인
+            printf("항목 끝에 '0'이 누락되었거나 잘못된 형식입니다 (항목 %d)\n", i + 1);
+            fclose(file);
+            return;
+        }
     }
+
     fclose(file);
     printf("파일에서 %d개의 항목을 불러왔습니다.\n", *count);
-
-    printf("\n\n아무 키나 입력해주세요...");
+    printf("\n아무 키나 입력해주세요...");
     getchar();
 }
+
 
 // Todo 데이터를 파일에 저장하는 함수
 void saveTodoListToFile(const char* filename, Todo todos[], int count) {
@@ -632,12 +640,10 @@ void saveTodoListToFile(const char* filename, Todo todos[], int count) {
     // Todo 항목 저장
     for (int i = 0; i < count; i++) {
         fprintf(file, "%s %s %s %d\n",
-            todos[i].date,
-            todos[i].type,
-            todos[i].task,
-            todos[i].status);
-        fprintf(file, "0\n"); // 각 항목의 끝에 '0' 추가
+            todos[i].date, todos[i].type, todos[i].task, todos[i].status);
+        fprintf(file, "0\n"); // 항목의 끝에 '0' 추가
     }
+
     fclose(file);
     printf("Todo 항목이 파일에 저장되었습니다: %s\n", filename);
 }
@@ -1336,7 +1342,6 @@ void loadAccountingData(const char* filename, Record* incomeRecords, int* income
         }
     }
 
-    // 지출 데이터 읽기
    // 지출 데이터 읽기
     if (fscanf(file, " %c", &type) == 1 && type == '-') {
         if (fscanf(file, "%d", expenseCount) == 1) {
@@ -1381,4 +1386,3 @@ void deleteRecord(Record records[], int* count, char* recordType) {
     (*count)--;
     printf("%s 항목이 삭제되었습니다.\n", recordType);
 }
-
