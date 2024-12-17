@@ -41,8 +41,8 @@ _how_to_use(input.c support ver.)_  // Developer recommended method
   7. Execute output program
 
 # output(todolist).c  (할 일 목록/Kimseunggon)
-+ add_input.c_module_support(todolist)_not_yet
-+ add_module_not_yet
++ add_input.c_module_support(todolist)_202411xx
++ add_module_202411xx
 
 _how_to_use(self use)_
   1. Run database input program
@@ -67,7 +67,8 @@ _how_to_use(self use)_
   10. If you pressed 2, enter the task number you want to change the status of, then press 1-4 to set the status
 
 # output(kcal note).c (칼로리 메모장/Hwanghyeonjong)
-+ add_output.c_20241204 
++ add_input.c_module_support(todolist)_202412xx
++ add_output.c_20241204
 
 _how_to_use(self use)_
   1. Run database input program
